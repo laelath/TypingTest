@@ -13,11 +13,6 @@
 
 #include "typing_test.h"
 
-void testPrint(std::string in, int *num)
-{
-	std::cout << "entry added: " << in << std::endl;
-}
-
 int main(int argc, char *argv[])
 {
 	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(argc, argv, "us.laelath.typingtest");
@@ -60,12 +55,12 @@ int main(int argc, char *argv[])
 	TypingTest test(TestType::BASIC, 200, 60, std::chrono::system_clock::now().time_since_epoch().count());
 	textBuffer->set_text(test.getWords());
 	label->set_text(test.getTime());
-
-	//textBuffer->apply_tag(goodTag, textBuffer->get_iter_at_offset(0), textBuffer->get_iter_at_offset(4));
-	//textBuffer->apply_tag(errorTag, textBuffer->get_iter_at_offset(8), textBuffer->get_iter_at_offset(12));
-	//textBuffer->apply_tag(currentTag, textBuffer->get_iter_at_offset(54), textBuffer->get_iter_at_offset(64));
 	
-	entry->signal_insert_text().connect(sigc::ptr_fun(&testPrint));
+	Glib::RefPtr<Gtk::EntryBuffer> entryBuffer =
+		Glib::RefPtr<Gtk::EntryBuffer>::cast_static(builder->get_object("entrybuffer"));
+
+	//entryBuffer->signal_inserted_text().connect(sigc::mem_fun(&test, &TypingTest::textInsert));
+	//entryBuffer->signal_deleted_text().connect(sigc::mem_fun(&test, &TypingTest::textDelete));
 
 	quit->signal_activate().connect(sigc::mem_fun(appWindow, &Gtk::ApplicationWindow::close));
 

@@ -49,3 +49,20 @@ std::string TypingTest::getTime()
 	std::string secstr = (seconds % 60 < 10 ? "0" + std::to_string(seconds % 60) : std::to_string(seconds % 60));
 	return std::to_string(seconds / 60) + ":" + secstr;
 }
+
+void TypingTest::textInsert(int pos, const char *text, int num)
+{
+	if (text[0] == ' ') {
+		std::cout << this->currentWord << std::endl;
+		this->currentWord = "";
+	} else {
+		this->currentWord.insert(pos, text, num);
+	}
+}
+
+void TypingTest::textDelete(int pos, int num)
+{
+	if (!this->currentWord.empty()) {
+		this->currentWord.erase(pos, num);
+	}
+}

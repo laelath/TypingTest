@@ -24,6 +24,9 @@ class TypingTest {
 		std::string getWords();
 		std::string getTime();
 		//void run();
+		
+		void textInsert(int pos, const char *text, int num);
+		void textDelete(int pos, int num);
 
 	private:
 		std::unique_ptr<std::string> words;
