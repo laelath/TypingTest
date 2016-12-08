@@ -1,38 +1,46 @@
 #include "typing_test.h"
 
-#include <array>
 #include <fstream>
 #include <iostream>
 #include <random>
 
-TypingTest::TypingTest(Glib::RefPtr<Gtk::EntryBuffer> entryBuffer, TestType type, int topWords, int seconds,
-		uint32_t seed)
+TypingTest::TypingTest(Glib::RefPtr<Gtk::TextBuffer> textBuffer, Glib::RefPtr<Gtk::EntryBuffer> entryBuffer,
+		size_t topWords, size_t minLength, size_t maxLength, std::chrono::seconds seconds, uint32_t seed)
 {
-	this->words.reserve(seconds * MAX_SPEED);
 	this->entryBuffer = entryBuffer;
 	this->seconds = seconds;
 
 	this->connection =
 		entryBuffer->signal_inserted_text().connect(sigc::mem_fun(this, &TypingTest::textInsert));
 
-	if (type != TestType::BASIC) {
-		std::exit(1);
-	}
-
 	std::ifstream fileIn("words/google-10000-english-usa-no-swears.txt");
 	if (!fileIn.is_open()) {
 		std::exit(1);
 	}
 
-	std::string wordSelection[topWords];
-	for (int i = 0; i < topWords && std::getline(fileIn, wordSelection[i]); ++i);
+	std::vector<std::string> wordSelection;
+	wordSelection.reserve(topWords);
+	for (unsigned long i = 0; i < topWords; ) {
+		std::string line;
+		if (std::getline(fileIn, line)) {
+			if (line.length() >= minLength && line.length() <= maxLength) {
+				wordSelection.push_back(line);
+				i++;
+			}
+		} else {
+			break;
+		}
+	}
 
 	std::minstd_rand rand;
 	rand.seed(seed);
 
-	for (int i = 0; i < seconds * MAX_SPEED; ++i) {
-		this->words.push_back(wordSelection[rand() % topWords]);
+	this->words.reserve(seconds.count() * MAX_SPEED);
+	for (int i = 0; i < seconds.count() * MAX_SPEED; ++i) {
+		this->words.push_back(wordSelection[rand() % wordSelection.size()]);
 	}
+
+	textBuffer->set_text(this->getWords());
 }
 
 TypingTest::~TypingTest()
@@ -43,7 +51,7 @@ TypingTest::~TypingTest()
 std::string TypingTest::getWords()
 {
 	std::string text = this->words[0];
-	for (int i = 1; i < (int) this->words.size(); ++i) {
+	for (unsigned long i = 1; i < this->words.size(); ++i) {
 		text += " " + this->words[i];
 	}
 	return text;
@@ -51,9 +59,9 @@ std::string TypingTest::getWords()
 
 std::string TypingTest::getTime()
 {
-	std::string secstr = (seconds % 60 < 10 ?
-			"0" + std::to_string(seconds % 60) : std::to_string(seconds % 60));
-	return std::to_string(seconds / 60) + ":" + secstr;
+	std::string secstr = (seconds.count() % 60 < 10 ?
+			"0" + std::to_string(seconds.count() % 60) : std::to_string(seconds.count() % 60));
+	return std::to_string(seconds.count() / 60) + ":" + secstr;
 }
 
 void TypingTest::textInsert(int pos, const char *text, int num)

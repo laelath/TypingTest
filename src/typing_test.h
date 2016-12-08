@@ -1,25 +1,20 @@
 #ifndef TYPING_TEST_H
 #define TYPING_TEST_H
 
+#include <chrono>
 #include <string>
 #include <vector>
 
 #include <gtkmm/entrybuffer.h>
+#include <gtkmm/textbuffer.h>
 
 //max speed in WPS, to determine number of words needed
 #define MAX_SPEED 5 //300 WPM
 
-enum TestType {
-	BASIC,
-	LONG,
-	MEDIUM,
-	SHORT,
-	MIX
-};
-
 class TypingTest {
 	public:
-		TypingTest(Glib::RefPtr<Gtk::EntryBuffer> entryBuffer, TestType type, int topWords, int seconds,
+		TypingTest(Glib::RefPtr<Gtk::TextBuffer> textBuffer, Glib::RefPtr<Gtk::EntryBuffer> entryBuffer,
+				size_t topWords, size_t minLength, size_t maxLength, std::chrono::seconds seconds,
 				uint32_t seed);
 		~TypingTest();
 
@@ -35,7 +30,7 @@ class TypingTest {
 
 		std::vector<std::string> words;
 
-		int seconds;
+		std::chrono::seconds seconds;
 		int wordIndex = 0;
 		int charIndex = 0;
 };
