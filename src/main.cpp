@@ -52,15 +52,13 @@ int main(int argc, char *argv[])
 	textTags->add(errorTag);
 	textTags->add(goodTag);
 
-	TypingTest test(TestType::BASIC, 200, 60, std::chrono::system_clock::now().time_since_epoch().count());
+	Glib::RefPtr<Gtk::EntryBuffer> entryBuffer =
+		Glib::RefPtr<Gtk::EntryBuffer>::cast_static(builder->get_object("typingbuffer"));
+
+	TypingTest test(entryBuffer, TestType::BASIC, 200, 60,
+			std::chrono::system_clock::now().time_since_epoch().count());
 	textBuffer->set_text(test.getWords());
 	label->set_text(test.getTime());
-	
-	Glib::RefPtr<Gtk::EntryBuffer> entryBuffer =
-		Glib::RefPtr<Gtk::EntryBuffer>::cast_static(builder->get_object("entrybuffer"));
-
-	//entryBuffer->signal_inserted_text().connect(sigc::mem_fun(&test, &TypingTest::textInsert));
-	//entryBuffer->signal_deleted_text().connect(sigc::mem_fun(&test, &TypingTest::textDelete));
 
 	quit->signal_activate().connect(sigc::mem_fun(appWindow, &Gtk::ApplicationWindow::close));
 
