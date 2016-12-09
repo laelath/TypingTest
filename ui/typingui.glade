@@ -3,14 +3,17 @@
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <object class="GtkTextTag" id="currenttag">
+    <property name="name">current</property>
     <property name="background_rgba">rgb(211,215,207)</property>
     <property name="font">Normal</property>
   </object>
   <object class="GtkTextTag" id="errortag">
+    <property name="name">error</property>
     <property name="foreground_rgba">rgb(239,41,41)</property>
     <property name="font">Normal</property>
   </object>
   <object class="GtkTextTag" id="goodtag">
+    <property name="name">good</property>
     <property name="foreground_rgba">rgb(115,210,22)</property>
     <property name="font">Normal</property>
   </object>

@@ -5,9 +5,12 @@
 #include <random>
 
 TypingTest::TypingTest(Glib::RefPtr<Gtk::TextBuffer> textBuffer, Glib::RefPtr<Gtk::EntryBuffer> entryBuffer,
-		size_t topWords, size_t minLength, size_t maxLength, std::chrono::seconds seconds, uint32_t seed)
+		Gtk::Label *label, size_t topWords, size_t minLength, size_t maxLength, std::chrono::seconds seconds,
+		uint32_t seed)
 {
 	this->entryBuffer = entryBuffer;
+	this->textBuffer = textBuffer;
+	this->label = label;
 	this->seconds = seconds;
 
 	this->connection =
@@ -17,6 +20,8 @@ TypingTest::TypingTest(Glib::RefPtr<Gtk::TextBuffer> textBuffer, Glib::RefPtr<Gt
 	if (!fileIn.is_open()) {
 		std::exit(1);
 	}
+
+	label->set_text(this->getTime());
 
 	std::vector<std::string> wordSelection;
 	wordSelection.reserve(topWords);
@@ -36,23 +41,26 @@ TypingTest::TypingTest(Glib::RefPtr<Gtk::TextBuffer> textBuffer, Glib::RefPtr<Gt
 	rand.seed(seed);
 
 	this->words.reserve(seconds.count() * MAX_SPEED);
+	this->enteredWords.reserve(seconds.count() * MAX_SPEED);
 	for (int i = 0; i < seconds.count() * MAX_SPEED; ++i) {
 		this->words.push_back(wordSelection[rand() % wordSelection.size()]);
 	}
 
 	textBuffer->set_text(this->getWords());
+	textBuffer->apply_tag_by_name("current", textBuffer->get_iter_at_offset(0),
+			textBuffer->get_iter_at_offset(this->words[0].length()));
 }
 
 TypingTest::~TypingTest()
 {
-	this->connection.disconnect();
+	connection.disconnect();
 }
 
 std::string TypingTest::getWords()
 {
-	std::string text = this->words[0];
-	for (unsigned long i = 1; i < this->words.size(); ++i) {
-		text += " " + this->words[i];
+	std::string text = words[0];
+	for (unsigned long i = 1; i < words.size(); ++i) {
+		text += " " + words[i];
 	}
 	return text;
 }
@@ -68,7 +76,29 @@ void TypingTest::textInsert(int pos, const char *text, int num)
 {
 	if (num == 1) {
 		if (text[0] == ' ') {
-			std::cout << "word submitted: " << this->entryBuffer->get_text().substr(0, pos) << std::endl;
+			std::string word = entryBuffer->get_text().substr(0, pos);
+			if (word == words[wordIndex]) {
+				textBuffer->apply_tag_by_name("good",
+						textBuffer->get_iter_at_offset(this->wordCharIndex),
+						textBuffer->get_iter_at_offset(this->wordCharIndex +
+							this->words[this->wordIndex].length()));
+			} else {
+				this->textBuffer->apply_tag_by_name("error",
+						this->textBuffer->get_iter_at_offset(this->wordCharIndex),
+						this->textBuffer->get_iter_at_offset(this->wordCharIndex +
+							this->words[this->wordIndex].length()));
+			}
+			this->textBuffer->remove_tag_by_name("current",
+					this->textBuffer->get_iter_at_offset(this->wordCharIndex),
+					this->textBuffer->get_iter_at_offset(this->wordCharIndex +
+						this->words[this->wordIndex].length()));
+			this->wordCharIndex += this->words[this->wordIndex].length() + 1;
+			this->wordIndex++;
+			this->textBuffer->apply_tag_by_name("current",
+					this->textBuffer->get_iter_at_offset(this->wordCharIndex),
+					this->textBuffer->get_iter_at_offset(this->wordCharIndex +
+						this->words[this->wordIndex].length()));
+			this->enteredWords.push_back(word);
 			this->entryBuffer->delete_text(0, pos + 1);
 		}
 	}

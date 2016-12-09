@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <gtkmm/entrybuffer.h>
+#include <gtkmm/label.h>
 #include <gtkmm/textbuffer.h>
 
 //max speed in WPS, to determine number of words needed
@@ -14,8 +15,8 @@
 class TypingTest {
 	public:
 		TypingTest(Glib::RefPtr<Gtk::TextBuffer> textBuffer, Glib::RefPtr<Gtk::EntryBuffer> entryBuffer,
-				size_t topWords, size_t minLength, size_t maxLength, std::chrono::seconds seconds,
-				uint32_t seed);
+				Gtk::Label *label, size_t topWords, size_t minLength, size_t maxLength,
+				std::chrono::seconds seconds, uint32_t seed);
 		~TypingTest();
 
 		std::string getWords();
@@ -26,13 +27,16 @@ class TypingTest {
 
 	private:
 		Glib::RefPtr<Gtk::EntryBuffer> entryBuffer;
+		Glib::RefPtr<Gtk::TextBuffer> textBuffer;
+		Gtk::Label *label;
 		sigc::connection connection;
 
 		std::vector<std::string> words;
+		std::vector<std::string> enteredWords;
 
 		std::chrono::seconds seconds;
 		int wordIndex = 0;
-		int charIndex = 0;
+		int wordCharIndex = 0;
 };
 
 #endif
