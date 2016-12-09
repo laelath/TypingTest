@@ -4,12 +4,13 @@
 #include <iostream>
 #include <random>
 
-TypingTest::TypingTest(Glib::RefPtr<Gtk::TextBuffer> textBuffer, Glib::RefPtr<Gtk::EntryBuffer> entryBuffer,
+TypingTest::TypingTest(Gtk::TextView *textView, Glib::RefPtr<Gtk::EntryBuffer> entryBuffer,
 		Gtk::Label *label, size_t topWords, size_t minLength, size_t maxLength, std::chrono::seconds seconds,
 		uint32_t seed)
 {
 	this->entryBuffer = entryBuffer;
-	this->textBuffer = textBuffer;
+	this->textView = textView;
+	this->textBuffer = textView->get_buffer();
 	this->label = label;
 	this->seconds = seconds;
 
@@ -77,29 +78,32 @@ void TypingTest::textInsert(int pos, const char *text, int num)
 	if (num == 1) {
 		if (text[0] == ' ') {
 			std::string word = entryBuffer->get_text().substr(0, pos);
+			entryBuffer->delete_text(0, pos + 1);
+			enteredWords.push_back(word);
+
 			if (word == words[wordIndex]) {
 				textBuffer->apply_tag_by_name("good",
-						textBuffer->get_iter_at_offset(this->wordCharIndex),
-						textBuffer->get_iter_at_offset(this->wordCharIndex +
-							this->words[this->wordIndex].length()));
+						textBuffer->get_iter_at_offset(wordCharIndex),
+						textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].length()));
 			} else {
-				this->textBuffer->apply_tag_by_name("error",
-						this->textBuffer->get_iter_at_offset(this->wordCharIndex),
-						this->textBuffer->get_iter_at_offset(this->wordCharIndex +
-							this->words[this->wordIndex].length()));
+				textBuffer->apply_tag_by_name("error",
+						textBuffer->get_iter_at_offset(wordCharIndex),
+						textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].length()));
 			}
-			this->textBuffer->remove_tag_by_name("current",
-					this->textBuffer->get_iter_at_offset(this->wordCharIndex),
-					this->textBuffer->get_iter_at_offset(this->wordCharIndex +
-						this->words[this->wordIndex].length()));
-			this->wordCharIndex += this->words[this->wordIndex].length() + 1;
-			this->wordIndex++;
-			this->textBuffer->apply_tag_by_name("current",
-					this->textBuffer->get_iter_at_offset(this->wordCharIndex),
-					this->textBuffer->get_iter_at_offset(this->wordCharIndex +
-						this->words[this->wordIndex].length()));
-			this->enteredWords.push_back(word);
-			this->entryBuffer->delete_text(0, pos + 1);
+
+			textBuffer->remove_tag_by_name("current",
+					textBuffer->get_iter_at_offset(wordCharIndex),
+					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].length()));
+
+			wordCharIndex += words[wordIndex].length() + 1;
+			wordIndex++;
+
+			textBuffer->apply_tag_by_name("current",
+					textBuffer->get_iter_at_offset(wordCharIndex),
+					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].length()));
+
+			Gtk::TextBuffer::iterator itr = textBuffer->get_iter_at_offset(wordCharIndex);
+			textView->scroll_to(itr, 0.25);
 		}
 	}
 }

@@ -8,13 +8,14 @@
 #include <gtkmm/entrybuffer.h>
 #include <gtkmm/label.h>
 #include <gtkmm/textbuffer.h>
+#include <gtkmm/textview.h>
 
 //max speed in WPS, to determine number of words needed
 #define MAX_SPEED 5 //300 WPM
 
 class TypingTest {
 	public:
-		TypingTest(Glib::RefPtr<Gtk::TextBuffer> textBuffer, Glib::RefPtr<Gtk::EntryBuffer> entryBuffer,
+		TypingTest(Gtk::TextView *textView, Glib::RefPtr<Gtk::EntryBuffer> entryBuffer,
 				Gtk::Label *label, size_t topWords, size_t minLength, size_t maxLength,
 				std::chrono::seconds seconds, uint32_t seed);
 		~TypingTest();
@@ -28,6 +29,7 @@ class TypingTest {
 	private:
 		Glib::RefPtr<Gtk::EntryBuffer> entryBuffer;
 		Glib::RefPtr<Gtk::TextBuffer> textBuffer;
+		Gtk::TextView *textView;
 		Gtk::Label *label;
 		sigc::connection connection;
 
