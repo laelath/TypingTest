@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	Glib::RefPtr<Gtk::EntryBuffer> entryBuffer =
 		Glib::RefPtr<Gtk::EntryBuffer>::cast_static(builder->get_object("typingbuffer"));
 
-	TypingTest test(textView, entryBuffer, label, 200, 2, 100, std::chrono::seconds(60),
+	TypingTest test(textView, entryBuffer, label, 200, 2, 100, std::chrono::seconds(300),
 			std::chrono::system_clock::now().time_since_epoch().count());
 
 	quit->signal_activate().connect(sigc::mem_fun(appWindow, &Gtk::ApplicationWindow::close));

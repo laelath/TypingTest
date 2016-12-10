@@ -24,13 +24,12 @@ TypingTest::TypingTest(Gtk::TextView *textView, Glib::RefPtr<Gtk::EntryBuffer> e
 
 	label->set_text(this->getTime());
 
-	std::vector<std::string> wordSelection;
-	wordSelection.reserve(topWords);
+	this->wordSelection.reserve(topWords);
 	for (unsigned long i = 0; i < topWords; ) {
 		std::string line;
 		if (std::getline(fileIn, line)) {
 			if (line.length() >= minLength && line.length() <= maxLength) {
-				wordSelection.push_back(line);
+				this->wordSelection.push_back(line);
 				i++;
 			}
 		} else {
@@ -38,13 +37,13 @@ TypingTest::TypingTest(Gtk::TextView *textView, Glib::RefPtr<Gtk::EntryBuffer> e
 		}
 	}
 
-	std::minstd_rand rand;
 	rand.seed(seed);
 
-	this->words.reserve(seconds.count() * MAX_SPEED);
-	this->enteredWords.reserve(seconds.count() * MAX_SPEED);
-	for (int i = 0; i < seconds.count() * MAX_SPEED; ++i) {
-		this->words.push_back(wordSelection[rand() % wordSelection.size()]);
+	//this->words.reserve(seconds.count() * MAX_SPEED);
+	//this->enteredWords.reserve(seconds.count() * MAX_SPEED);
+	this->words.reserve(START_WORDS);
+	for (int i = 0; i < START_WORDS; ++i) {
+		this->words.push_back(this->wordSelection[rand() % this->wordSelection.size()]);
 	}
 
 	textBuffer->set_text(this->getWords());
@@ -81,6 +80,10 @@ void TypingTest::textInsert(int pos, const char *text, int num)
 			entryBuffer->delete_text(0, pos + 1);
 			enteredWords.push_back(word);
 
+			std::string newWord = wordSelection[rand() % wordSelection.size()];
+			words.push_back(newWord);
+			textBuffer->insert(textBuffer->end(), " " + newWord);
+
 			if (word == words[wordIndex]) {
 				textBuffer->apply_tag_by_name("good",
 						textBuffer->get_iter_at_offset(wordCharIndex),
@@ -103,7 +106,7 @@ void TypingTest::textInsert(int pos, const char *text, int num)
 					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].length()));
 
 			Gtk::TextBuffer::iterator itr = textBuffer->get_iter_at_offset(wordCharIndex);
-			textView->scroll_to(itr, 0.25);
+			textView->scroll_to(itr, 0.2);
 		}
 	}
 }

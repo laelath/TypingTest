@@ -2,6 +2,7 @@
 #define TYPING_TEST_H
 
 #include <chrono>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -10,8 +11,7 @@
 #include <gtkmm/textbuffer.h>
 #include <gtkmm/textview.h>
 
-//max speed in WPS, to determine number of words needed
-#define MAX_SPEED 5 //300 WPM
+#define START_WORDS 400
 
 class TypingTest {
 	public:
@@ -33,6 +33,9 @@ class TypingTest {
 		Gtk::Label *label;
 		sigc::connection connection;
 
+		std::minstd_rand rand;
+
+		std::vector<std::string> wordSelection;
 		std::vector<std::string> words;
 		std::vector<std::string> enteredWords;
 

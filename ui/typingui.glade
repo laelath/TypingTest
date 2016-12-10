@@ -5,17 +5,20 @@
   <object class="GtkTextTag" id="currenttag">
     <property name="name">current</property>
     <property name="background_rgba">rgb(211,215,207)</property>
-    <property name="font">Normal</property>
+    <property name="editable">False</property>
+    <property name="wrap_mode">word</property>
   </object>
   <object class="GtkTextTag" id="errortag">
     <property name="name">error</property>
     <property name="foreground_rgba">rgb(239,41,41)</property>
-    <property name="font">Normal</property>
+    <property name="editable">False</property>
+    <property name="wrap_mode">word</property>
   </object>
   <object class="GtkTextTag" id="goodtag">
     <property name="name">good</property>
     <property name="foreground_rgba">rgb(115,210,22)</property>
-    <property name="font">Normal</property>
+    <property name="editable">False</property>
+    <property name="wrap_mode">word</property>
   </object>
   <object class="GtkTextTagTable" id="texttags"/>
   <object class="GtkTextBuffer" id="textbuffer">
@@ -198,11 +201,14 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="hscrollbar_policy">never</property>
+                <property name="vscrollbar_policy">always</property>
                 <property name="shadow_type">in</property>
                 <child>
                   <object class="GtkTextView" id="textview">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="hscroll_policy">natural</property>
+                    <property name="vscroll_policy">natural</property>
                     <property name="editable">False</property>
                     <property name="wrap_mode">word</property>
                     <property name="cursor_visible">False</property>
