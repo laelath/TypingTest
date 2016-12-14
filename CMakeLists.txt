@@ -8,7 +8,7 @@ include_directories(${GTKMM_INCLUDE_DIRS})
 link_directories(${GTKMM_LIBRARY_DIRS})
 add_definitions(${GTKMM_CFLAGS_OTHER})
 
-set(SOURCES src/main.cpp src/typing_test.cpp)
+set(SOURCES src/main.cpp src/typing_test.cpp src/word.cpp)
 
 add_executable(typingtest ${SOURCES})
 

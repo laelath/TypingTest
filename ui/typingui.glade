@@ -2,6 +2,13 @@
 <!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
+  <object class="GtkTextTag" id="currenterrortag">
+    <property name="name">currenterror</property>
+    <property name="background_rgba">rgb(239,41,41)</property>
+    <property name="font">Normal</property>
+    <property name="editable">False</property>
+    <property name="wrap_mode">word</property>
+  </object>
   <object class="GtkTextTag" id="currenttag">
     <property name="name">current</property>
     <property name="background_rgba">rgb(211,215,207)</property>
@@ -16,7 +23,7 @@
   </object>
   <object class="GtkTextTag" id="goodtag">
     <property name="name">good</property>
-    <property name="foreground_rgba">rgb(115,210,22)</property>
+    <property name="foreground_rgba">rgb(138,226,52)</property>
     <property name="editable">False</property>
     <property name="wrap_mode">word</property>
   </object>
@@ -191,33 +198,209 @@
           </packing>
         </child>
         <child>
-          <object class="GtkBox">
+          <object class="GtkBox" id="testbox">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="orientation">vertical</property>
-            <property name="spacing">2</property>
+            <property name="spacing">5</property>
             <child>
-              <object class="GtkScrolledWindow">
+              <object class="GtkBox">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="hscrollbar_policy">never</property>
-                <property name="vscrollbar_policy">always</property>
-                <property name="shadow_type">in</property>
+                <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkTextView" id="textview">
+                  <object class="GtkGrid">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkLabel" id="wpmlabel">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">WPM: </property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">0</property>
+                        <property name="width">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="correctcharlabel">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Correct: </property>
+                        <property name="width_chars">12</property>
+                        <attributes>
+                          <attribute name="foreground" value="#7373d2d21616"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">6</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="wrongcharlabel">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Wrong: </property>
+                        <property name="width_chars">12</property>
+                        <attributes>
+                          <attribute name="foreground" value="#efef29292929"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="top_attach">6</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="troublewordslabel">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">this
+is
+an
+example
+of
+trouble
+words</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">9</property>
+                        <property name="width">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="characterslabel">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Characters: </property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">5</property>
+                        <property name="width">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="wordslabel">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Words: </property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">2</property>
+                        <property name="width">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="correctwordslabel">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Correct: </property>
+                        <property name="width_chars">12</property>
+                        <attributes>
+                          <attribute name="foreground" value="#7373d2d21616"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">3</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="wrongwordslabel">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Wrong: </property>
+                        <property name="width_chars">12</property>
+                        <attributes>
+                          <attribute name="foreground" value="#efef29292929"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="top_attach">3</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkSeparator">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">1</property>
+                        <property name="width">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkSeparator">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">4</property>
+                        <property name="width">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkSeparator">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">7</property>
+                        <property name="width">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="troublewordstitle">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Trouble Words</property>
+                        <attributes>
+                          <attribute name="weight" value="semibold"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">8</property>
+                        <property name="width">2</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="newtestbutton">
+                    <property name="label" translatable="yes">New Test</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="hscroll_policy">natural</property>
-                    <property name="vscroll_policy">natural</property>
-                    <property name="editable">False</property>
-                    <property name="wrap_mode">word</property>
-                    <property name="cursor_visible">False</property>
-                    <property name="buffer">textbuffer</property>
+                    <property name="receives_default">True</property>
                   </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="padding">5</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">1</property>
+                  </packing>
                 </child>
               </object>
               <packing>
-                <property name="expand">True</property>
+                <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">0</property>
               </packing>
@@ -226,16 +409,27 @@
               <object class="GtkBox">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="margin_left">4</property>
-                <property name="margin_right">4</property>
-                <property name="margin_bottom">4</property>
+                <property name="orientation">vertical</property>
                 <property name="spacing">2</property>
                 <child>
-                  <object class="GtkEntry" id="typingentry">
+                  <object class="GtkScrolledWindow">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="buffer">typingbuffer</property>
-                    <property name="placeholder_text" translatable="yes">Start typing to start test</property>
+                    <property name="hscrollbar_policy">never</property>
+                    <property name="vscrollbar_policy">always</property>
+                    <property name="shadow_type">in</property>
+                    <child>
+                      <object class="GtkTextView" id="textview">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="hscroll_policy">natural</property>
+                        <property name="vscroll_policy">natural</property>
+                        <property name="editable">False</property>
+                        <property name="wrap_mode">word</property>
+                        <property name="cursor_visible">False</property>
+                        <property name="buffer">textbuffer</property>
+                      </object>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -244,22 +438,50 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="timerlabel">
+                  <object class="GtkBox">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">label</property>
+                    <property name="margin_left">4</property>
+                    <property name="margin_right">4</property>
+                    <property name="margin_bottom">4</property>
+                    <property name="spacing">2</property>
+                    <child>
+                      <object class="GtkEntry" id="typingentry">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="buffer">typingbuffer</property>
+                        <property name="placeholder_text" translatable="yes">Start typing to start test</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="timerlabel">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">label</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="padding">5</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="padding">5</property>
+                    <property name="fill">False</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
                 <property name="position">1</property>
               </packing>
             </child>

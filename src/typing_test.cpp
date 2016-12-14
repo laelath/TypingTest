@@ -2,27 +2,43 @@
 
 #include <fstream>
 #include <iostream>
-#include <random>
 
-TypingTest::TypingTest(Gtk::TextView *textView, Glib::RefPtr<Gtk::EntryBuffer> entryBuffer,
-		Gtk::Label *label, size_t topWords, size_t minLength, size_t maxLength, std::chrono::seconds seconds,
-		uint32_t seed)
+#include <glibmm/main.h>
+
+TypingTest::TypingTest(const TestWidgets &widgets, size_t topWords, size_t minLength, size_t maxLength,
+		std::chrono::seconds seconds, uint32_t seed)
 {
-	this->entryBuffer = entryBuffer;
-	this->textView = textView;
-	this->textBuffer = textView->get_buffer();
-	this->label = label;
-	this->seconds = seconds;
+	this->textView = widgets.textView;
+	this->entry = widgets.entry;
+	this->timer = widgets.timer;
+	this->wpm = widgets.wpm;
+	this->wordNum = widgets.wordNum;
+	this->wordsCorrect = widgets.wordsCorrect;
+	this->wordsWrong = widgets.wordsWrong;
+	this->charNum = widgets.charNum;
+	this->charsCorrect = widgets.charsCorrect;
+	this->charsWrong = widgets.charsWrong;
 
-	this->connection =
+	this->entryBuffer = this->entry->get_buffer();
+	this->textBuffer = this->textView->get_buffer();
+
+	this->seconds = seconds;
+	this->start = seconds;
+
+	this->entryBuffer->set_text("");
+	this->entry->grab_focus();
+
+	this->insertConnection =
 		entryBuffer->signal_inserted_text().connect(sigc::mem_fun(this, &TypingTest::textInsert));
+	this->backspConnection =
+		entryBuffer->signal_deleted_text().connect(sigc::mem_fun(this,&TypingTest::textDelete));
+
+	this->timer->set_text(this->getTime());
 
 	std::ifstream fileIn("words/google-10000-english-usa-no-swears.txt");
 	if (!fileIn.is_open()) {
 		std::exit(1);
 	}
-
-	label->set_text(this->getTime());
 
 	this->wordSelection.reserve(topWords);
 	for (unsigned long i = 0; i < topWords; ) {
@@ -39,8 +55,6 @@ TypingTest::TypingTest(Gtk::TextView *textView, Glib::RefPtr<Gtk::EntryBuffer> e
 
 	rand.seed(seed);
 
-	//this->words.reserve(seconds.count() * MAX_SPEED);
-	//this->enteredWords.reserve(seconds.count() * MAX_SPEED);
 	this->words.reserve(START_WORDS);
 	for (int i = 0; i < START_WORDS; ++i) {
 		this->words.push_back(this->wordSelection[rand() % this->wordSelection.size()]);
@@ -48,19 +62,21 @@ TypingTest::TypingTest(Gtk::TextView *textView, Glib::RefPtr<Gtk::EntryBuffer> e
 
 	textBuffer->set_text(this->getWords());
 	textBuffer->apply_tag_by_name("current", textBuffer->get_iter_at_offset(0),
-			textBuffer->get_iter_at_offset(this->words[0].length()));
+			textBuffer->get_iter_at_offset(this->words[0].getWord().length()));
 }
 
 TypingTest::~TypingTest()
 {
-	connection.disconnect();
+	insertConnection.disconnect();
+	backspConnection.disconnect();
+	timerConnection.disconnect();
 }
 
 std::string TypingTest::getWords()
 {
-	std::string text = words[0];
+	std::string text = words[0].getWord();
 	for (unsigned long i = 1; i < words.size(); ++i) {
-		text += " " + words[i];
+		text += " " + words[i].getWord();
 	}
 	return text;
 }
@@ -72,41 +88,117 @@ std::string TypingTest::getTime()
 	return std::to_string(seconds.count() / 60) + ":" + secstr;
 }
 
-void TypingTest::textInsert(int pos, const char *text, int num)
+void TypingTest::textInsert(int pos, const char *text, int)
 {
-	if (num == 1) {
+	if (!testStarted) {
+		testStarted = true;
+		timerConnection = 
+			Glib::signal_timeout().connect(sigc::mem_fun(*this, &TypingTest::updateTimer), 1000);
+	}
+
+	if (!testEnded) {
 		if (text[0] == ' ') {
 			std::string word = entryBuffer->get_text().substr(0, pos);
+			newWord = true;
 			entryBuffer->delete_text(0, pos + 1);
-			enteredWords.push_back(word);
 
-			std::string newWord = wordSelection[rand() % wordSelection.size()];
-			words.push_back(newWord);
-			textBuffer->insert(textBuffer->end(), " " + newWord);
-
-			if (word == words[wordIndex]) {
-				textBuffer->apply_tag_by_name("good",
-						textBuffer->get_iter_at_offset(wordCharIndex),
-						textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].length()));
+			if (words[wordIndex].enterWord(word)) {
+				textBuffer->apply_tag_by_name("good", textBuffer->get_iter_at_offset(wordCharIndex),
+						textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
 			} else {
-				textBuffer->apply_tag_by_name("error",
-						textBuffer->get_iter_at_offset(wordCharIndex),
-						textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].length()));
+				textBuffer->apply_tag_by_name("error", textBuffer->get_iter_at_offset(wordCharIndex),
+						textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
 			}
 
-			textBuffer->remove_tag_by_name("current",
-					textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].length()));
-
-			wordCharIndex += words[wordIndex].length() + 1;
+			wordCharIndex += words[wordIndex].getWord().length() + 1;
 			wordIndex++;
 
-			textBuffer->apply_tag_by_name("current",
-					textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].length()));
+			std::string newWord = wordSelection[rand() % wordSelection.size()];
+			words.push_back(Word(newWord));
+			textBuffer->insert(textBuffer->end(), " " + newWord);
 
 			Gtk::TextBuffer::iterator itr = textBuffer->get_iter_at_offset(wordCharIndex);
 			textView->scroll_to(itr, 0.2);
+		} else {
+			textBuffer->remove_tag_by_name("current", textBuffer->get_iter_at_offset(wordCharIndex),
+					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+			textBuffer->remove_tag_by_name("currenterror", textBuffer->get_iter_at_offset(wordCharIndex),
+					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+		}
+
+		std::string text = entryBuffer->get_text();
+		std::string word = words[wordIndex].getWord();
+		if (text.length() <= word.length() && text == word.substr(0, text.length())) {
+			textBuffer->apply_tag_by_name("current", textBuffer->get_iter_at_offset(wordCharIndex),
+					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+		} else {
+			textBuffer->apply_tag_by_name("currenterror", textBuffer->get_iter_at_offset(wordCharIndex),
+					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
 		}
 	}
+}
+
+void TypingTest::textDelete(int, int)
+{
+	if (!testEnded) {
+		textBuffer->remove_tag_by_name("current", textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+		textBuffer->remove_tag_by_name("currenterror", textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+
+		if (!newWord) {
+			std::string text = entryBuffer->get_text();
+			std::string word = words[wordIndex].getWord();
+			if (text.length() <= word.length() && text == word.substr(0, text.length())) {
+				textBuffer->apply_tag_by_name("current", textBuffer->get_iter_at_offset(wordCharIndex),
+						textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+			} else {
+				textBuffer->apply_tag_by_name("currenterror", textBuffer->get_iter_at_offset(wordCharIndex),
+						textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+			}
+		} else {
+			newWord = false;
+		}
+	}
+}
+
+bool TypingTest::updateTimer()
+{
+	seconds--;
+	timer->set_text(getTime());
+	if (seconds != std::chrono::seconds::duration::zero()) {
+		return true;
+	} else {
+		textBuffer->remove_tag_by_name("current", textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+		textBuffer->remove_tag_by_name("currenterror", textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+		calculateScore();
+		testEnded = true;
+		return false;
+	}
+}
+
+void TypingTest::calculateScore()
+{
+	int wordNumI = 0;
+	int wordsCorrectI = 0;
+	int charNumI = 0;
+	int charsCorrectI = 0;
+	for (int i = 0; words[i].getEntered(); ++i) {
+		wordNumI++;
+		if (words[i].getCorrect()) {
+			wordsCorrectI++;
+		}
+		charNumI += words[i].getEntry().length();
+		charsCorrectI += words[i].charsCorrect();
+	}
+
+	wpm->set_text("WPM: " + std::to_string((int) ((charsCorrectI / 5.0) / (start.count() / 60.0))));
+	wordNum->set_text("Words: " + std::to_string(wordNumI));
+	wordsCorrect->set_text("Correct: " + std::to_string(wordsCorrectI));
+	wordsWrong->set_text("Wrong: " + std::to_string(wordNumI - wordsCorrectI));
+	charNum->set_text("Characters: " + std::to_string(charNumI));
+	charsCorrect->set_text("Correct: " + std::to_string(charsCorrectI));
+	charsWrong->set_text("Wrong: " + std::to_string(charNumI - charsCorrectI));
 }
