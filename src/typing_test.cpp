@@ -5,47 +5,56 @@
 
 #include <glibmm/main.h>
 
-TypingTest::TypingTest(const TestWidgets &widgets, size_t topWords, size_t minLength, size_t maxLength,
-		std::chrono::seconds seconds, uint32_t seed)
+TestSettings getTestTypeSettings(TestType type)
 {
-	this->textView = widgets.textView;
-	this->entry = widgets.entry;
-	this->timer = widgets.timer;
-	this->wpm = widgets.wpm;
-	this->wordNum = widgets.wordNum;
-	this->wordsCorrect = widgets.wordsCorrect;
-	this->wordsWrong = widgets.wordsWrong;
-	this->charNum = widgets.charNum;
-	this->charsCorrect = widgets.charsCorrect;
-	this->charsWrong = widgets.charsWrong;
+	if (type == ADVANCED) {
+		return advanced_test;
+	} else if (type == ENDURANCE) {
+		return endurance_test;
+	}
 
-	this->entryBuffer = this->entry->get_buffer();
-	this->textBuffer = this->textView->get_buffer();
+	return basic_test;
+}
 
-	this->seconds = seconds;
-	this->start = seconds;
+TypingTest::TypingTest(const TestWidgets &widgets, const TestSettings &settings)
+{
+	textView = widgets.textView;
+	entry = widgets.entry;
+	timer = widgets.timer;
+	wpm = widgets.wpm;
+	wordNum = widgets.wordNum;
+	wordsCorrect = widgets.wordsCorrect;
+	wordsWrong = widgets.wordsWrong;
+	charNum = widgets.charNum;
+	charsCorrect = widgets.charsCorrect;
+	charsWrong = widgets.charsWrong;
 
-	this->entryBuffer->set_text("");
-	this->entry->grab_focus();
+	//this->entryBuffer = this->entry->get_buffer();
+	textBuffer = textView->get_buffer();
 
-	this->insertConnection =
-		entryBuffer->signal_inserted_text().connect(sigc::mem_fun(this, &TypingTest::textInsert));
-	this->backspConnection =
-		entryBuffer->signal_deleted_text().connect(sigc::mem_fun(this,&TypingTest::textDelete));
+	seconds = settings.seconds;
+	start = settings.seconds;
 
-	this->timer->set_text(this->getTime());
+	//this->entryBuffer->set_text("");
+	entry->set_text("");
+	entry->grab_focus();
+
+	insertConnection = entry->signal_insert_text().connect(sigc::mem_fun(this, &TypingTest::textInsert));
+	backspConnection = entry->signal_delete_text().connect(sigc::mem_fun(this, &TypingTest::textDelete));
+
+	timer->set_text(getTime());
 
 	std::ifstream fileIn("words/google-10000-english-usa-no-swears.txt");
 	if (!fileIn.is_open()) {
 		std::exit(1);
 	}
 
-	this->wordSelection.reserve(topWords);
-	for (unsigned long i = 0; i < topWords; ) {
+	wordSelection.reserve(settings.topWords);
+	for (unsigned long i = 0; i < settings.topWords; ) {
 		std::string line;
 		if (std::getline(fileIn, line)) {
-			if (line.length() >= minLength && line.length() <= maxLength) {
-				this->wordSelection.push_back(line);
+			if (line.length() >= settings.minLength && line.length() <= settings.maxLength) {
+				wordSelection.push_back(line);
 				i++;
 			}
 		} else {
@@ -53,16 +62,22 @@ TypingTest::TypingTest(const TestWidgets &widgets, size_t topWords, size_t minLe
 		}
 	}
 
-	rand.seed(seed);
-
-	this->words.reserve(START_WORDS);
-	for (int i = 0; i < START_WORDS; ++i) {
-		this->words.push_back(this->wordSelection[rand() % this->wordSelection.size()]);
+	if (settings.seed == 0) {
+		rand.seed(std::chrono::system_clock::now().time_since_epoch().count());
+	} else {
+		rand.seed(settings.seed);
 	}
 
-	textBuffer->set_text(this->getWords());
+	words.reserve(START_WORDS);
+	for (int i = 0; i < START_WORDS; ++i) {
+		words.push_back(wordSelection[rand() % wordSelection.size()]);
+	}
+
+	textBuffer->set_text(getWords());
 	textBuffer->apply_tag_by_name("current", textBuffer->get_iter_at_offset(0),
-			textBuffer->get_iter_at_offset(this->words[0].getWord().length()));
+			textBuffer->get_iter_at_offset(words[0].getWord().length()));
+	textBuffer->apply_tag_by_name("uglyhack", textBuffer->get_iter_at_offset(words[0].getWord().length() + 1),
+			textBuffer->end());
 }
 
 TypingTest::~TypingTest()
@@ -88,7 +103,7 @@ std::string TypingTest::getTime()
 	return std::to_string(seconds.count() / 60) + ":" + secstr;
 }
 
-void TypingTest::textInsert(int pos, const char *text, int)
+void TypingTest::textInsert(std::string text, int *pos)
 {
 	if (!testStarted) {
 		testStarted = true;
@@ -98,9 +113,9 @@ void TypingTest::textInsert(int pos, const char *text, int)
 
 	if (!testEnded) {
 		if (text[0] == ' ') {
-			std::string word = entryBuffer->get_text().substr(0, pos);
+			std::string word = entry->get_text().substr(0, *pos - 1);
 			newWord = true;
-			entryBuffer->delete_text(0, pos + 1);
+			entry->delete_text(0, *pos);
 
 			if (words[wordIndex].enterWord(word)) {
 				textBuffer->apply_tag_by_name("good", textBuffer->get_iter_at_offset(wordCharIndex),
@@ -113,9 +128,15 @@ void TypingTest::textInsert(int pos, const char *text, int)
 			wordCharIndex += words[wordIndex].getWord().length() + 1;
 			wordIndex++;
 
+			textBuffer->remove_tag_by_name("uglyhack", textBuffer->get_iter_at_offset(0), textBuffer->end());
+
 			std::string newWord = wordSelection[rand() % wordSelection.size()];
 			words.push_back(Word(newWord));
 			textBuffer->insert(textBuffer->end(), " " + newWord);
+
+			textBuffer->apply_tag_by_name("uglyhack",
+					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length() + 1),
+					textBuffer->end());
 
 			Gtk::TextBuffer::iterator itr = textBuffer->get_iter_at_offset(wordCharIndex);
 			textView->scroll_to(itr, 0.2);
@@ -126,7 +147,7 @@ void TypingTest::textInsert(int pos, const char *text, int)
 					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
 		}
 
-		std::string text = entryBuffer->get_text();
+		std::string text = entry->get_text();
 		std::string word = words[wordIndex].getWord();
 		if (text.length() <= word.length() && text == word.substr(0, text.length())) {
 			textBuffer->apply_tag_by_name("current", textBuffer->get_iter_at_offset(wordCharIndex),
@@ -147,7 +168,7 @@ void TypingTest::textDelete(int, int)
 				textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
 
 		if (!newWord) {
-			std::string text = entryBuffer->get_text();
+			std::string text = entry->get_text();
 			std::string word = words[wordIndex].getWord();
 			if (text.length() <= word.length() && text == word.substr(0, text.length())) {
 				textBuffer->apply_tag_by_name("current", textBuffer->get_iter_at_offset(wordCharIndex),

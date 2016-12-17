@@ -14,7 +14,14 @@
 
 #include "word.h"
 
-#define START_WORDS 350
+#define START_WORDS 500
+
+enum TestType {
+	BASIC,
+	ADVANCED,
+	ENDURANCE,
+	CUSTOM,
+};
 
 struct TestWidgets {
 	Gtk::TextView *textView;
@@ -29,17 +36,35 @@ struct TestWidgets {
 	Gtk::Label *charsWrong;
 };
 
+struct TestSettings {
+	TestType type;
+	size_t topWords;
+	size_t minLength;
+	size_t maxLength;
+	std::chrono::seconds seconds;
+	uint32_t seed;
+
+	TestSettings(TestType t, size_t tw, size_t minl, size_t maxl, std::chrono::seconds sec, uint32_t seed) :
+		type(t), topWords(tw), minLength(minl), maxLength(maxl), seconds(sec), seed(seed) {}
+};
+
+const TestSettings basic_test = { BASIC, 200, 2, 100, std::chrono::seconds(60), 0 };
+const TestSettings advanced_test = { ADVANCED, 10000, 3, 100, std::chrono::seconds(60), 0 };
+const TestSettings endurance_test = { ENDURANCE, 500, 2, 100, std::chrono::seconds(300), 0 };
+
+TestSettings getTestTypeSettings(TestType type);
+
 class TypingTest {
 	public:
-		TypingTest(const TestWidgets &widgets, size_t topWords, size_t minLength, size_t maxLength,
-				std::chrono::seconds seconds, uint32_t seed);
+		TypingTest(const TestWidgets &widgets, const TestSettings &settings); 
+		TypingTest(const TestWidgets &widgets) : TypingTest(widgets, basic_test) {};
 		~TypingTest();
 
 		std::string getWords();
 		std::string getTime();
 		
 	private:
-		void textInsert(int pos, const char *text, int num);
+		void textInsert(std::string text, int *pos);
 		void textDelete(int pos, int num);
 		bool updateTimer();
 		void calculateScore();
@@ -55,7 +80,7 @@ class TypingTest {
 		Gtk::Label *charsCorrect;
 		Gtk::Label *charsWrong;
 
-		Glib::RefPtr<Gtk::EntryBuffer> entryBuffer;
+		//Glib::RefPtr<Gtk::EntryBuffer> entryBuffer;
 		Glib::RefPtr<Gtk::TextBuffer> textBuffer;
 
 		sigc::connection insertConnection;
