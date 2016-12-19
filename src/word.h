@@ -13,15 +13,18 @@ class Word {
 
 		bool getEntered();
 
+		void startTime();
 		bool enterWord(std::string enter);
 		bool getCorrect();
 		int charsCorrect();
+		std::chrono::milliseconds getTime();
 
 	private:
 		bool correct = false;
 		bool entered = false;
 		std::string word;
 		std::string enteredWord;
+		std::chrono::high_resolution_clock::time_point start;
 		std::chrono::milliseconds time;
 };
 

@@ -44,8 +44,8 @@ struct TestSettings {
 	std::chrono::seconds seconds;
 	uint32_t seed;
 
-	TestSettings(TestType t, size_t tw, size_t minl, size_t maxl, std::chrono::seconds sec, uint32_t seed) :
-		type(t), topWords(tw), minLength(minl), maxLength(maxl), seconds(sec), seed(seed) {}
+	TestSettings(TestType t, size_t tw, size_t minl, size_t maxl, std::chrono::seconds sec, uint32_t sd) :
+		type(t), topWords(tw), minLength(minl), maxLength(maxl), seconds(sec), seed(sd) {}
 };
 
 const TestSettings basic_test = { BASIC, 200, 2, 100, std::chrono::seconds(60), 0 };

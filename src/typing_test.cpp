@@ -109,6 +109,7 @@ void TypingTest::textInsert(std::string text, int *pos)
 		testStarted = true;
 		timerConnection = 
 			Glib::signal_timeout().connect(sigc::mem_fun(*this, &TypingTest::updateTimer), 1000);
+		words[0].startTime();
 	}
 
 	if (!testEnded) {
@@ -156,6 +157,7 @@ void TypingTest::textInsert(std::string text, int *pos)
 			textBuffer->apply_tag_by_name("currenterror", textBuffer->get_iter_at_offset(wordCharIndex),
 					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
 		}
+		words[wordIndex].startTime();
 	}
 }
 
