@@ -213,8 +213,8 @@ void TypingTest::calculateScore()
 		if (words[i].getCorrect()) {
 			wordsCorrectI++;
 		}
-		charNumI += words[i].getEntry().length();
-		charsCorrectI += words[i].charsCorrect();
+		charNumI += words[i].getEntry().length() + 1;
+		charsCorrectI += words[i].charsCorrect() + 1;
 	}
 
 	wpm->set_text("WPM: " + std::to_string((int) ((charsCorrectI / 5.0) / (start.count() / 60.0))));
