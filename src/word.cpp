@@ -17,9 +17,16 @@ std::string Word::getEntry()
 	return enteredWord;
 }
 
+/*
 bool Word::getEntered()
 {
 	return entered;
+}
+*/
+
+double Word::getScore()
+{
+	return score;
 }
 
 void Word::startTime()
@@ -30,11 +37,12 @@ void Word::startTime()
 bool Word::enterWord(std::string enter)
 {
 	correct = word == enter;
-	entered = true;
+	//entered = true;
 	enteredWord = enter;
 	time = std::chrono::duration_cast<std::chrono::milliseconds>(
 			std::chrono::high_resolution_clock::now() - start);
-	std::cout << time.count() << std::endl;
+	//Calculate score
+	score = (word.length() + WORD_SCORE_WEIGHT) * (correct ? 1 : WORD_WRONG_WEIGHT) / (double) time.count();
 	return correct;
 }
 
@@ -43,6 +51,7 @@ bool Word::getCorrect()
 	return correct;
 }
 
+/*
 int Word::charsCorrect()
 {
 	if (correct) {
@@ -58,6 +67,7 @@ int Word::charsCorrect()
 	//}
 	//return chars;
 }
+*/
 
 std::chrono::milliseconds Word::getTime()
 {

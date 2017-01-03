@@ -16,18 +16,23 @@ TestSettings getTestTypeSettings(TestType type)
 	return basic_test;
 }
 
+bool wordSortFunc(Word i, Word j)
+{
+	return i.getScore() < j.getScore();
+}
+
 TypingTest::TypingTest(const TestWidgets &widgets, const TestSettings &settings)
 {
 	textView = widgets.textView;
 	entry = widgets.entry;
-	timer = widgets.timer;
-	wpm = widgets.wpm;
-	wordNum = widgets.wordNum;
-	wordsCorrect = widgets.wordsCorrect;
-	wordsWrong = widgets.wordsWrong;
-	charNum = widgets.charNum;
-	charsCorrect = widgets.charsCorrect;
-	charsWrong = widgets.charsWrong;
+	timerLabel = widgets.timer;
+	wpmLabel = widgets.wpm;
+	wordNumLabel = widgets.wordNum;
+	wordsCorrectLabel = widgets.wordsCorrect;
+	wordsWrongLabel = widgets.wordsWrong;
+	charNumLabel = widgets.charNum;
+	charsCorrectLabel = widgets.charsCorrect;
+	charsWrongLabel = widgets.charsWrong;
 
 	//this->entryBuffer = this->entry->get_buffer();
 	textBuffer = textView->get_buffer();
@@ -42,7 +47,7 @@ TypingTest::TypingTest(const TestWidgets &widgets, const TestSettings &settings)
 	insertConnection = entry->signal_insert_text().connect(sigc::mem_fun(this, &TypingTest::textInsert));
 	backspConnection = entry->signal_delete_text().connect(sigc::mem_fun(this, &TypingTest::textDelete));
 
-	timer->set_text(getTime());
+	timerLabel->set_text(getTime());
 
 	std::ifstream fileIn("words/google-10000-english-usa-no-swears.txt");
 	if (!fileIn.is_open()) {
@@ -107,7 +112,7 @@ void TypingTest::textInsert(std::string text, int *pos)
 {
 	if (!testStarted) {
 		testStarted = true;
-		timerConnection = 
+		timerConnection =
 			Glib::signal_timeout().connect(sigc::mem_fun(*this, &TypingTest::updateTimer), 1000);
 		words[0].startTime();
 	}
@@ -188,7 +193,7 @@ void TypingTest::textDelete(int, int)
 bool TypingTest::updateTimer()
 {
 	seconds--;
-	timer->set_text(getTime());
+	timerLabel->set_text(getTime());
 	if (seconds != std::chrono::seconds::duration::zero()) {
 		return true;
 	} else {
@@ -204,24 +209,32 @@ bool TypingTest::updateTimer()
 
 void TypingTest::calculateScore()
 {
-	int wordNumI = 0;
-	int wordsCorrectI = 0;
-	int charNumI = 0;
-	int charsCorrectI = 0;
-	for (int i = 0; words[i].getEntered(); ++i) {
-		wordNumI++;
+	//Test information
+	int wordNum = 0;
+	int wordsCorrect = 0;
+	int charNum = 0;
+	int charsCorrect = 0;
+	for (int i = 0; i < wordIndex; ++i) {
+		wordNum++;
+		charNum += words[i].getWord().length() + 1;
+		charsCorrect++;
 		if (words[i].getCorrect()) {
-			wordsCorrectI++;
+			wordsCorrect++;
+			charsCorrect += words[i].getWord().length();
 		}
-		charNumI += words[i].getEntry().length() + 1;
-		charsCorrectI += words[i].charsCorrect() + 1;
 	}
 
-	wpm->set_text("WPM: " + std::to_string((int) ((charsCorrectI / 5.0) / (start.count() / 60.0))));
-	wordNum->set_text("Words: " + std::to_string(wordNumI));
-	wordsCorrect->set_text("Correct: " + std::to_string(wordsCorrectI));
-	wordsWrong->set_text("Wrong: " + std::to_string(wordNumI - wordsCorrectI));
-	charNum->set_text("Characters: " + std::to_string(charNumI));
-	charsCorrect->set_text("Correct: " + std::to_string(charsCorrectI));
-	charsWrong->set_text("Wrong: " + std::to_string(charNumI - charsCorrectI));
+	//Trouble words
+	std::sort(words.begin(), words.begin() + wordIndex, wordSortFunc);
+	for (int i = 0; i < wordIndex; ++i) {
+		std::cout << words[i].getWord() << "\t" << words[i].getScore() << std::endl;
+	}
+
+	wpmLabel->set_text("WPM: " + std::to_string((int) ((charsCorrect / 5.0) / (start.count() / 60.0))));
+	wordNumLabel->set_text("Words: " + std::to_string(wordNum));
+	wordsCorrectLabel->set_text("Correct: " + std::to_string(wordsCorrect));
+	wordsWrongLabel->set_text("Wrong: " + std::to_string(wordNum - wordsCorrect));
+	charNumLabel->set_text("Characters: " + std::to_string(charNum));
+	charsCorrectLabel->set_text("Correct: " + std::to_string(charsCorrect));
+	charsWrongLabel->set_text("Wrong: " + std::to_string(charNum - charsCorrect));
 }

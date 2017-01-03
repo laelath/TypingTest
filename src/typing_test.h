@@ -71,14 +71,14 @@ class TypingTest {
 
 		Gtk::TextView *textView;
 		Gtk::Entry *entry;
-		Gtk::Label *timer;
-		Gtk::Label *wpm;
-		Gtk::Label *wordNum;
-		Gtk::Label *wordsCorrect;
-		Gtk::Label *wordsWrong;
-		Gtk::Label *charNum;
-		Gtk::Label *charsCorrect;
-		Gtk::Label *charsWrong;
+		Gtk::Label *timerLabel;
+		Gtk::Label *wpmLabel;
+		Gtk::Label *wordNumLabel;
+		Gtk::Label *wordsCorrectLabel;
+		Gtk::Label *wordsWrongLabel;
+		Gtk::Label *charNumLabel;
+		Gtk::Label *charsCorrectLabel;
+		Gtk::Label *charsWrongLabel;
 
 		//Glib::RefPtr<Gtk::EntryBuffer> entryBuffer;
 		Glib::RefPtr<Gtk::TextBuffer> textBuffer;
