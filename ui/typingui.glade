@@ -205,13 +205,6 @@
                       <object class="GtkLabel" id="troublewordslabel">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">this
-is
-an
-example
-of
-trouble
-words</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>

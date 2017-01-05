@@ -34,6 +34,7 @@ struct TestWidgets {
 	Gtk::Label *charNum;
 	Gtk::Label *charsCorrect;
 	Gtk::Label *charsWrong;
+	Gtk::Label *troubleWords;
 };
 
 struct TestSettings {
@@ -79,6 +80,7 @@ class TypingTest {
 		Gtk::Label *charNumLabel;
 		Gtk::Label *charsCorrectLabel;
 		Gtk::Label *charsWrongLabel;
+		Gtk::Label *troubleWordsLabel;
 
 		//Glib::RefPtr<Gtk::EntryBuffer> entryBuffer;
 		Glib::RefPtr<Gtk::TextBuffer> textBuffer;

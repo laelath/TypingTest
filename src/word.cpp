@@ -29,20 +29,25 @@ double Word::getScore()
 	return score;
 }
 
+bool Word::getStarted()
+{
+	return started;
+}
+
 void Word::startTime()
 {
 	start = std::chrono::high_resolution_clock::now();
+	started = true;
 }
 
 bool Word::enterWord(std::string enter)
 {
 	correct = word == enter;
-	//entered = true;
 	enteredWord = enter;
 	time = std::chrono::duration_cast<std::chrono::milliseconds>(
 			std::chrono::high_resolution_clock::now() - start);
 	//Calculate score
-	score = (word.length() + WORD_SCORE_WEIGHT) * (correct ? 1 : WORD_WRONG_WEIGHT) / (double) time.count();
+	score = word.length() * 1000 * (correct ? 1 : WORD_WRONG_WEIGHT) / (double) time.count();
 	return correct;
 }
 

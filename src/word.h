@@ -4,7 +4,6 @@
 #include <chrono>
 #include <string>
 
-#define WORD_SCORE_WEIGHT 2
 #define WORD_WRONG_WEIGHT 0.5
 
 class Word {
@@ -16,6 +15,7 @@ class Word {
 
 		//bool getEntered();
 		double getScore();
+		bool getStarted();
 
 		void startTime();
 		bool enterWord(std::string enter);
@@ -31,6 +31,7 @@ class Word {
 		std::string enteredWord;
 		std::chrono::high_resolution_clock::time_point start;
 		std::chrono::milliseconds time;
+		bool started = false;
 };
 
 #endif

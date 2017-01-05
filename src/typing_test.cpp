@@ -16,11 +16,6 @@ TestSettings getTestTypeSettings(TestType type)
 	return basic_test;
 }
 
-bool wordSortFunc(Word i, Word j)
-{
-	return i.getScore() < j.getScore();
-}
-
 TypingTest::TypingTest(const TestWidgets &widgets, const TestSettings &settings)
 {
 	textView = widgets.textView;
@@ -33,14 +28,13 @@ TypingTest::TypingTest(const TestWidgets &widgets, const TestSettings &settings)
 	charNumLabel = widgets.charNum;
 	charsCorrectLabel = widgets.charsCorrect;
 	charsWrongLabel = widgets.charsWrong;
+	troubleWordsLabel = widgets.troubleWords;
 
-	//this->entryBuffer = this->entry->get_buffer();
 	textBuffer = textView->get_buffer();
 
 	seconds = settings.seconds;
 	start = settings.seconds;
 
-	//this->entryBuffer->set_text("");
 	entry->set_text("");
 	entry->grab_focus();
 
@@ -151,6 +145,9 @@ void TypingTest::textInsert(std::string text, int *pos)
 					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
 			textBuffer->remove_tag_by_name("currenterror", textBuffer->get_iter_at_offset(wordCharIndex),
 					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+			if (!words[wordIndex].getStarted()) {
+				words[wordIndex].startTime();
+			}
 		}
 
 		std::string text = entry->get_text();
@@ -162,7 +159,7 @@ void TypingTest::textInsert(std::string text, int *pos)
 			textBuffer->apply_tag_by_name("currenterror", textBuffer->get_iter_at_offset(wordCharIndex),
 					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
 		}
-		words[wordIndex].startTime();
+		//words[wordIndex].startTime();
 	}
 }
 
@@ -197,10 +194,12 @@ bool TypingTest::updateTimer()
 	if (seconds != std::chrono::seconds::duration::zero()) {
 		return true;
 	} else {
-		textBuffer->remove_tag_by_name("current", textBuffer->get_iter_at_offset(wordCharIndex),
-				textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
-		textBuffer->remove_tag_by_name("currenterror", textBuffer->get_iter_at_offset(wordCharIndex),
-				textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+		//textBuffer->remove_tag_by_name("current", textBuffer->get_iter_at_offset(wordCharIndex),
+		//		textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+		//textBuffer->remove_tag_by_name("currenterror", textBuffer->get_iter_at_offset(wordCharIndex),
+		//		textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+		textBuffer->erase(textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()),
+				textBuffer->end());
 		calculateScore();
 		testEnded = true;
 		return false;
@@ -225,9 +224,54 @@ void TypingTest::calculateScore()
 	}
 
 	//Trouble words
-	std::sort(words.begin(), words.begin() + wordIndex, wordSortFunc);
+	std::vector<std::tuple<std::string, int, double>> wordScores;
 	for (int i = 0; i < wordIndex; ++i) {
-		std::cout << words[i].getWord() << "\t" << words[i].getScore() << std::endl;
+		bool found = false;
+		for (std::tuple<std::string, int, double> wordScore : wordScores) {
+			if (words[i].getWord() == std::get<0>(wordScore)) {
+				std::get<1>(wordScore)++;
+				std::get<2>(wordScore) += words[i].getScore();
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			wordScores.push_back(std::make_tuple(words[i].getWord(), 1, words[i].getScore()));
+		}
+	}
+
+	//Calculate averages and total
+	double total = 0;
+	for (std::tuple<std::string, int, double> wordScore : wordScores) {
+		std::get<2>(wordScore) = std::get<2>(wordScore) / std::get<1>(wordScore);
+		total += std::get<2>(wordScore);
+	}
+	double mean = total / wordScores.size();
+
+	//Standard deviation
+	double sum = 0;
+	for (std::tuple<std::string, int, double> wordScore : wordScores) {
+		sum += std::pow(std::get<2>(wordScore) - mean, 2);
+	}
+
+	double stdDev = std::sqrt(sum / wordScores.size());
+	
+	//Sort scores
+	std::sort(wordScores.begin(), wordScores.end(),
+			[](std::tuple<std::string, int, double> i, std::tuple<std::string, int, double> j) -> bool
+			{
+				return std::get<2>(i) < std::get<2>(j);
+			});
+
+	//Print out scores
+	std::string troubleWords = "";
+	for (std::tuple<std::string, int, double> wordScore : wordScores) {
+		if (mean - 2 * std::get<2>(wordScore) >= stdDev) {
+			//std::cout << std::get<0>(wordScore) << std::endl;
+			troubleWords += std::get<0>(wordScore) + "\n";
+		} else {
+			break;
+		}
 	}
 
 	wpmLabel->set_text("WPM: " + std::to_string((int) ((charsCorrect / 5.0) / (start.count() / 60.0))));
@@ -237,4 +281,5 @@ void TypingTest::calculateScore()
 	charNumLabel->set_text("Characters: " + std::to_string(charNum));
 	charsCorrectLabel->set_text("Correct: " + std::to_string(charsCorrect));
 	charsWrongLabel->set_text("Wrong: " + std::to_string(charNum - charsCorrect));
+	troubleWordsLabel->set_text(troubleWords);
 }
