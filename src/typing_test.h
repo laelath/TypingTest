@@ -34,6 +34,7 @@ struct TestWidgets {
 	Gtk::Label *charNum;
 	Gtk::Label *charsCorrect;
 	Gtk::Label *charsWrong;
+	Gtk::Label *troubleWords;
 };
 
 struct TestSettings {
@@ -44,8 +45,8 @@ struct TestSettings {
 	std::chrono::seconds seconds;
 	uint32_t seed;
 
-	TestSettings(TestType t, size_t tw, size_t minl, size_t maxl, std::chrono::seconds sec, uint32_t seed) :
-		type(t), topWords(tw), minLength(minl), maxLength(maxl), seconds(sec), seed(seed) {}
+	TestSettings(TestType t, size_t tw, size_t minl, size_t maxl, std::chrono::seconds sec, uint32_t sd) :
+		type(t), topWords(tw), minLength(minl), maxLength(maxl), seconds(sec), seed(sd) {}
 };
 
 const TestSettings basic_test = { BASIC, 200, 2, 100, std::chrono::seconds(60), 0 };
@@ -71,14 +72,15 @@ class TypingTest {
 
 		Gtk::TextView *textView;
 		Gtk::Entry *entry;
-		Gtk::Label *timer;
-		Gtk::Label *wpm;
-		Gtk::Label *wordNum;
-		Gtk::Label *wordsCorrect;
-		Gtk::Label *wordsWrong;
-		Gtk::Label *charNum;
-		Gtk::Label *charsCorrect;
-		Gtk::Label *charsWrong;
+		Gtk::Label *timerLabel;
+		Gtk::Label *wpmLabel;
+		Gtk::Label *wordNumLabel;
+		Gtk::Label *wordsCorrectLabel;
+		Gtk::Label *wordsWrongLabel;
+		Gtk::Label *charNumLabel;
+		Gtk::Label *charsCorrectLabel;
+		Gtk::Label *charsWrongLabel;
+		Gtk::Label *troubleWordsLabel;
 
 		//Glib::RefPtr<Gtk::EntryBuffer> entryBuffer;
 		Glib::RefPtr<Gtk::TextBuffer> textBuffer;

@@ -177,6 +177,7 @@ int main(int argc, char *argv[])
 	builder->get_widget("characterslabel", widgets.charNum);
 	builder->get_widget("correctcharlabel", widgets.charsCorrect);
 	builder->get_widget("wrongcharlabel", widgets.charsWrong);
+	builder->get_widget("troublewordslabel", widgets.troubleWords);
 
 	testBox->override_font(Pango::FontDescription("15"));
 	widgets.textView->override_font(Pango::FontDescription(currFont));
