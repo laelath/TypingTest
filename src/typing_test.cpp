@@ -292,43 +292,41 @@ void TypingTest::calculateScore()
 	}
 
 	//Trouble words
-	std::vector<std::tuple<std::string, int, double>> wordScores;
+	std::vector<std::tuple<std::string, double>> wordScores;
 	for (int i = 0; i < wordIndex; ++i) {
 		bool found = false;
-		for (std::tuple<std::string, int, double> wordScore : wordScores) {
+		for (std::tuple<std::string, double> wordScore : wordScores) {
 			if (words[i].getWord() == std::get<0>(wordScore)) {
-				std::get<1>(wordScore)++;
-				std::get<2>(wordScore) += words[i].getScore();
+				std::get<1>(wordScore) = std::min(std::get<1>(wordScore), words[i].getScore());
 				found = true;
 				break;
 			}
 		}
 		if (!found) {
-			wordScores.push_back(std::make_tuple(words[i].getWord(), 1, words[i].getScore()));
+			wordScores.push_back(std::make_tuple(words[i].getWord(), words[i].getScore()));
 		}
 	}
 
 	//Calculate averages and total
 	double total = 0;
-	for (std::tuple<std::string, int, double> wordScore : wordScores) {
-		std::get<2>(wordScore) = std::get<2>(wordScore) / std::get<1>(wordScore);
-		total += std::get<2>(wordScore);
+	for (std::tuple<std::string, double> wordScore : wordScores) {
+		total += std::get<1>(wordScore);
 	}
 	double mean = total / wordScores.size();
 
 	//Standard deviation
 	double sum = 0;
-	for (std::tuple<std::string, int, double> wordScore : wordScores) {
-		sum += std::pow(std::get<2>(wordScore) - mean, 2);
+	for (std::tuple<std::string, double> wordScore : wordScores) {
+		sum += std::pow(std::get<1>(wordScore) - mean, 2);
 	}
 
 	double stdDev = std::sqrt(sum / wordScores.size());
 	
 	//Sort scores
 	std::sort(wordScores.begin(), wordScores.end(),
-			[](std::tuple<std::string, int, double> i, std::tuple<std::string, int, double> j) -> bool
+			[](std::tuple<std::string, double> i, std::tuple<std::string, double> j) -> bool
 			{
-				return std::get<2>(i) < std::get<2>(j);
+				return std::get<1>(i) < std::get<1>(j);
 			});
 
 	std::vector<std::string> troubleWords;
@@ -337,11 +335,11 @@ void TypingTest::calculateScore()
 	std::string troubleWordsStr;
 
 	//Print out scores
-	for (std::tuple<std::string, int, double> wordScore : wordScores) {
-		if (std::get<2>(wordScore) - mean <= -2 * stdDev) {
+	for (std::tuple<std::string, double> wordScore : wordScores) {
+		if (std::get<1>(wordScore) - mean <= -1.5 * stdDev) {
 			troubleWords.push_back(std::get<0>(wordScore));
 			troubleWordsStr += std::get<0>(wordScore) + "\n";
-		} else if (std::get<2>(wordScore) - mean > 0) {
+		} else if (std::get<1>(wordScore) - mean > 0) {
 			goodWords.push_back(std::get<0>(wordScore));
 		}
 	}
@@ -378,7 +376,7 @@ void TypingTest::calculateScore()
 	}
 
 	for (std::string word : troubleWords) {
-		temp << word << ",1\n";
+		temp << word << ",3\n";
 	}
 
 	file.close();

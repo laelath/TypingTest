@@ -8,4 +8,4 @@ CTestTestfile.cmake
 
 typingtest
 troublewords.txt
-.troublewords.swp
+*.swp

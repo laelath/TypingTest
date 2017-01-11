@@ -2,11 +2,6 @@
 <!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
-  <object class="GtkImage">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-preferences</property>
-  </object>
   <object class="GtkTextTag" id="currenterrortag">
     <property name="name">currenterror</property>
     <property name="background_rgba">rgb(239,41,41)</property>
@@ -55,6 +50,11 @@
     <property name="can_focus">False</property>
     <property name="pixbuf">dice-icon-small.png</property>
   </object>
+  <object class="GtkImage" id="settingsimage">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-preferences</property>
+  </object>
   <object class="GtkTextTagTable" id="texttags"/>
   <object class="GtkTextBuffer" id="textbuffer">
     <property name="tag_table">texttags</property>
@@ -83,10 +83,11 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="settings">
-                        <property name="label">Test</property>
+                        <property name="label">_Test</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="image">__glade_unnamed_19</property>
+                        <property name="use_underline">True</property>
+                        <property name="image">settingsimage</property>
                         <property name="use_stock">False</property>
                       </object>
                     </child>

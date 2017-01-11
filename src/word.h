@@ -4,7 +4,7 @@
 #include <chrono>
 #include <string>
 
-#define WORD_WRONG_WEIGHT 0.5
+#define WORD_WRONG_WEIGHT 0.4
 
 class Word {
 	public:
