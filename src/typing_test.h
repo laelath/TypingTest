@@ -24,6 +24,7 @@ enum TestType {
 };
 
 struct TestWidgets {
+	Gtk::Window *parent;
 	Gtk::TextView *textView;
 	Gtk::Entry *entry;
 	Gtk::Label *timer;
@@ -44,32 +45,40 @@ struct TestSettings {
 	size_t maxLength;
 	std::chrono::seconds seconds;
 	uint32_t seed;
+	double personalFrequency;
 
-	TestSettings(TestType t, size_t tw, size_t minl, size_t maxl, std::chrono::seconds sec, uint32_t sd) :
-		type(t), topWords(tw), minLength(minl), maxLength(maxl), seconds(sec), seed(sd) {}
+	TestSettings(TestType t, size_t tw, size_t minl, size_t maxl, std::chrono::seconds sec, uint32_t sd,
+			double pf) :
+		type(t), topWords(tw), minLength(minl), maxLength(maxl), seconds(sec), seed(sd), personalFrequency(pf)
+	{}
 };
 
-const TestSettings basic_test = { BASIC, 200, 2, 100, std::chrono::seconds(60), 0 };
-const TestSettings advanced_test = { ADVANCED, 10000, 3, 100, std::chrono::seconds(60), 0 };
-const TestSettings endurance_test = { ENDURANCE, 500, 2, 100, std::chrono::seconds(300), 0 };
+const TestSettings basic_test = { BASIC, 200, 2, 100, std::chrono::seconds(60), 0, 0 };
+const TestSettings advanced_test = { ADVANCED, 10000, 3, 100, std::chrono::seconds(60), 0, 0 };
+const TestSettings endurance_test = { ENDURANCE, 500, 2, 100, std::chrono::seconds(300), 0, 0 };
 
+TestType getTypeFromNumber(int num);
+int getTypeNumber(TestType type);
 TestSettings getTestTypeSettings(TestType type);
 
 class TypingTest {
 	public:
-		TypingTest(const TestWidgets &widgets, const TestSettings &settings); 
-		TypingTest(const TestWidgets &widgets) : TypingTest(widgets, basic_test) {};
+		TypingTest(Gtk::Window *parent, const TestWidgets &widgets, const TestSettings &settings); 
+		TypingTest(Gtk::Window *parent, const TestWidgets &widgets) :
+			TypingTest(parent, widgets, basic_test) {};
 		~TypingTest();
-
-		std::string getWords();
-		std::string getTime();
 		
 	private:
+		void disconnectSignals();
+		std::string genWord();
+		std::string getWords();
+		std::string getTime();
 		void textInsert(std::string text, int *pos);
 		void textDelete(int pos, int num);
 		bool updateTimer();
 		void calculateScore();
 
+		Gtk::Window *parent;
 		Gtk::TextView *textView;
 		Gtk::Entry *entry;
 		Gtk::Label *timerLabel;
@@ -92,15 +101,18 @@ class TypingTest {
 		std::minstd_rand rand;
 
 		std::vector<std::string> wordSelection;
+		std::vector<std::string> personalSelection;
 		std::vector<Word> words;
+
+		double personalFrequency;
 
 		std::chrono::seconds seconds;
 		std::chrono::seconds start;
+
 		int wordIndex = 0;
 		int wordCharIndex = 0;
 		bool testStarted = false;
 		bool testEnded = false;
-		bool newWord = false;
 };
 
 #endif
