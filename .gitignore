@@ -7,5 +7,5 @@ install_manifest.txt
 CTestTestfile.cmake
 
 typingtest
-troublewords.txt
+words/troublewords.txt
 *.swp

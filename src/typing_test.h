@@ -14,8 +14,6 @@
 
 #include "word.h"
 
-#define START_WORDS 500
-
 enum TestType {
 	BASIC,
 	ADVANCED,

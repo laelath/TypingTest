@@ -1,4 +1,5 @@
 #include <chrono>
+#include <fstream>
 #include <iostream>
 
 #include <pangomm/fontdescription.h>
@@ -11,14 +12,16 @@
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/dialog.h>
 #include <gtkmm/entry.h>
-#include <gtkmm/fontchooser.h>
+#include <gtkmm/fontchooserdialog.h>
 #include <gtkmm/image.h>
 #include <gtkmm/imagemenuitem.h>
+#include <gtkmm/liststore.h>
 #include <gtkmm/radiobutton.h>
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/textbuffer.h>
 #include <gtkmm/textview.h>
 
+#include "config.h"
 #include "typing_test.h"
 
 //Main window widgets
@@ -27,6 +30,7 @@ Gtk::Button *newTest;
 Gtk::ImageMenuItem *settingsItem;
 Gtk::ImageMenuItem *fontItem;
 Gtk::ImageMenuItem *quitItem;
+Gtk::ImageMenuItem *troubleItem;
 Gtk::Box *testBox;
 
 Glib::RefPtr<Gtk::TextBuffer> textBuffer;
@@ -50,18 +54,24 @@ Gtk::SpinButton *minWordLength;
 Gtk::SpinButton *maxWordLength;
 Gtk::SpinButton *testLength;
 Gtk::Entry *seedEntry;
+Gtk::Button *randomizeSeed;
 Gtk::SpinButton *personalFrequency;
 
-Gtk::Button *randomizeSeed;
-
-TestSettings settings = basic_test;
-
 //Font chooser
-//Gtk::Dialog *fontDialog;
-//Gtk::FontChooser *fontChooser;
-//Gtk::Button *fontCancel;
-//Gtk::Button *fontApply;
+Gtk::FontChooserDialog *fontChooser;
 
+//Trouble words window
+Gtk::Dialog *troubleDialog;
+Gtk::TreeView *troubleList;
+Gtk::Button *troubleClose;
+
+Glib::RefPtr<Gtk::ListStore> troubleListStore;
+
+Gtk::TreeModelColumn<std::string> strCol;
+Gtk::TreeModelColumn<unsigned int> valCol;
+
+//Test settings
+TestSettings settings = basic_test;
 std::string currFont = "Sans 25";
 
 void genNewTest()
@@ -109,9 +119,12 @@ void randomSeed()
 				std::chrono::system_clock::now().time_since_epoch().count() % UINT32_MAX));
 }
 
-void applySettings(int response)
+void openSettings()
 {
-	if (response == 1) {
+	testTypeBox->set_active(getTypeNumber(settings.type));
+	updateSettings();
+	int response = settingsDialog->run();
+	if (response == Gtk::RESPONSE_APPLY) {
 		settings.topWords = topWords->get_value_as_int();
 		settings.minLength = minWordLength->get_value_as_int();
 		settings.maxLength = maxWordLength->get_value_as_int();
@@ -121,41 +134,45 @@ void applySettings(int response)
 		
 		genNewTest();
 	}
-}
-
-void openSettings()
-{
-	testTypeBox->set_active(getTypeNumber(settings.type));
-
-	updateSettings();
-	applySettings(settingsDialog->run());
 	settingsDialog->close();
 }
 
-/*void openFont()
+void openFont()
 {
 	fontChooser->set_font(currFont);
-	fontDialog->present();
+	int response = fontChooser->run();
+	if (response == Gtk::RESPONSE_OK) {
+		widgets.textView->override_font(Pango::FontDescription(fontChooser->get_font()));
+	}
+	fontChooser->close();
 }
 
-void applyFont(std::string font)
+void openTroubleWords()
 {
-	currFont = font;
-	widgets.textView->override_font(Pango::FontDescription(font));
-	fontDialog->close();
-}
+	std::ifstream trWords("words/troublewords.txt");
+	if (!trWords.is_open()) {
+		std::exit(1);
+	}
 
-void applyFont()
-{
-	applyFont(fontChooser->get_font());
-}*/
+	std::string line;
+	while (std::getline(trWords, line)) {
+		std::string word = line.substr(0, line.find(","));
+		unsigned int val = std::stoi(line.substr(line.find(",") + 1));
+		Gtk::ListStore::Row row = *(troubleListStore->append());
+		row[strCol] = word;
+		row[valCol] = val;
+	}
+
+	troubleDialog->run();
+	troubleDialog->close();
+}
 
 int main(int argc, char *argv[])
 {
-	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(argc, argv, "us.laelath.typingtest");
+	loadConfig();
 
+	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(argc, argv, "us.laelath.typingtest");
 	Glib::RefPtr<Gtk::Builder> builder = Gtk::Builder::create_from_file("ui/typingui.glade");
-	std::cout << "got here" << std::endl;
 
 	//Prepare main window
 	builder->get_widget("typingtest", appWindow);
@@ -163,6 +180,7 @@ int main(int argc, char *argv[])
 	builder->get_widget("settings", settingsItem);
 	builder->get_widget("font", fontItem);
 	builder->get_widget("quit", quitItem);
+	builder->get_widget("viewtroublewords", troubleItem);
 	builder->get_widget("testbox", testBox);
 
 	builder->get_widget("textview", widgets.textView);
@@ -208,27 +226,41 @@ int main(int argc, char *argv[])
 	builder->get_widget("personalratioentry", personalFrequency);
 
 	//Font settings window
-	//builder->get_widget("fontdialog", fontDialog);
-	//builder->get_widget("fontchooser", fontChooser);
-	//builder->get_widget("fontcancel", fontCancel);
-	//builder->get_widget("fontapply", fontApply);
+	fontChooser = new Gtk::FontChooserDialog("Select a font", *appWindow);
+
+	//Trouble words viewer
+	builder->get_widget("troubledialog", troubleDialog);
+	builder->get_widget("troublelist", troubleList);
+	builder->get_widget("troubleclosebutton", troubleClose);
+
+	Gtk::TreeModelColumnRecord cols;
+	cols.add(strCol);
+	cols.add(valCol);
+
+	troubleListStore = Gtk::ListStore::create(cols);
+	troubleList->set_model(troubleListStore);
+
+	troubleList->append_column("Trouble Word", strCol);
+	troubleList->append_column("Weight", valCol);
+
+	troubleListStore->set_sort_column(valCol, Gtk::SortType::SORT_DESCENDING);
 
 	//Connect signals
 	newTest->signal_clicked().connect(sigc::ptr_fun(&genNewTest));
 	settingsItem->signal_activate().connect(sigc::ptr_fun(&openSettings));
-	//fontItem->signal_activate().connect(sigc::ptr_fun(&openFont));
+	fontItem->signal_activate().connect(sigc::ptr_fun(&openFont));
 	quitItem->signal_activate().connect(sigc::mem_fun(appWindow, &Gtk::ApplicationWindow::close));
+	troubleItem->signal_activate().connect(sigc::ptr_fun(&openTroubleWords));
 
 	testTypeBox->signal_changed().connect(sigc::ptr_fun(&updateSettings));
 	randomizeSeed->signal_clicked().connect(sigc::ptr_fun(&randomSeed));
 	apply->signal_clicked().connect(
-			sigc::bind<int>(sigc::mem_fun(settingsDialog, &Gtk::Dialog::response), 1));
+			sigc::bind<int>(sigc::mem_fun(settingsDialog, &Gtk::Dialog::response), Gtk::RESPONSE_APPLY));
 	cancel->signal_clicked().connect(
-			sigc::bind<int>(sigc::mem_fun(settingsDialog, &Gtk::Dialog::response), 0));
+			sigc::bind<int>(sigc::mem_fun(settingsDialog, &Gtk::Dialog::response), Gtk::RESPONSE_CANCEL));
 
-	//fontApply->signal_clicked().connect(sigc::ptr_fun0(&applyFont));
-	//fontChooser->signal_font_activated().connect(sigc::ptr_fun1(&applyFont));
-	//fontCancel->signal_clicked().connect(sigc::mem_fun(fontDialog, &Gtk::Dialog::close));
+	troubleClose->signal_clicked().connect(
+			sigc::bind<int>(sigc::mem_fun(troubleDialog, &Gtk::Dialog::response), Gtk::RESPONSE_CLOSE));
 
 	//Create test
 	test = new TypingTest(appWindow, widgets);

@@ -7,6 +7,8 @@
 
 #include <gtkmm/messagedialog.h>
 
+#include "config.h"
+
 TestType getTypeFromNumber(int num)
 {
 	switch (num) {
@@ -124,8 +126,8 @@ TypingTest::TypingTest(Gtk::Window *parent, const TestWidgets &widgets, const Te
 		rand.seed(settings.seed);
 	}
 
-	words.reserve(START_WORDS);
-	for (int i = 0; i < START_WORDS; ++i) {
+	words.reserve(config.startWords);
+	for (int i = 0; i < config.startWords; ++i) {
 		words.push_back(genWord());
 	}
 
@@ -336,16 +338,16 @@ void TypingTest::calculateScore()
 
 	//Print out scores
 	for (std::tuple<std::string, double> wordScore : wordScores) {
-		if (std::get<1>(wordScore) - mean <= -1.5 * stdDev) {
+		if (std::get<1>(wordScore) - mean <= config.minZScore * stdDev) {
 			troubleWords.push_back(std::get<0>(wordScore));
 			troubleWordsStr += std::get<0>(wordScore) + "\n";
-		} else if (std::get<1>(wordScore) - mean > 0) {
+		} else if (std::get<1>(wordScore) - mean > config.maxZScore * stdDev) {
 			goodWords.push_back(std::get<0>(wordScore));
 		}
 	}
 
 	std::ifstream file("words/troublewords.txt");
-	std::ofstream temp("words/.troublewords.swp", std::ios::trunc);
+	std::ofstream temp("words/.troublewords.txt.swp", std::ios::trunc);
 
 	if (!temp.is_open()) {
 		std::exit(1);
@@ -355,17 +357,17 @@ void TypingTest::calculateScore()
 		std::string line;
 		while (std::getline(file, line)) {
 			std::string word = line.substr(0, line.find(","));
+			int num = std::stoi(line.substr(line.find(",") + 1));
 
 			std::vector<std::string>::iterator it = std::find(troubleWords.begin(), troubleWords.end(), word);
 			if (it != troubleWords.end()) {
-				temp << word << "," << std::stoi(line.substr(line.find(",") + 1)) + 1 << "\n";
+				temp << word << "," << num + config.troubleInc << "\n";
 				troubleWords.erase(it);
 			} else {
 				it = std::find(goodWords.begin(), goodWords.end(), word);
 				if (it != goodWords.end()) {
-					int num = std::stoi(line.substr(line.find(",") + 1));
 					if (num > 1) {
-						temp << word << "," << num-- << "\n";
+						temp << word << "," << num - config.troubleDec << "\n";
 					}
 					goodWords.erase(it);
 				} else {
@@ -376,14 +378,14 @@ void TypingTest::calculateScore()
 	}
 
 	for (std::string word : troubleWords) {
-		temp << word << ",3\n";
+		temp << word << "," << config.startTroubleScore << "\n";
 	}
 
 	file.close();
 	temp.close();
 
 	std::remove("words/troublewords.txt");
-	std::rename("words/.troublewords.swp", "words/troublewords.txt");
+	std::rename("words/.troublewords.txt.swp", "words/troublewords.txt");
 
 	wpmLabel->set_text("WPM: " + std::to_string((int) ((charsCorrect / 5.0) / (start.count() / 60.0))));
 	wordNumLabel->set_text("Words: " + std::to_string(wordNum));
