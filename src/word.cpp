@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "config.h"
+
 Word::Word(std::string word)
 {
 	this->word = word;
@@ -47,7 +49,7 @@ bool Word::enterWord(std::string enter)
 	time = std::chrono::duration_cast<std::chrono::milliseconds>(
 			std::chrono::high_resolution_clock::now() - start);
 	//Calculate score
-	score = word.length() * 1000 * (correct ? 1 : WORD_WRONG_WEIGHT) / (double) time.count();
+	score = word.length() * 1000 * (correct ? 1 : config.wordWrongWeight) / (double) time.count();
 	return correct;
 }
 
