@@ -69,7 +69,7 @@ TypingTest::TypingTest(Gtk::Window *parent, const TestWidgets &widgets, const Te
 	insertConnection = entry->signal_insert_text().connect(sigc::mem_fun(this, &TypingTest::textInsert));
 	backspConnection = entry->signal_delete_text().connect(sigc::mem_fun(this, &TypingTest::textDelete));
 
-	timerLabel->set_text(getTime());
+	timerLabel->set_text("Timer: " + getTime());
 
 	std::ifstream fileIn("words/dictionary.txt");
 	std::ifstream trWords("words/troublewords.txt");
@@ -264,7 +264,7 @@ void TypingTest::textDelete(int, int)
 bool TypingTest::updateTimer()
 {
 	seconds--;
-	timerLabel->set_text(getTime());
+	timerLabel->set_text("Timer: " + getTime());
 	if (seconds != std::chrono::seconds::duration::zero()) {
 		return true;
 	} else {

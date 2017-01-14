@@ -29,6 +29,7 @@ Gtk::ApplicationWindow *appWindow;
 Gtk::Button *newTest;
 Gtk::ImageMenuItem *settingsItem;
 Gtk::ImageMenuItem *fontItem;
+Gtk::ImageMenuItem *advItem;
 Gtk::ImageMenuItem *quitItem;
 Gtk::ImageMenuItem *troubleItem;
 Gtk::Box *testBox;
@@ -73,6 +74,19 @@ Gtk::TreeModelColumn<unsigned int> valCol;
 //Test settings
 TestSettings settings = basic_test;
 std::string currFont = "Sans 25";
+
+//Advanced settings widgets
+Gtk::Dialog *advSettingsDialog;
+Gtk::SpinButton *startWords;
+Gtk::SpinButton *minZScore;
+Gtk::SpinButton *maxZScore;
+Gtk::SpinButton *startTroubleScore;
+Gtk::SpinButton *troubleDec;
+Gtk::SpinButton *troubleInc;
+Gtk::SpinButton *wordWrongMult;
+Gtk::Button *restoreDefaultAdv;
+Gtk::Button *cancelAdv;
+Gtk::Button *applyAdv;
 
 void genNewTest()
 {
@@ -147,6 +161,45 @@ void openFont()
 	fontChooser->close();
 }
 
+void updateAdvSettings()
+{
+	startWords->set_value(config.startWords);
+	minZScore->set_value(config.minZScore);
+	maxZScore->set_value(config.maxZScore);
+	startTroubleScore->set_value(config.startTroubleScore);
+	troubleDec->set_value(config.troubleDec);
+	troubleInc->set_value(config.troubleInc);
+	wordWrongMult->set_value(config.wordWrongWeight);
+}
+
+void applyDefaultSettings()
+{
+	Config newConfig;
+	config = newConfig;
+
+	updateAdvSettings();
+}
+
+void openAdvSettings()
+{
+	updateAdvSettings();
+
+	int response = advSettingsDialog->run();
+	if (response == Gtk::RESPONSE_APPLY) {
+		config.startWords = startWords->get_value_as_int();
+		config.minZScore = minZScore->get_value();
+		config.maxZScore = maxZScore->get_value();
+		config.startTroubleScore = startTroubleScore->get_value_as_int();
+		config.troubleDec = troubleDec->get_value_as_int();
+		config.troubleInc = troubleInc->get_value_as_int();
+		config.wordWrongWeight = wordWrongMult->get_value();
+		saveConfig();
+		genNewTest();
+	}
+
+	advSettingsDialog->close();
+}
+
 void openTroubleWords()
 {
 	std::ifstream trWords("words/troublewords.txt");
@@ -179,6 +232,7 @@ int main(int argc, char *argv[])
 	builder->get_widget("newtestbutton", newTest);
 	builder->get_widget("settings", settingsItem);
 	builder->get_widget("font", fontItem);
+	builder->get_widget("advanced", advItem);
 	builder->get_widget("quit", quitItem);
 	builder->get_widget("viewtroublewords", troubleItem);
 	builder->get_widget("testbox", testBox);
@@ -228,6 +282,19 @@ int main(int argc, char *argv[])
 	//Font settings window
 	fontChooser = new Gtk::FontChooserDialog("Select a font", *appWindow);
 
+	//Advanced settings window
+	builder->get_widget("advancedsettingsdialog", advSettingsDialog);
+	builder->get_widget("startwords", startWords);
+	builder->get_widget("minzscore", minZScore);
+	builder->get_widget("maxzscore", maxZScore);
+	builder->get_widget("starttrouble", startTroubleScore);
+	builder->get_widget("troubledec", troubleDec);
+	builder->get_widget("troubleinc", troubleInc);
+	builder->get_widget("wordwrongmult", wordWrongMult);
+	builder->get_widget("restoredefaultadv", restoreDefaultAdv);
+	builder->get_widget("canceladv", cancelAdv);
+	builder->get_widget("applyadv", applyAdv);
+
 	//Trouble words viewer
 	builder->get_widget("troubledialog", troubleDialog);
 	builder->get_widget("troublelist", troubleList);
@@ -249,6 +316,7 @@ int main(int argc, char *argv[])
 	newTest->signal_clicked().connect(sigc::ptr_fun(&genNewTest));
 	settingsItem->signal_activate().connect(sigc::ptr_fun(&openSettings));
 	fontItem->signal_activate().connect(sigc::ptr_fun(&openFont));
+	advItem->signal_activate().connect(sigc::ptr_fun(&openAdvSettings));
 	quitItem->signal_activate().connect(sigc::mem_fun(appWindow, &Gtk::ApplicationWindow::close));
 	troubleItem->signal_activate().connect(sigc::ptr_fun(&openTroubleWords));
 
@@ -258,6 +326,12 @@ int main(int argc, char *argv[])
 			sigc::bind<int>(sigc::mem_fun(settingsDialog, &Gtk::Dialog::response), Gtk::RESPONSE_APPLY));
 	cancel->signal_clicked().connect(
 			sigc::bind<int>(sigc::mem_fun(settingsDialog, &Gtk::Dialog::response), Gtk::RESPONSE_CANCEL));
+
+	applyAdv->signal_clicked().connect(
+			sigc::bind<int>(sigc::mem_fun(advSettingsDialog, &Gtk::Dialog::response), Gtk::RESPONSE_APPLY));
+	cancelAdv->signal_clicked().connect(
+			sigc::bind<int>(sigc::mem_fun(advSettingsDialog, &Gtk::Dialog::response), Gtk::RESPONSE_CANCEL));
+	restoreDefaultAdv->signal_clicked().connect(sigc::ptr_fun(&applyDefaultSettings));
 
 	troubleClose->signal_clicked().connect(
 			sigc::bind<int>(sigc::mem_fun(troubleDialog, &Gtk::Dialog::response), Gtk::RESPONSE_CLOSE));
