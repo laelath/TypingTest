@@ -1,7 +1,9 @@
 #ifndef DICTIONARY_H
 #define DICTIONARY_H
 
-const char dictionary[] =
+#include <string>
+
+const std::string dictionary =
 "the\n"
 "of\n"
 "and\n"
