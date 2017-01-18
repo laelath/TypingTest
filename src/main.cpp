@@ -202,7 +202,7 @@ void openAdvSettings()
 
 void openTroubleWords()
 {
-	std::ifstream trWords("words/troublewords.txt");
+	std::ifstream trWords(data_dir + "troublewords.txt");
 	if (!trWords.is_open()) {
 		std::exit(1);
 	}
