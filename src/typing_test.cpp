@@ -8,6 +8,7 @@
 #include <gtkmm/messagedialog.h>
 
 #include "config.h"
+#include "dictionary.h"
 
 TestType getTypeFromNumber(int num)
 {
@@ -71,35 +72,18 @@ TypingTest::TypingTest(Gtk::Window *parent, const TestWidgets &widgets, const Te
 
 	timerLabel->set_text("Timer: " + getTime());
 
-	std::ifstream fileIn("words/dictionary.txt");
-	std::ifstream trWords("words/troublewords.txt");
+	//std::ifstream fileIn(data_dir + "words/dictionary.txt");
 
-	if (!fileIn.is_open()) {
+	/*if (!fileIn.is_open()) {
 		std::exit(1);
-	}
-	
-	if (settings.personalFrequency != 0) {
-		if (!trWords.is_open()) {
-			Gtk::MessageDialog error(*parent, "No trouble words file found.", false, Gtk::MESSAGE_ERROR,
-					Gtk::BUTTONS_CLOSE, true);
-			error.set_secondary_text("You need to finish a test before trouble words will be detected.");
-			error.run();
-			disconnectSignals();
-			return;
-		} else if (trWords.peek() == std::ifstream::traits_type::eof()) {
-			Gtk::MessageDialog error(*parent, "Trouble words file empty.", false, Gtk::MESSAGE_ERROR,
-					Gtk::BUTTONS_CLOSE, true);
-			error.set_secondary_text("You need to finish a test before trouble words will be detected.");
-			error.run();
-			disconnectSignals();
-			return;
-		}
-	}
+	}*/
 
+	std::stringstream dictRead(dictionary);
+	
 	wordSelection.reserve(settings.topWords);
 	for (size_t i = 0; i < settings.topWords; ) {
 		std::string line;
-		if (std::getline(fileIn, line)) {
+		if (std::getline(dictRead, line)) {
 			if (line.length() >= settings.minLength && line.length() <= settings.maxLength) {
 				wordSelection.push_back(line);
 				i++;
@@ -109,14 +93,35 @@ TypingTest::TypingTest(Gtk::Window *parent, const TestWidgets &widgets, const Te
 		}
 	}
 
-	std::string line;
-	while (std::getline(trWords, line)) {
-		std::string word = line.substr(0, line.find(","));
-		if (word.length() >=  settings.minLength && line.length() <= settings.maxLength) {
-			int num = std::stoi(line.substr(line.find(",") + 1));
-			for (int i = 0; i < num; ++i) {
-				personalSelection.push_back(word);
+	if (settings.personalFrequency != 0) {
+		std::ifstream trWords(data_dir + "troublewords.txt");
+		if (!trWords.is_open()) {
+			Gtk::MessageDialog error(*parent, "No trouble words file found.", false, Gtk::MESSAGE_ERROR,
+					Gtk::BUTTONS_CLOSE, true);
+			error.set_secondary_text("You need to finish a test before trouble words will be detected.");
+			error.run();
+			disconnectSignals();
+			return;
+		}
+
+		std::string line;
+		while (std::getline(trWords, line)) {
+			std::string word = line.substr(0, line.find(","));
+			if (word.length() >=  settings.minLength && line.length() <= settings.maxLength) {
+				int num = std::stoi(line.substr(line.find(",") + 1));
+				for (int i = 0; i < num; ++i) {
+					personalSelection.push_back(word);
+				}
 			}
+		}
+
+		if (personalSelection.size() == 0) {
+			Gtk::MessageDialog error(*parent, "Trouble words file empty.", false, Gtk::MESSAGE_ERROR,
+					Gtk::BUTTONS_CLOSE, true);
+			error.set_secondary_text("You need to finish a test before trouble words will be detected.");
+			error.run();
+			disconnectSignals();
+			return;
 		}
 	}
 
@@ -346,8 +351,8 @@ void TypingTest::calculateScore()
 		}
 	}
 
-	std::ifstream file("words/troublewords.txt");
-	std::ofstream temp("words/.troublewords.txt.swp", std::ios::trunc);
+	std::ifstream file(data_dir + "troublewords.txt");
+	std::ofstream temp(data_dir + ".troublewords.txt.swp", std::ios::trunc);
 
 	if (!temp.is_open()) {
 		std::exit(1);
@@ -384,8 +389,8 @@ void TypingTest::calculateScore()
 	file.close();
 	temp.close();
 
-	std::remove("words/troublewords.txt");
-	std::rename("words/.troublewords.txt.swp", "words/troublewords.txt");
+	std::remove((data_dir + "troublewords.txt").c_str());
+	std::rename((data_dir + ".troublewords.txt.swp").c_str(), (data_dir + "troublewords.txt").c_str());
 
 	wpmLabel->set_text("WPM: " + std::to_string((int) ((charsCorrect / 5.0) / (start.count() / 60.0))));
 	wordNumLabel->set_text("Words: " + std::to_string(wordNum));

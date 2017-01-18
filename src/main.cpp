@@ -222,6 +222,7 @@ void openTroubleWords()
 
 int main(int argc, char *argv[])
 {
+	getPaths();
 	loadConfig();
 
 	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(argc, argv, "us.laelath.typingtest");

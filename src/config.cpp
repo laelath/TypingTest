@@ -1,15 +1,22 @@
 #include "config.h"
 
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 
+#include <sys/stat.h>
+
 Config config;
+
+std::string config_dir;
+std::string data_dir;
 
 void loadConfig()
 {
-	std::ifstream file("config.cfg");
+	std::ifstream file(config_dir + "config.cfg");
 	if (!file.is_open()) {
-		std::exit(1);
+		saveConfig();
+		return;
 	}
 
 	std::string line;
@@ -36,7 +43,7 @@ void loadConfig()
 
 void saveConfig()
 {
-	std::ofstream file(".config.cfg.swp", std::ios::trunc);
+	std::ofstream file(config_dir + ".config.cfg.swp", std::ios::trunc);
 	if (!file.is_open()) {
 		std::exit(1);
 	}
@@ -49,6 +56,31 @@ void saveConfig()
 	file << "trouble_inc=" << config.troubleInc << "\n";
 	file << "word_wrong_mult=" << config.wordWrongWeight << "\n";
 
-	std::remove("config.cfg");
-	std::rename(".config.cfg.swp", "config.cfg");
+	std::remove((config_dir + "config.cfg").c_str());
+	std::rename((config_dir + ".config.cfg.swp").c_str(), (config_dir + "config.cfg").c_str());
+}
+
+void getPaths()
+{
+	std::string home;
+	if (char *val = std::getenv("HOME")) {
+		home = val;
+	} else {
+		std::cout << "HOME variable not found" << std::endl;
+		std::exit(1);
+	}
+
+	if (char *val = std::getenv("XDG_CONFIG_HOME")) {
+		config_dir = val;
+	} else {
+		config_dir = home + "/.config/typingtest/";
+	}
+	mkdir(config_dir.c_str(), 0755);
+
+	if (char *val = std::getenv("XDG_DATA_HOME")) {
+		data_dir = val;
+	} else {
+		data_dir = home + "/.local/share/typingtest/";
+	}
+	mkdir(data_dir.c_str(), 0755);
 }
