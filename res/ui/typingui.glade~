@@ -217,7 +217,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkImageMenuItem">
+                      <object class="GtkImageMenuItem" id="about">
                         <property name="label">gtk-about</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -527,6 +527,43 @@
       </object>
     </child>
     <child type="titlebar">
+      <placeholder/>
+    </child>
+  </object>
+  <object class="GtkAboutDialog" id="aboutdialog">
+    <property name="can_focus">False</property>
+    <property name="modal">True</property>
+    <property name="type_hint">dialog</property>
+    <property name="transient_for">typingtest</property>
+    <property name="program_name">TypingTest</property>
+    <property name="version">v1.0.2</property>
+    <property name="website">https://github.com/laelath/TypingTest</property>
+    <property name="website_label" translatable="yes">Github Page</property>
+    <property name="authors">Justin Frank</property>
+    <property name="logo_icon_name">input-keyboard</property>
+    <property name="license_type">gpl-3-0</property>
+    <child internal-child="vbox">
+      <object class="GtkBox">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox">
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+      </object>
+    </child>
+    <child>
       <placeholder/>
     </child>
   </object>
@@ -887,6 +924,7 @@
   <object class="GtkDialog" id="advancedsettingsdialog">
     <property name="can_focus">False</property>
     <property name="type_hint">dialog</property>
+    <property name="transient_for">typingtest</property>
     <child internal-child="vbox">
       <object class="GtkBox">
         <property name="can_focus">False</property>
