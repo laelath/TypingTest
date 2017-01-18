@@ -4,11 +4,11 @@
 #include <iostream>
 
 #include <glibmm/main.h>
-
+#include <giomm/resource.h>
+#include <giomm/datainputstream.h>
 #include <gtkmm/messagedialog.h>
 
 #include "config.h"
-#include "dictionary.h"
 
 TestType getTypeFromNumber(int num)
 {
@@ -72,18 +72,14 @@ TypingTest::TypingTest(Gtk::Window *parent, const TestWidgets &widgets, const Te
 
 	timerLabel->set_text("Timer: " + getTime());
 
-	//std::ifstream fileIn(data_dir + "words/dictionary.txt");
+	gsize size;
+	std::stringstream dictStream((char *) Gio::Resource::lookup_data_global(
+				"/us/laelath/typingtest/dictionary.txt")->get_data(size));
 
-	/*if (!fileIn.is_open()) {
-		std::exit(1);
-	}*/
-
-	std::stringstream dictRead(dictionary);
-	
 	wordSelection.reserve(settings.topWords);
 	for (size_t i = 0; i < settings.topWords; ) {
 		std::string line;
-		if (std::getline(dictRead, line)) {
+		if (std::getline(dictStream, line)) {
 			if (line.length() >= settings.minLength && line.length() <= settings.maxLength) {
 				wordSelection.push_back(line);
 				i++;

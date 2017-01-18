@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+	<gresource prefix="/us/laelath/typingtest">
+		<file preprocess="xml-stripblanks">ui/typingui.glade</file>
+		<file>ui/dice-icon-small.png</file>
+		<file>dictionary.txt</file>
+	</gresource>
+</gresources>
