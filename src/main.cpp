@@ -4,6 +4,7 @@
 
 #include <pangomm/fontdescription.h>
 
+#include <gtkmm/aboutdialog.h>
 #include <gtkmm/application.h>
 #include <gtkmm/applicationwindow.h>
 #include <gtkmm/box.h>
@@ -32,6 +33,7 @@ Gtk::ImageMenuItem *fontItem;
 Gtk::ImageMenuItem *advItem;
 Gtk::ImageMenuItem *quitItem;
 Gtk::ImageMenuItem *troubleItem;
+Gtk::ImageMenuItem *aboutItem;
 Gtk::Box *testBox;
 
 Glib::RefPtr<Gtk::TextBuffer> textBuffer;
@@ -87,6 +89,9 @@ Gtk::SpinButton *wordWrongMult;
 Gtk::Button *restoreDefaultAdv;
 Gtk::Button *cancelAdv;
 Gtk::Button *applyAdv;
+
+//About dialog
+Gtk::AboutDialog *aboutDialog;
 
 void genNewTest()
 {
@@ -203,9 +208,8 @@ void openAdvSettings()
 void openTroubleWords()
 {
 	std::ifstream trWords(data_dir + "troublewords.txt");
-	if (!trWords.is_open()) {
-		std::exit(1);
-	}
+
+	troubleListStore->clear();
 
 	std::string line;
 	while (std::getline(trWords, line)) {
@@ -218,6 +222,12 @@ void openTroubleWords()
 
 	troubleDialog->run();
 	troubleDialog->close();
+}
+
+void openAbout()
+{
+	aboutDialog->run();
+	aboutDialog->close();
 }
 
 int main(int argc, char *argv[])
@@ -237,6 +247,7 @@ int main(int argc, char *argv[])
 	builder->get_widget("advanced", advItem);
 	builder->get_widget("quit", quitItem);
 	builder->get_widget("viewtroublewords", troubleItem);
+	builder->get_widget("about", aboutItem);
 	builder->get_widget("testbox", testBox);
 
 	builder->get_widget("textview", widgets.textView);
@@ -314,6 +325,9 @@ int main(int argc, char *argv[])
 
 	troubleListStore->set_sort_column(valCol, Gtk::SortType::SORT_DESCENDING);
 
+	//About dialog
+	builder->get_widget("aboutdialog", aboutDialog);
+
 	//Connect signals
 	newTest->signal_clicked().connect(sigc::ptr_fun(&genNewTest));
 	settingsItem->signal_activate().connect(sigc::ptr_fun(&openSettings));
@@ -321,6 +335,7 @@ int main(int argc, char *argv[])
 	advItem->signal_activate().connect(sigc::ptr_fun(&openAdvSettings));
 	quitItem->signal_activate().connect(sigc::mem_fun(appWindow, &Gtk::ApplicationWindow::close));
 	troubleItem->signal_activate().connect(sigc::ptr_fun(&openTroubleWords));
+	aboutItem->signal_activate().connect(sigc::ptr_fun(&openAbout));
 
 	testTypeBox->signal_changed().connect(sigc::ptr_fun(&updateSettings));
 	randomizeSeed->signal_clicked().connect(sigc::ptr_fun(&randomSeed));
