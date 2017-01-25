@@ -42,6 +42,8 @@
 #include "config.h"
 #include "typing_test.h"
 
+namespace typingtest {
+
 //Main window widgets
 Gtk::ApplicationWindow *appWindow;
 Gtk::Button *newTest;
@@ -247,7 +249,7 @@ void openAbout()
 	aboutDialog->close();
 }
 
-int main(int argc, char *argv[])
+int typingTestRun(int argc, char *argv[])
 {
 	getPaths();
 	loadConfig();
@@ -374,4 +376,10 @@ int main(int argc, char *argv[])
 	test = new TypingTest(appWindow, widgets);
 
 	return app->run(*appWindow);
+}
+} // namespace typingtest
+
+int main(int argc, char *argv[])
+{
+	return typingtest::typingTestRun(argc, argv);
 }
