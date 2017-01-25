@@ -1,3 +1,20 @@
+// Copyright (C) 2017 Justin Frank, Jason Waataja
+//
+// This file is part of TypingTest.
+//
+// TypingTest is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License as published by the Free
+// Software Foundation, either version 3 of the License, or (at your option)
+// any later version.
+//
+// TypingTest is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+// more details.
+//
+// You should have received a copy of the GNU General Public License along with
+// TypingTest.  If not, see <http://www.gnu.org/licenses/>.
+
 #include "typing_test.h"
 
 #include <fstream>
@@ -10,12 +27,14 @@
 
 #include "config.h"
 
+namespace typingtest {
+
 TestType getTypeFromNumber(int num)
 {
 	switch (num) {
-		case 1 : return ADVANCED;
-		case 2 : return ENDURANCE;
-		case 3 : return CUSTOM;
+		case 1: return ADVANCED;
+		case 2: return ENDURANCE;
+		case 3: return CUSTOM;
 	}
 	return BASIC;
 }
@@ -23,21 +42,19 @@ TestType getTypeFromNumber(int num)
 int getTypeNumber(TestType type)
 {
 	switch (type) {
-		case BASIC : return 0;
-		case ADVANCED : return 1;
-		case ENDURANCE : return 2;
-		case CUSTOM : return 3;
+		case BASIC: return 0;
+		case ADVANCED: return 1;
+		case ENDURANCE: return 2;
+		case CUSTOM: return 3;
 	}
 }
 
 TestSettings getTestTypeSettings(TestType type)
 {
-	if (type == ADVANCED) {
+	if (type == ADVANCED)
 		return advanced_test;
-	} else if (type == ENDURANCE) {
+	else if (type == ENDURANCE)
 		return endurance_test;
-	}
-
 	return basic_test;
 }
 
@@ -397,3 +414,4 @@ void TypingTest::calculateScore()
 	charsWrongLabel->set_text("Wrong: " + std::to_string(charNum - charsCorrect));
 	troubleWordsLabel->set_text(troubleWordsStr);
 }
+} // namespace typingtest

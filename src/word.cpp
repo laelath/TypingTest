@@ -1,8 +1,27 @@
+// Copyright (C) 2017 Justin Frank, Jason Waataja
+//
+// This file is part of TypingTest.
+//
+// TypingTest is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License as published by the Free
+// Software Foundation, either version 3 of the License, or (at your option)
+// any later version.
+//
+// TypingTest is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+// more details.
+//
+// You should have received a copy of the GNU General Public License along with
+// TypingTest.  If not, see <http://www.gnu.org/licenses/>.
+
 #include "word.h"
 
 #include <iostream>
 
 #include "config.h"
+
+namespace typingtest {
 
 Word::Word(std::string word)
 {
@@ -18,13 +37,6 @@ std::string Word::getEntry()
 {
 	return enteredWord;
 }
-
-/*
-bool Word::getEntered()
-{
-	return entered;
-}
-*/
 
 double Word::getScore()
 {
@@ -47,9 +59,10 @@ bool Word::enterWord(std::string enter)
 	correct = word == enter;
 	enteredWord = enter;
 	time = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::high_resolution_clock::now() - start);
+        std::chrono::high_resolution_clock::now() - start);
 	//Calculate score
-	score = word.length() * 1000 * (correct ? 1 : config.wordWrongWeight) / (double) time.count();
+	score = word.length() * 1000 * (correct ? 1 : config.wordWrongWeight)
+        / (double) time.count();
 	return correct;
 }
 
@@ -58,25 +71,8 @@ bool Word::getCorrect()
 	return correct;
 }
 
-/*
-int Word::charsCorrect()
-{
-	if (correct) {
-		return word.size();
-	}
-	return 0;
-
-	//int chars = 0;
-	//for (unsigned long i = 0; i < word.size() && i < enteredWord.size(); ++i) {
-	//	if (word[i] == enteredWord[i]) {
-	//		chars++;
-	//	}
-	//}
-	//return chars;
-}
-*/
-
 std::chrono::milliseconds Word::getTime()
 {
 	return time;
 }
+} // namespace typingtest
