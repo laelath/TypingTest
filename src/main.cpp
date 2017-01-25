@@ -150,7 +150,7 @@ void openSettings()
 		settings.seconds = std::chrono::seconds(testLength->get_value_as_int());
 		settings.seed = std::stoul(seedEntry->get_text());
 		settings.personalFrequency = personalFrequency->get_value();
-		
+
 		genNewTest();
 	}
 	settingsDialog->close();
