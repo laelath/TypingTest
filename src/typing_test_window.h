@@ -19,7 +19,10 @@
 
 #include <gtkmm.h>
 
+#include "test_settings.h"
 #include "word.h"
+
+namespace typingtest {
 
 class TypingTestWindow : public Gtk::ApplicationWindow {
 public:
@@ -27,109 +30,113 @@ public:
 		const Glib::RefPtr<Gtk::Builder>& builder);
 
 private:
-// Main window widgets
-Gtk::ApplicationWindow *appWindow;
-Gtk::Button *newTest;
-Gtk::ImageMenuItem *settingsItem;
-Gtk::ImageMenuItem *fontItem;
-Gtk::ImageMenuItem *advItem;
-Gtk::ImageMenuItem *quitItem;
-Gtk::ImageMenuItem *troubleItem;
-Gtk::ImageMenuItem *aboutItem;
-Gtk::Box *testBox;
+	Glib::RefPtr<Gtk::Builder> builder;
 
-Glib::RefPtr<Gtk::TextBuffer> textBuffer;
-Glib::RefPtr<Gtk::TextTagTable> textTags;
-Glib::RefPtr<Gtk::TextTag> currentTag;
-Glib::RefPtr<Gtk::TextTag> currentErrorTag;
-Glib::RefPtr<Gtk::TextTag> errorTag;
-Glib::RefPtr<Gtk::TextTag> goodTag;
+	// Initializes widgets from builder file.
+	void initWidgets();
 
-Gtk::Window *parent;
-Gtk::TextView *textView;
-Gtk::Entry *entry;
-Gtk::Label *timerLabel;
-Gtk::Label *wpmLabel;
-Gtk::Label *wordNumLabel;
-Gtk::Label *wordsCorrectLabel;
-Gtk::Label *wordsWrongLabel;
-Gtk::Label *charNumLabel;
-Gtk::Label *charsCorrectLabel;
-Gtk::Label *charsWrongLabel;
-Gtk::Label *troubleWordsLabel;
+	// Main window widgets
+	Gtk::ApplicationWindow *appWindow;
+	Gtk::Button *newTest;
+	Gtk::ImageMenuItem *settingsItem;
+	Gtk::ImageMenuItem *fontItem;
+	Gtk::ImageMenuItem *advItem;
+	Gtk::ImageMenuItem *quitItem;
+	Gtk::ImageMenuItem *troubleItem;
+	Gtk::ImageMenuItem *aboutItem;
+	Gtk::Box *testBox;
 
-//Settings window widgets
-Gtk::Dialog *settingsDialog;
-Gtk::Button *cancel;
-Gtk::Button *apply;
-Gtk::ComboBoxText *testTypeBox;
-Gtk::SpinButton *topWords;
-Gtk::SpinButton *minWordLength;
-Gtk::SpinButton *maxWordLength;
-Gtk::SpinButton *testLength;
-Gtk::Entry *seedEntry;
-Gtk::Button *randomizeSeed;
-Gtk::SpinButton *personalFrequency;
+	Glib::RefPtr<Gtk::TextBuffer> textBuffer;
+	Glib::RefPtr<Gtk::TextTagTable> textTags;
+	Glib::RefPtr<Gtk::TextTag> currentTag;
+	Glib::RefPtr<Gtk::TextTag> currentErrorTag;
+	Glib::RefPtr<Gtk::TextTag> errorTag;
+	Glib::RefPtr<Gtk::TextTag> goodTag;
 
-// Font chooser
-Gtk::FontChooserDialog *fontChooser;
+	Gtk::Window *parent;
+	Gtk::TextView *textView;
+	Gtk::Entry *typingEntry;
+	Gtk::Label *timerLabel;
+	Gtk::Label *wpmLabel;
+	Gtk::Label *wordNumLabel;
+	Gtk::Label *wordsCorrectLabel;
+	Gtk::Label *wordsWrongLabel;
+	Gtk::Label *charNumLabel;
+	Gtk::Label *charsCorrectLabel;
+	Gtk::Label *charsWrongLabel;
+	Gtk::Label *troubleWordsLabel;
 
-// Trouble words window
-Gtk::Dialog *troubleDialog;
-Gtk::TreeView *troubleList;
-Gtk::Button *troubleClose;
+	//Settings window widgets
+	Gtk::Dialog *settingsDialog;
+	Gtk::Button *cancel;
+	Gtk::Button *apply;
+	Gtk::ComboBoxText *testTypeBox;
+	Gtk::SpinButton *topWords;
+	Gtk::SpinButton *minWordLength;
+	Gtk::SpinButton *maxWordLength;
+	Gtk::SpinButton *testLength;
+	Gtk::Entry *seedEntry;
+	Gtk::Button *randomizeSeed;
+	Gtk::SpinButton *personalFrequency;
 
-Glib::RefPtr<Gtk::ListStore> troubleListStore;
+	// Font chooser
+	Gtk::FontChooserDialog *fontChooser;
 
-Gtk::TreeModelColumn<std::string> strCol;
-Gtk::TreeModelColumn<unsigned int> valCol;
+	// Trouble words window
+	Gtk::Dialog *troubleDialog;
+	Gtk::TreeView *troubleList;
+	Gtk::Button *troubleClose;
 
-//Test settings
-TestSettings settings = basic_test;
-std::string currFont = "Sans 25";
+	Glib::RefPtr<Gtk::ListStore> troubleListStore;
 
-//Advanced settings widgets
-Gtk::Dialog *advSettingsDialog;
-Gtk::SpinButton *startWords;
-Gtk::SpinButton *minZScore;
-Gtk::SpinButton *maxZScore;
-Gtk::SpinButton *startTroubleScore;
-Gtk::SpinButton *troubleDec;
-Gtk::SpinButton *troubleInc;
-Gtk::SpinButton *wordWrongMult;
-Gtk::Button *restoreDefaultAdv;
-Gtk::Button *cancelAdv;
-Gtk::Button *applyAdv;
+	Gtk::TreeModelColumn<std::string> strCol;
+	Gtk::TreeModelColumn<unsigned int> valCol;
 
-//About dialog
-Gtk::AboutDialog *aboutDialog;
+	//Test settings
+	TestSettings settings = basic_test;
+	std::string currFont = "Sans 25";
 
-void disconnectSignals();
-std::string genWord();
-std::string getWords();
-std::string getTime();
-void textInsert(std::string text, int *pos);
-void textDelete(int pos, int num);
-bool updateTimer();
-void calculateScore();
+	//Advanced settings widgets
+	Gtk::Dialog *advSettingsDialog;
+	Gtk::SpinButton *startWords;
+	Gtk::SpinButton *minZScore;
+	Gtk::SpinButton *maxZScore;
+	Gtk::SpinButton *startTroubleScore;
+	Gtk::SpinButton *troubleDec;
+	Gtk::SpinButton *troubleInc;
+	Gtk::SpinButton *wordWrongMult;
+	Gtk::Button *restoreDefaultAdv;
+	Gtk::Button *cancelAdv;
+	Gtk::Button *applyAdv;
 
-sigc::connection insertConnection;
-sigc::connection backspConnection;
-sigc::connection timerConnection;
+	//About dialog
+	Gtk::AboutDialog *aboutDialog;
 
-std::minstd_rand rand;
+	void disconnectSignals();
+	std::string genWord();
+	std::string getWords();
+	std::string getTime();
+	void textInsert(std::string text, int *pos);
+	void textDelete(int pos, int num);
+	bool updateTimer();
+	void calculateScore();
 
-std::vector<std::string> wordSelection;
-std::vector<std::string> personalSelection;
-std::vector<Word> words;
+	sigc::connection insertConnection;
+	sigc::connection backspConnection;
+	sigc::connection timerConnection;
 
-double personalFrequency;
+	std::minstd_rand rand;
 
-std::chrono::seconds seconds;
-std::chrono::seconds start;
+	std::vector<std::string> wordSelection;
+	std::vector<std::string> personalSelection;
+	std::vector<Word> words;
 
-int wordIndex = 0;
-int wordCharIndex = 0;
-bool testStarted = false;
-bool testEnded = false;
+	std::chrono::seconds seconds;
+	std::chrono::seconds start;
+
+	int wordIndex = 0;
+	int wordCharIndex = 0;
+	bool testStarted = false;
+	bool testEnded = false;
 };
+} // namespace typingtest

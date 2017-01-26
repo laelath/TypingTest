@@ -70,9 +70,12 @@ struct TestSettings {
 	{}
 };
 
-const TestSettings basic_test = { BASIC, 200, 2, 100, std::chrono::seconds(60), 0, 0 };
-const TestSettings advanced_test = { ADVANCED, 10000, 3, 100, std::chrono::seconds(60), 0, 0 };
-const TestSettings endurance_test = { ENDURANCE, 500, 2, 100, std::chrono::seconds(300), 0, 0 };
+const TestSettings basic_test = { BASIC, 200, 2, 100, std::chrono::seconds(60),
+	0, 0 };
+const TestSettings advanced_test = { ADVANCED, 10000, 3, 100,
+	std::chrono::seconds(60), 0, 0 };
+const TestSettings endurance_test = { ENDURANCE, 500, 2, 100,
+	std::chrono::seconds(300), 0, 0 };
 
 TestType getTypeFromNumber(int num);
 int getTypeNumber(TestType type);
@@ -80,11 +83,11 @@ TestSettings getTestTypeSettings(TestType type);
 
 class TypingTest {
 	public:
-		TypingTest(Gtk::Window *parent, const TestWidgets &widgets, const TestSettings &settings); 
+		TypingTest(Gtk::Window *parent, const TestWidgets &widgets, const TestSettings &settings);
 		TypingTest(Gtk::Window *parent, const TestWidgets &widgets) :
 			TypingTest(parent, widgets, basic_test) {};
 		~TypingTest();
-		
+
 	private:
 		void disconnectSignals();
 		std::string genWord();
