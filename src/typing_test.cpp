@@ -29,53 +29,9 @@
 
 namespace typingtest {
 
-TestType getTypeFromNumber(int num)
+TypingTest::TypingTest(Gtk::Window *parent, const TestWidgets &widgets, const
+	TestSettings &settings) : parent(parent)
 {
-	switch (num) {
-		case 1: return ADVANCED;
-		case 2: return ENDURANCE;
-		case 3: return CUSTOM;
-	}
-	return BASIC;
-}
-
-int getTypeNumber(TestType type)
-{
-	switch (type) {
-		case BASIC: return 0;
-		case ADVANCED: return 1;
-		case ENDURANCE: return 2;
-		case CUSTOM: return 3;
-	}
-}
-
-TestSettings getTestTypeSettings(TestType type)
-{
-	if (type == ADVANCED)
-		return advanced_test;
-	else if (type == ENDURANCE)
-		return endurance_test;
-	return basic_test;
-}
-
-TypingTest::TypingTest(Gtk::Window *parent, const TestWidgets &widgets, const TestSettings &settings)
-{
-	this->parent = parent;
-
-	textView = widgets.textView;
-	entry = widgets.entry;
-	timerLabel = widgets.timer;
-	wpmLabel = widgets.wpm;
-	wordNumLabel = widgets.wordNum;
-	wordsCorrectLabel = widgets.wordsCorrect;
-	wordsWrongLabel = widgets.wordsWrong;
-	charNumLabel = widgets.charNum;
-	charsCorrectLabel = widgets.charsCorrect;
-	charsWrongLabel = widgets.charsWrong;
-	troubleWordsLabel = widgets.troubleWords;
-
-	textBuffer = textView->get_buffer();
-
 	seconds = settings.seconds;
 	start = settings.seconds;
 
@@ -90,7 +46,7 @@ TypingTest::TypingTest(Gtk::Window *parent, const TestWidgets &widgets, const Te
 	timerLabel->set_text("Timer: " + getTime());
 
 	gsize size;
-	std::stringstream dictStream((char *) Gio::Resource::lookup_data_global(
+	std::istringstream dictStream((char *) Gio::Resource::lookup_data_global(
 				"/us/laelath/typingtest/dictionary.txt")->get_data(size));
 
 	wordSelection.reserve(settings.topWords);
@@ -146,26 +102,15 @@ TypingTest::TypingTest(Gtk::Window *parent, const TestWidgets &widgets, const Te
 
 	words.reserve(config.startWords);
 	for (int i = 0; i < config.startWords; ++i) {
-		words.push_back(genWord());
+		words.push_back(std::shared_ptr<Word>(new Word(genWord())));
 	}
 
-	textBuffer->set_text(getWords());
+	textBuffer->set_text(getWordsAsString());
 	textBuffer->apply_tag_by_name("current", textBuffer->get_iter_at_offset(0),
-			textBuffer->get_iter_at_offset(words[0].getWord().length()));
-	textBuffer->apply_tag_by_name("uglyhack", textBuffer->get_iter_at_offset(words[0].getWord().length() + 1),
-			textBuffer->end());
-}
-
-TypingTest::~TypingTest()
-{
-	disconnectSignals();
-}
-
-void TypingTest::disconnectSignals()
-{
-	insertConnection.disconnect();
-	backspConnection.disconnect();
-	timerConnection.disconnect();
+		textBuffer->get_iter_at_offset(words[0]->getWord().length()));
+	textBuffer->apply_tag_by_name("uglyhack",
+		textBuffer->get_iter_at_offset(words[0]->getWord().length() + 1),
+		textBuffer->end());
 }
 
 std::string TypingTest::genWord()
@@ -179,11 +124,11 @@ std::string TypingTest::genWord()
 	return word;
 }
 
-std::string TypingTest::getWords()
+std::string TypingTest::getWordsAsString()
 {
 	std::string text = words[0].getWord();
 	for (unsigned long i = 1; i < words.size(); ++i) {
-		text += " " + words[i].getWord();
+		text += " " + words[i]->getWord();
 	}
 	return text;
 }
@@ -199,9 +144,9 @@ void TypingTest::textInsert(std::string text, int *)
 {
 	if (!testStarted) {
 		testStarted = true;
-		timerConnection =
-			Glib::signal_timeout().connect(sigc::mem_fun(*this, &TypingTest::updateTimer), 1000);
-		words[0].startTime();
+		timerConnection = Glib::signal_timeout().connect(sigc::mem_fun(*this,
+				&TypingTest::updateTimer), 1000);
+		words[0]->startTime();
 	}
 
 	if (!testEnded) {
@@ -223,12 +168,12 @@ void TypingTest::textInsert(std::string text, int *)
 						textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
 			}
 
-			wordCharIndex += words[wordIndex].getWord().length() + 1;
+			wordCharIndex += words[wordIndex]->getWord().length() + 1;
 			wordIndex++;
 
 			textBuffer->remove_tag_by_name("uglyhack", textBuffer->get_iter_at_offset(0), textBuffer->end());
 
-			std::string newWord = genWord();
+			std::string newWord = std::shared_ptr<Word>(new Word(genWord()));
 			words.push_back(newWord);
 			textBuffer->insert(textBuffer->end(), " " + newWord);
 
@@ -303,11 +248,11 @@ void TypingTest::calculateScore()
 	int charsCorrect = 0;
 	for (int i = 0; i < wordIndex; ++i) {
 		wordNum++;
-		charNum += words[i].getWord().length() + 1;
+		charNum += words[i]->getWord().length() + 1;
 		charsCorrect++;
-		if (words[i].getCorrect()) {
+		if (words[i]->getCorrect()) {
 			wordsCorrect++;
-			charsCorrect += words[i].getWord().length();
+			charsCorrect += words[i]->getWord().length();
 		}
 	}
 
@@ -316,8 +261,9 @@ void TypingTest::calculateScore()
 	for (int i = 0; i < wordIndex; ++i) {
 		bool found = false;
 		for (std::tuple<std::string, double> wordScore : wordScores) {
-			if (words[i].getWord() == std::get<0>(wordScore)) {
-				std::get<1>(wordScore) = std::min(std::get<1>(wordScore), words[i].getScore());
+			if (words[i]->getWord() == std::get<0>(wordScore)) {
+				std::get<1>(wordScore) = std::min(std::get<1>(wordScore),
+					words[i]->getScore());
 				found = true;
 				break;
 			}

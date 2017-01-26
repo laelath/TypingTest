@@ -52,6 +52,7 @@ private:
 	Glib::RefPtr<Gtk::TextTag> currentErrorTag;
 	Glib::RefPtr<Gtk::TextTag> errorTag;
 	Glib::RefPtr<Gtk::TextTag> goodTag;
+	Glib::RefPtr<Gtk::TextTag> uglyHackTag;
 
 	Gtk::Window *parent;
 	Gtk::TextView *textView;
@@ -129,7 +130,7 @@ private:
 
 	std::vector<std::string> wordSelection;
 	std::vector<std::string> personalSelection;
-	std::vector<Word> words;
+	std::vector<std::shared_ptr<Word>> words;
 
 	std::chrono::seconds seconds;
 	std::chrono::seconds start;
@@ -138,5 +139,16 @@ private:
 	int wordCharIndex = 0;
 	bool testStarted = false;
 	bool testEnded = false;
+
+	void genNewTest();
+	void updateSettings();
+	void randomSeed();
+	void openSettings();
+	void openFont();
+	void updateAdvSettings();
+	void applyDefaultSettings();
+	void openAdvSettings();
+	void openTroubleWords();
+	void openAbout();
 };
 } // namespace typingtest

@@ -25,6 +25,143 @@ TypingTestWindow::TypingTestWindow(BaseObjectType *cobject, const
 {
 }
 
+void genNewTest()
+{
+	delete test;
+	test = new TypingTest(appWindow, widgets, settings);
+}
+
+void updateSettings()
+{
+	TestType type = getTypeFromNumber(testTypeBox->get_active_row_number());
+	switch (type) {
+		case CUSTOM :
+			topWords->set_sensitive(true);
+			minWordLength->set_sensitive(true);
+			maxWordLength->set_sensitive(true);
+			testLength->set_sensitive(true);
+			seedEntry->set_sensitive(true);
+			randomizeSeed->set_sensitive(true);
+			personalFrequency->set_sensitive(true);
+			settings.type = CUSTOM;
+			break;
+		default :
+			topWords->set_sensitive(false);
+			minWordLength->set_sensitive(false);
+			maxWordLength->set_sensitive(false);
+			testLength->set_sensitive(false);
+			seedEntry->set_sensitive(false);
+			randomizeSeed->set_sensitive(false);
+			personalFrequency->set_sensitive(false);
+			settings = getTestTypeSettings(type);
+			break;
+	}
+
+	topWords->set_value(settings.topWords);
+	minWordLength->set_value(settings.minLength);
+	maxWordLength->set_value(settings.maxLength);
+	testLength->set_value(settings.seconds.count());
+	seedEntry->set_text(std::to_string(settings.seed));
+}
+
+void randomSeed()
+{
+	seedEntry->set_text(std::to_string(
+				std::chrono::system_clock::now().time_since_epoch().count() % UINT32_MAX));
+}
+
+void openSettings()
+{
+	testTypeBox->set_active(getTypeNumber(settings.type));
+	updateSettings();
+	int response = settingsDialog->run();
+	if (response == Gtk::RESPONSE_APPLY) {
+		settings.topWords = topWords->get_value_as_int();
+		settings.minLength = minWordLength->get_value_as_int();
+		settings.maxLength = maxWordLength->get_value_as_int();
+		settings.seconds = std::chrono::seconds(testLength->get_value_as_int());
+		settings.seed = std::stoul(seedEntry->get_text());
+		settings.personalFrequency = personalFrequency->get_value();
+
+		genNewTest();
+	}
+	settingsDialog->close();
+}
+
+void openFont()
+{
+	fontChooser->set_font(currFont);
+	int response = fontChooser->run();
+	if (response == Gtk::RESPONSE_OK) {
+		widgets.textView->override_font(Pango::FontDescription(fontChooser->get_font()));
+	}
+	fontChooser->close();
+}
+
+void updateAdvSettings()
+{
+	startWords->set_value(config.startWords);
+	minZScore->set_value(config.minZScore);
+	maxZScore->set_value(config.maxZScore);
+	startTroubleScore->set_value(config.startTroubleScore);
+	troubleDec->set_value(config.troubleDec);
+	troubleInc->set_value(config.troubleInc);
+	wordWrongMult->set_value(config.wordWrongWeight);
+}
+
+void applyDefaultSettings()
+{
+	Config newConfig;
+	config = newConfig;
+
+	updateAdvSettings();
+}
+
+void openAdvSettings()
+{
+	updateAdvSettings();
+
+	int response = advSettingsDialog->run();
+	if (response == Gtk::RESPONSE_APPLY) {
+		config.startWords = startWords->get_value_as_int();
+		config.minZScore = minZScore->get_value();
+		config.maxZScore = maxZScore->get_value();
+		config.startTroubleScore = startTroubleScore->get_value_as_int();
+		config.troubleDec = troubleDec->get_value_as_int();
+		config.troubleInc = troubleInc->get_value_as_int();
+		config.wordWrongWeight = wordWrongMult->get_value();
+		saveConfig();
+		genNewTest();
+	}
+
+	advSettingsDialog->close();
+}
+
+void openTroubleWords()
+{
+	std::ifstream trWords(data_dir + "troublewords.txt");
+
+	troubleListStore->clear();
+
+	std::string line;
+	while (std::getline(trWords, line)) {
+		std::string word = line.substr(0, line.find(","));
+		unsigned int val = std::stoi(line.substr(line.find(",") + 1));
+		Gtk::ListStore::Row row = *(troubleListStore->append());
+		row[strCol] = word;
+		row[valCol] = val;
+	}
+
+	troubleDialog->run();
+	troubleDialog->close();
+}
+
+void openAbout()
+{
+	aboutDialog->run();
+	aboutDialog->close();
+}
+
 void
 TypingTestWindow::initWidgets()
 {
@@ -66,7 +203,7 @@ TypingTestWindow::initWidgets()
 	textTags->add(goodTag);
 	textTags->add(uglyHackTag);
 
-	//Prepare settings window
+	// Prepare settings window
 	builder->get_widget("settingsdialog", settingsDialog);
 	builder->get_widget("cancelbutton", cancel);
 	builder->get_widget("applybutton", apply);
@@ -79,10 +216,10 @@ TypingTestWindow::initWidgets()
 	builder->get_widget("randomizeseed", randomizeSeed);
 	builder->get_widget("personalratioentry", personalFrequency);
 
-	//Font settings window
+	// Font settings window
 	fontChooser = new Gtk::FontChooserDialog("Select a font", *appWindow);
 
-	//Advanced settings window
+	// Advanced settings window
 	builder->get_widget("advancedsettingsdialog", advSettingsDialog);
 	builder->get_widget("startwords", startWords);
 	builder->get_widget("minzscore", minZScore);
