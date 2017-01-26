@@ -22,7 +22,10 @@
 
 namespace typingtest {
 
-extern struct Config {
+class Config {
+public:
+	Config();
+
 	int startWords = 500;
 	double wordWrongWeight = 0.4;
 	double minZScore = -2.0;
@@ -30,16 +33,16 @@ extern struct Config {
 	int startTroubleScore = 3;
 	int troubleDec = 1;
 	int troubleInc = 1;
-} config;
+	std::string configDir;
+	std::string dataDir;
 
-extern std::string config_dir;
-extern std::string data_dir;
+	void setPaths();
+	void loadConfig();
+	void saveConfig();
 
-void loadConfig();
-void saveConfig();
-
-void getPaths();
-
+private:
+	void processLine(const std::string& line);
+};
 } // namespace typingtest
 
 #endif // CONFIG_H
