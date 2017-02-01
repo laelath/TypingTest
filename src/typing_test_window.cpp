@@ -17,153 +17,46 @@
 
 #include "typing_test_window.h"
 
+#include <err.h>
+#include <stdlib.h>
+
+#include <fstream>
+
 namespace typingtest {
 
-TypingTestWindow::TypingTestWindow(BaseObjectType *cobject, const
-	Glib::RefPtr<Gtk::Builder>& builder) : Gtk::ApplicationWindow(cobject),
-	builder(builder)
+TypingTestWindow::TypingTestWindow(BaseObjectType *cobject,
+	const Glib::RefPtr<Gtk::Builder>& builder)
+	: Gtk::ApplicationWindow(cobject), builder(builder)
 {
+	initWidgets();
+	connectSignals();
+
+	seconds = settings.seconds;
+	start = settings.seconds;
+
+	config.loadConfig();
+	currentTest = TypingTest((Gtk::Window *)this, settings, config);
+
+	words = currentTest.getWords();
+
+	typingEntry->set_text("");
+	typingEntry->grab_focus();
+
+	insertConnection = typingEntry->signal_insert_text().connect(sigc::mem_fun(
+			this, &TypingTestWindow::textInsert));
+	backspConnection = typingEntry->signal_delete_text().connect(sigc::mem_fun(
+			this, &TypingTestWindow::textDelete));
+
+	timerLabel->set_text("Timer: " + getTime());
+
+	textBuffer->set_text(getWords());
+	textBuffer->apply_tag_by_name("current", textBuffer->get_iter_at_offset(0),
+			textBuffer->get_iter_at_offset(words[0]->getWord().length()));
+	textBuffer->apply_tag_by_name( "uglyhack", textBuffer->get_iter_at_offset(
+			words[0]->getWord().length() + 1), textBuffer->end());
 }
 
-void genNewTest()
-{
-	delete test;
-	test = new TypingTest(appWindow, widgets, settings);
-}
-
-void updateSettings()
-{
-	TestType type = getTypeFromNumber(testTypeBox->get_active_row_number());
-	switch (type) {
-		case CUSTOM :
-			topWords->set_sensitive(true);
-			minWordLength->set_sensitive(true);
-			maxWordLength->set_sensitive(true);
-			testLength->set_sensitive(true);
-			seedEntry->set_sensitive(true);
-			randomizeSeed->set_sensitive(true);
-			personalFrequency->set_sensitive(true);
-			settings.type = CUSTOM;
-			break;
-		default :
-			topWords->set_sensitive(false);
-			minWordLength->set_sensitive(false);
-			maxWordLength->set_sensitive(false);
-			testLength->set_sensitive(false);
-			seedEntry->set_sensitive(false);
-			randomizeSeed->set_sensitive(false);
-			personalFrequency->set_sensitive(false);
-			settings = getTestTypeSettings(type);
-			break;
-	}
-
-	topWords->set_value(settings.topWords);
-	minWordLength->set_value(settings.minLength);
-	maxWordLength->set_value(settings.maxLength);
-	testLength->set_value(settings.seconds.count());
-	seedEntry->set_text(std::to_string(settings.seed));
-}
-
-void randomSeed()
-{
-	seedEntry->set_text(std::to_string(
-				std::chrono::system_clock::now().time_since_epoch().count() % UINT32_MAX));
-}
-
-void openSettings()
-{
-	testTypeBox->set_active(getTypeNumber(settings.type));
-	updateSettings();
-	int response = settingsDialog->run();
-	if (response == Gtk::RESPONSE_APPLY) {
-		settings.topWords = topWords->get_value_as_int();
-		settings.minLength = minWordLength->get_value_as_int();
-		settings.maxLength = maxWordLength->get_value_as_int();
-		settings.seconds = std::chrono::seconds(testLength->get_value_as_int());
-		settings.seed = std::stoul(seedEntry->get_text());
-		settings.personalFrequency = personalFrequency->get_value();
-
-		genNewTest();
-	}
-	settingsDialog->close();
-}
-
-void openFont()
-{
-	fontChooser->set_font(currFont);
-	int response = fontChooser->run();
-	if (response == Gtk::RESPONSE_OK) {
-		widgets.textView->override_font(Pango::FontDescription(fontChooser->get_font()));
-	}
-	fontChooser->close();
-}
-
-void updateAdvSettings()
-{
-	startWords->set_value(config.startWords);
-	minZScore->set_value(config.minZScore);
-	maxZScore->set_value(config.maxZScore);
-	startTroubleScore->set_value(config.startTroubleScore);
-	troubleDec->set_value(config.troubleDec);
-	troubleInc->set_value(config.troubleInc);
-	wordWrongMult->set_value(config.wordWrongWeight);
-}
-
-void applyDefaultSettings()
-{
-	Config newConfig;
-	config = newConfig;
-
-	updateAdvSettings();
-}
-
-void openAdvSettings()
-{
-	updateAdvSettings();
-
-	int response = advSettingsDialog->run();
-	if (response == Gtk::RESPONSE_APPLY) {
-		config.startWords = startWords->get_value_as_int();
-		config.minZScore = minZScore->get_value();
-		config.maxZScore = maxZScore->get_value();
-		config.startTroubleScore = startTroubleScore->get_value_as_int();
-		config.troubleDec = troubleDec->get_value_as_int();
-		config.troubleInc = troubleInc->get_value_as_int();
-		config.wordWrongWeight = wordWrongMult->get_value();
-		saveConfig();
-		genNewTest();
-	}
-
-	advSettingsDialog->close();
-}
-
-void openTroubleWords()
-{
-	std::ifstream trWords(data_dir + "troublewords.txt");
-
-	troubleListStore->clear();
-
-	std::string line;
-	while (std::getline(trWords, line)) {
-		std::string word = line.substr(0, line.find(","));
-		unsigned int val = std::stoi(line.substr(line.find(",") + 1));
-		Gtk::ListStore::Row row = *(troubleListStore->append());
-		row[strCol] = word;
-		row[valCol] = val;
-	}
-
-	troubleDialog->run();
-	troubleDialog->close();
-}
-
-void openAbout()
-{
-	aboutDialog->run();
-	aboutDialog->close();
-}
-
-void
-TypingTestWindow::initWidgets()
+void TypingTestWindow::initWidgets()
 {
 	builder->get_widget("newtestbutton", newTest);
 	builder->get_widget("settings", settingsItem);
@@ -189,13 +82,20 @@ TypingTestWindow::initWidgets()
 	testBox->override_font(Pango::FontDescription("15"));
 	textView->override_font(Pango::FontDescription(currFont));
 
-	textBuffer = Glib::RefPtr<Gtk::TextBuffer>::cast_static(builder->get_object("textbuffer"));
-	textTags = Glib::RefPtr<Gtk::TextTagTable>::cast_static(builder->get_object("texttags"));
-	currentTag = Glib::RefPtr<Gtk::TextTag>::cast_static(builder->get_object("currenttag"));
-	currentErrorTag = Glib::RefPtr<Gtk::TextTag>::cast_static(builder->get_object("currenterrortag"));
-	errorTag = Glib::RefPtr<Gtk::TextTag>::cast_static(builder->get_object("errortag"));
-	goodTag = Glib::RefPtr<Gtk::TextTag>::cast_static(builder->get_object("goodtag"));
-	uglyHackTag = Glib::RefPtr<Gtk::TextTag>::cast_static(builder->get_object("uglyhacktag"));
+	textBuffer = Glib::RefPtr<Gtk::TextBuffer>::cast_static(builder->get_object(
+			"textbuffer"));
+	textTags = Glib::RefPtr<Gtk::TextTagTable>::cast_static(builder->get_object(
+			"texttags"));
+	currentTag = Glib::RefPtr<Gtk::TextTag>::cast_static(builder->get_object(
+			"currenttag"));
+	currentErrorTag = Glib::RefPtr<Gtk::TextTag>::cast_static(
+		builder->get_object("currenterrortag"));
+	errorTag = Glib::RefPtr<Gtk::TextTag>::cast_static(builder->get_object(
+			"errortag"));
+	goodTag = Glib::RefPtr<Gtk::TextTag>::cast_static(builder->get_object(
+			"goodtag"));
+	uglyHackTag = Glib::RefPtr<Gtk::TextTag>::cast_static(builder->get_object(
+			"uglyhacktag"));
 
 	textTags->add(currentTag);
 	textTags->add(currentErrorTag);
@@ -214,10 +114,7 @@ TypingTestWindow::initWidgets()
 	builder->get_widget("testlengthentry", testLength);
 	builder->get_widget("seedentry", seedEntry);
 	builder->get_widget("randomizeseed", randomizeSeed);
-	builder->get_widget("personalratioentry", personalFrequency);
-
-	// Font settings window
-	fontChooser = new Gtk::FontChooserDialog("Select a font", *appWindow);
+	builder->get_widget("personalratioentry", personalFrequencyButton);
 
 	// Advanced settings window
 	builder->get_widget("advancedsettingsdialog", advSettingsDialog);
@@ -232,7 +129,7 @@ TypingTestWindow::initWidgets()
 	builder->get_widget("canceladv", cancelAdv);
 	builder->get_widget("applyadv", applyAdv);
 
-	//Trouble words viewer
+	// Trouble words viewer
 	builder->get_widget("troubledialog", troubleDialog);
 	builder->get_widget("troublelist", troubleList);
 	builder->get_widget("troubleclosebutton", troubleClose);
@@ -249,149 +146,196 @@ TypingTestWindow::initWidgets()
 
 	troubleListStore->set_sort_column(valCol, Gtk::SortType::SORT_DESCENDING);
 
-	//About dialog
+	// About dialog
 	builder->get_widget("aboutdialog", aboutDialog);
+}
 
-	//Connect signals
-	newTest->signal_clicked().connect(sigc::ptr_fun(&genNewTest));
-	settingsItem->signal_activate().connect(sigc::ptr_fun(&openSettings));
-	fontItem->signal_activate().connect(sigc::ptr_fun(&openFont));
-	advItem->signal_activate().connect(sigc::ptr_fun(&openAdvSettings));
-	quitItem->signal_activate().connect(sigc::mem_fun(appWindow, &Gtk::ApplicationWindow::close));
-	troubleItem->signal_activate().connect(sigc::ptr_fun(&openTroubleWords));
-	aboutItem->signal_activate().connect(sigc::ptr_fun(&openAbout));
+void TypingTestWindow::connectSignals()
+{
+	// Connect signals
+	newTest->signal_clicked().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::genNewTest));
+	settingsItem->signal_activate().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::openSettings));
+	fontItem->signal_activate().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::openFont));
+	advItem->signal_activate().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::openAdvSettings));
+	quitItem->signal_activate().connect(sigc::mem_fun(*this,
+			&Gtk::ApplicationWindow::close));
+	troubleItem->signal_activate().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::openTroubleWords));
+	aboutItem->signal_activate().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::openAbout));
 
-	testTypeBox->signal_changed().connect(sigc::ptr_fun(&updateSettings));
-	randomizeSeed->signal_clicked().connect(sigc::ptr_fun(&randomSeed));
+	testTypeBox->signal_changed().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::updateSettings));
+	randomizeSeed->signal_clicked().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::randomSeed));
 	apply->signal_clicked().connect(
-			sigc::bind<int>(sigc::mem_fun(settingsDialog, &Gtk::Dialog::response), Gtk::RESPONSE_APPLY));
-	cancel->signal_clicked().connect(
-			sigc::bind<int>(sigc::mem_fun(settingsDialog, &Gtk::Dialog::response), Gtk::RESPONSE_CANCEL));
+		sigc::bind<int>(sigc::mem_fun(settingsDialog, &Gtk::Dialog::response),
+			Gtk::RESPONSE_APPLY));
+	cancel->signal_clicked().connect(sigc::bind<int>(sigc::mem_fun(
+				settingsDialog, &Gtk::Dialog::response),
+			Gtk::RESPONSE_CANCEL));
 
-	applyAdv->signal_clicked().connect(
-			sigc::bind<int>(sigc::mem_fun(advSettingsDialog, &Gtk::Dialog::response), Gtk::RESPONSE_APPLY));
+	applyAdv->signal_clicked().connect(sigc::bind<int>(sigc::mem_fun(
+				advSettingsDialog, &Gtk::Dialog::response),
+			Gtk::RESPONSE_APPLY));
 	cancelAdv->signal_clicked().connect(
-			sigc::bind<int>(sigc::mem_fun(advSettingsDialog, &Gtk::Dialog::response), Gtk::RESPONSE_CANCEL));
-	restoreDefaultAdv->signal_clicked().connect(sigc::ptr_fun(&applyDefaultSettings));
+		sigc::bind<int>(sigc::mem_fun(advSettingsDialog,
+				&Gtk::Dialog::response), Gtk::RESPONSE_CANCEL));
+	restoreDefaultAdv->signal_clicked().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::applyDefaultSettings));
 
-	troubleClose->signal_clicked().connect(
-			sigc::bind<int>(sigc::mem_fun(troubleDialog, &Gtk::Dialog::response), Gtk::RESPONSE_CLOSE));
+	troubleClose->signal_clicked().connect(sigc::bind<int>(sigc::mem_fun(
+				troubleDialog, &Gtk::Dialog::response), Gtk::RESPONSE_CLOSE));
 }
 
-TypingTest::TypingTest(Gtk::Window *parent, const TestWidgets &widgets, const TestSettings &settings)
+void TypingTestWindow::genNewTest()
 {
-	this->parent = parent;
-
-	textView = widgets.textView;
-	entry = widgets.entry;
-	timerLabel = widgets.timer;
-	wpmLabel = widgets.wpm;
-	wordNumLabel = widgets.wordNum;
-	wordsCorrectLabel = widgets.wordsCorrect;
-	wordsWrongLabel = widgets.wordsWrong;
-	charNumLabel = widgets.charNum;
-	charsCorrectLabel = widgets.charsCorrect;
-	charsWrongLabel = widgets.charsWrong;
-	troubleWordsLabel = widgets.troubleWords;
-
-	textBuffer = textView->get_buffer();
-
-	seconds = settings.seconds;
-	start = settings.seconds;
-
-	personalFrequency = settings.personalFrequency;
-
-	entry->set_text("");
-	entry->grab_focus();
-
-	insertConnection = entry->signal_insert_text().connect(sigc::mem_fun(this, &TypingTest::textInsert));
-	backspConnection = entry->signal_delete_text().connect(sigc::mem_fun(this, &TypingTest::textDelete));
-
-	timerLabel->set_text("Timer: " + getTime());
-
-	gsize size;
-	std::stringstream dictStream((char *) Gio::Resource::lookup_data_global(
-				"/us/laelath/typingtest/dictionary.txt")->get_data(size));
-
-	wordSelection.reserve(settings.topWords);
-	for (size_t i = 0; i < settings.topWords; ) {
-		std::string line;
-		if (std::getline(dictStream, line)) {
-			if (line.length() >= settings.minLength && line.length() <= settings.maxLength) {
-				wordSelection.push_back(line);
-				i++;
-			}
-		} else {
-			break;
-		}
-	}
-
-	if (settings.personalFrequency != 0) {
-		std::ifstream trWords(data_dir + "troublewords.txt");
-		if (!trWords.is_open()) {
-			Gtk::MessageDialog error(*parent, "No trouble words file found.", false, Gtk::MESSAGE_ERROR,
-					Gtk::BUTTONS_CLOSE, true);
-			error.set_secondary_text("You need to finish a test before trouble words will be detected.");
-			error.run();
-			disconnectSignals();
-			return;
-		}
-
-		std::string line;
-		while (std::getline(trWords, line)) {
-			std::string word = line.substr(0, line.find(","));
-			if (word.length() >=  settings.minLength && line.length() <= settings.maxLength) {
-				int num = std::stoi(line.substr(line.find(",") + 1));
-				for (int i = 0; i < num; ++i) {
-					personalSelection.push_back(word);
-				}
-			}
-		}
-
-		if (personalSelection.size() == 0) {
-			Gtk::MessageDialog error(*parent, "Trouble words file empty.", false, Gtk::MESSAGE_ERROR,
-					Gtk::BUTTONS_CLOSE, true);
-			error.set_secondary_text("You need to finish a test before trouble words will be detected.");
-			error.run();
-			disconnectSignals();
-			return;
-		}
-	}
-
-	if (settings.seed == 0) {
-		rand.seed(std::chrono::system_clock::now().time_since_epoch().count());
-	} else {
-		rand.seed(settings.seed);
-	}
-
-	words.reserve(config.startWords);
-	for (int i = 0; i < config.startWords; ++i) {
-		words.push_back(genWord());
-	}
-
-	textBuffer->set_text(getWords());
-	textBuffer->apply_tag_by_name("current", textBuffer->get_iter_at_offset(0),
-			textBuffer->get_iter_at_offset(words[0].getWord().length()));
-	textBuffer->apply_tag_by_name("uglyhack", textBuffer->get_iter_at_offset(words[0].getWord().length() + 1),
-			textBuffer->end());
+	currentTest = TypingTest(this, settings, config);
 }
 
-TypingTest::~TypingTest()
+void TypingTestWindow::updateSettings()
 {
-	disconnectSignals();
+	TestSettings::TestType type = static_cast<TestSettings::TestType>(
+		testTypeBox->get_active_row_number());
+	switch (type) {
+	case TestSettings::CUSTOM :
+		topWords->set_sensitive(true);
+		minWordLength->set_sensitive(true);
+		maxWordLength->set_sensitive(true);
+		testLength->set_sensitive(true);
+		seedEntry->set_sensitive(true);
+		randomizeSeed->set_sensitive(true);
+		personalFrequencyButton->set_sensitive(true);
+		settings.type = TestSettings::CUSTOM;
+		break;
+	default :
+		topWords->set_sensitive(false);
+		minWordLength->set_sensitive(false);
+		maxWordLength->set_sensitive(false);
+		testLength->set_sensitive(false);
+		seedEntry->set_sensitive(false);
+		randomizeSeed->set_sensitive(false);
+		personalFrequencyButton->set_sensitive(false);
+		settings = type;
+		break;
+	}
+
+	topWords->set_value(settings.topWords);
+	minWordLength->set_value(settings.minLength);
+	maxWordLength->set_value(settings.maxLength);
+	testLength->set_value(settings.seconds.count());
+	seedEntry->set_text(std::to_string(settings.seed));
 }
 
-void TypingTest::disconnectSignals()
+void TypingTestWindow::randomSeed()
 {
-	insertConnection.disconnect();
-	backspConnection.disconnect();
-	timerConnection.disconnect();
+	seedEntry->set_text(std::to_string(
+			std::chrono::system_clock::now().time_since_epoch().count()
+			% UINT32_MAX));
 }
 
-std::string TypingTest::genWord()
+void TypingTestWindow::openSettings()
+{
+	testTypeBox->set_active(settings.type);
+	updateSettings();
+	int response = settingsDialog->run();
+	if (response == Gtk::RESPONSE_APPLY) {
+		settings.topWords = topWords->get_value_as_int();
+		settings.minLength = minWordLength->get_value_as_int();
+		settings.maxLength = maxWordLength->get_value_as_int();
+		settings.seconds = std::chrono::seconds(testLength->get_value_as_int());
+		settings.seed = std::stoul(seedEntry->get_text());
+		settings.personalFrequency = personalFrequencyButton->get_value();
+
+		genNewTest();
+	}
+	settingsDialog->close();
+}
+
+void TypingTestWindow::openFont()
+{
+	Gtk::FontChooserDialog fontChooser("Select a font", *this);
+	fontChooser.set_font(currFont);
+	int response = fontChooser.run();
+	if (response == Gtk::RESPONSE_OK) {
+		textView->override_font(
+			Pango::FontDescription(fontChooser.get_font()));
+	}
+}
+
+void TypingTestWindow::updateAdvSettings()
+{
+	startWords->set_value(config.startWords);
+	minZScore->set_value(config.minZScore);
+	maxZScore->set_value(config.maxZScore);
+	startTroubleScore->set_value(config.startTroubleScore);
+	troubleDec->set_value(config.troubleDec);
+	troubleInc->set_value(config.troubleInc);
+	wordWrongMult->set_value(config.wordWrongWeight);
+}
+
+void TypingTestWindow::applyDefaultSettings()
+{
+	Config newConfig;
+	config = newConfig;
+
+	updateAdvSettings();
+}
+
+void TypingTestWindow::openAdvSettings()
+{
+	updateAdvSettings();
+
+	int response = advSettingsDialog->run();
+	if (response == Gtk::RESPONSE_APPLY) {
+		config.startWords = startWords->get_value_as_int();
+		config.minZScore = minZScore->get_value();
+		config.maxZScore = maxZScore->get_value();
+		config.startTroubleScore = startTroubleScore->get_value_as_int();
+		config.troubleDec = troubleDec->get_value_as_int();
+		config.troubleInc = troubleInc->get_value_as_int();
+		config.wordWrongWeight = wordWrongMult->get_value();
+		config.saveConfig();
+		genNewTest();
+	}
+
+	advSettingsDialog->close();
+}
+
+void TypingTestWindow::openTroubleWords()
+{
+	std::ifstream trWords(config.dataDir + "troublewords.txt");
+
+	troubleListStore->clear();
+
+	std::string line;
+	while (std::getline(trWords, line)) {
+		std::string word = line.substr(0, line.find(","));
+		unsigned int val = std::stoi(line.substr(line.find(",") + 1));
+		Gtk::ListStore::Row row = *(troubleListStore->append());
+		row[strCol] = word;
+		row[valCol] = val;
+	}
+	trWords.close();
+
+	troubleDialog->run();
+	troubleDialog->close();
+}
+
+void TypingTestWindow::openAbout()
+{
+	aboutDialog->run();
+	aboutDialog->close();
+}
+
+std::string TypingTestWindow::genWord()
 {
 	std::string word;
-	if (rand() / (double) rand.max() < personalFrequency) {
+	if (rand() / (double) rand.max() < settings.personalFrequency) {
 		word = personalSelection[rand() % personalSelection.size()];
 	} else {
 		word = wordSelection[rand() % wordSelection.size()];
@@ -399,122 +343,151 @@ std::string TypingTest::genWord()
 	return word;
 }
 
-std::string TypingTest::getWords()
+std::string TypingTestWindow::getWords()
 {
-	std::string text = words[0].getWord();
+	std::string text = words[0]->getWord();
 	for (unsigned long i = 1; i < words.size(); ++i) {
-		text += " " + words[i].getWord();
+		text += " " + words[i]->getWord();
 	}
 	return text;
 }
 
-std::string TypingTest::getTime()
+std::string TypingTestWindow::getTime()
 {
-	std::string secstr = (seconds.count() % 60 < 10 ?
-			"0" + std::to_string(seconds.count() % 60) : std::to_string(seconds.count() % 60));
+	std::string secstr = (seconds.count() % 60 < 10 ?  "0"
+		+ std::to_string(seconds.count() % 60) : std::to_string(seconds.count()
+			% 60));
 	return std::to_string(seconds.count() / 60) + ":" + secstr;
 }
 
-void TypingTest::textInsert(std::string text, int *)
+void TypingTestWindow::textInsert(std::string text, int *)
 {
 	if (!testStarted) {
 		testStarted = true;
 		timerConnection =
-			Glib::signal_timeout().connect(sigc::mem_fun(*this, &TypingTest::updateTimer), 1000);
-		words[0].startTime();
+			Glib::signal_timeout().connect(sigc::mem_fun(*this,
+					&TypingTestWindow::updateTimer), 1000);
+		words[0]->startTime();
 	}
 
 	if (!testEnded) {
 		if (text[0] == ' ') {
-			std::string word = entry->get_text();
+			std::string word = typingEntry->get_text();
 			word.erase(std::remove(word.begin(), word.end(), ' '), word.end());
-			entry->set_text("");
+			typingEntry->set_text("");
 
-			textBuffer->remove_tag_by_name("current", textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
-			textBuffer->remove_tag_by_name("currenterror", textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+			textBuffer->remove_tag_by_name("current",
+				textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex
+					+ words[wordIndex]->getWord().length()));
+			textBuffer->remove_tag_by_name("currenterror",
+				textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex
+					+ words[wordIndex]->getWord().length()));
 
-			if (words[wordIndex].enterWord(word)) {
-				textBuffer->apply_tag_by_name("good", textBuffer->get_iter_at_offset(wordCharIndex),
-						textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
-			} else {
-				textBuffer->apply_tag_by_name("error", textBuffer->get_iter_at_offset(wordCharIndex),
-						textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
-			}
+			if (words[wordIndex]->enterWord(word, config))
+				textBuffer->apply_tag_by_name("good",
+					textBuffer->get_iter_at_offset(wordCharIndex),
+					textBuffer->get_iter_at_offset(wordCharIndex +
+						words[wordIndex]->getWord().length()));
+			else
+				textBuffer->apply_tag_by_name("error",
+					textBuffer->get_iter_at_offset(wordCharIndex),
+					textBuffer->get_iter_at_offset(wordCharIndex
+						+ words[wordIndex]->getWord().length()));
 
-			wordCharIndex += words[wordIndex].getWord().length() + 1;
+			wordCharIndex += words[wordIndex]->getWord().length() + 1;
 			wordIndex++;
 
-			textBuffer->remove_tag_by_name("uglyhack", textBuffer->get_iter_at_offset(0), textBuffer->end());
+			textBuffer->remove_tag_by_name("uglyhack",
+				textBuffer->get_iter_at_offset(0), textBuffer->end());
 
 			std::string newWord = genWord();
-			words.push_back(newWord);
+			words.push_back(std::shared_ptr<Word>(new Word(newWord)));
 			textBuffer->insert(textBuffer->end(), " " + newWord);
 
 			textBuffer->apply_tag_by_name("uglyhack",
-					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length() + 1),
-					textBuffer->end());
+				textBuffer->get_iter_at_offset(wordCharIndex
+					+ words[wordIndex]->getWord().length() + 1),
+				textBuffer->end());
 
-			Gtk::TextBuffer::iterator itr = textBuffer->get_iter_at_offset(wordCharIndex);
+			Gtk::TextBuffer::iterator itr =
+				textBuffer->get_iter_at_offset(wordCharIndex);
 			textView->scroll_to(itr, 0.2);
 		} else {
-			if (!words[wordIndex].getStarted()) {
-				words[wordIndex].startTime();
+			if (!words[wordIndex]->getStarted()) {
+				words[wordIndex]->startTime();
 			}
 		}
 
-		std::string text = entry->get_text();
-		std::string word = words[wordIndex].getWord();
+		std::string text = typingEntry->get_text();
+		std::string word = words[wordIndex]->getWord();
 		if (text.length() <= word.length() && text == word.substr(0, text.length())) {
-			textBuffer->remove_tag_by_name("currenterror", textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
-			textBuffer->apply_tag_by_name("current", textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+			textBuffer->remove_tag_by_name("currenterror",
+				textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex
+					+ words[wordIndex]->getWord().length()));
+			textBuffer->apply_tag_by_name("current",
+				textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex
+					+ words[wordIndex]->getWord().length()));
 		} else {
-			textBuffer->remove_tag_by_name("current", textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
-			textBuffer->apply_tag_by_name("currenterror", textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+			textBuffer->remove_tag_by_name("current",
+				textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex +
+					words[wordIndex]->getWord().length()));
+			textBuffer->apply_tag_by_name("currenterror",
+				textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex +
+					words[wordIndex]->getWord().length()));
 		}
 	}
 }
 
-void TypingTest::textDelete(int, int)
+void TypingTestWindow::textDelete(int, int)
 {
 	if (!testEnded) {
-		std::string text = entry->get_text();
-		std::string word = words[wordIndex].getWord();
-		if (text.length() <= word.length() && text == word.substr(0, text.length())) {
-			textBuffer->remove_tag_by_name("currenterror", textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
-			textBuffer->apply_tag_by_name("current", textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+		std::string text = typingEntry->get_text();
+		std::string word = words[wordIndex]->getWord();
+		if (text.length() <= word.length() && text == word.substr(0,
+				text.length())) {
+			textBuffer->remove_tag_by_name("currenterror",
+				textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex
+					+ words[wordIndex]->getWord().length()));
+			textBuffer->apply_tag_by_name("current",
+				textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex
+					+ words[wordIndex]->getWord().length()));
 		} else {
-			textBuffer->remove_tag_by_name("current", textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
-			textBuffer->apply_tag_by_name("currenterror", textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()));
+			textBuffer->remove_tag_by_name("current",
+				textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex
+					+ words[wordIndex]->getWord().length()));
+			textBuffer->apply_tag_by_name("currenterror",
+				textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex
+					+ words[wordIndex]->getWord().length()));
 		}
 	}
 }
 
-bool TypingTest::updateTimer()
+bool TypingTestWindow::updateTimer()
 {
 	seconds--;
 	timerLabel->set_text("Timer: " + getTime());
 	if (seconds != std::chrono::seconds::duration::zero()) {
 		return true;
 	} else {
-		textBuffer->erase(textBuffer->get_iter_at_offset(wordCharIndex + words[wordIndex].getWord().length()),
-				textBuffer->end());
+		textBuffer->erase(textBuffer->get_iter_at_offset(wordCharIndex
+				+ words[wordIndex]->getWord().length()), textBuffer->end());
 		calculateScore();
 		testEnded = true;
 		return false;
 	}
 }
 
-void TypingTest::calculateScore()
+void TypingTestWindow::calculateScore()
 {
 	//Test information
 	int wordNum = 0;
@@ -523,11 +496,11 @@ void TypingTest::calculateScore()
 	int charsCorrect = 0;
 	for (int i = 0; i < wordIndex; ++i) {
 		wordNum++;
-		charNum += words[i].getWord().length() + 1;
+		charNum += words[i]->getWord().length() + 1;
 		charsCorrect++;
-		if (words[i].getCorrect()) {
+		if (words[i]->getCorrect()) {
 			wordsCorrect++;
-			charsCorrect += words[i].getWord().length();
+			charsCorrect += words[i]->getWord().length();
 		}
 	}
 
@@ -536,32 +509,31 @@ void TypingTest::calculateScore()
 	for (int i = 0; i < wordIndex; ++i) {
 		bool found = false;
 		for (std::tuple<std::string, double> wordScore : wordScores) {
-			if (words[i].getWord() == std::get<0>(wordScore)) {
-				std::get<1>(wordScore) = std::min(std::get<1>(wordScore), words[i].getScore());
+			if (words[i]->getWord() == std::get<0>(wordScore)) {
+				std::get<1>(wordScore) = std::min(std::get<1>(wordScore),
+					words[i]->getScore());
 				found = true;
 				break;
 			}
 		}
-		if (!found) {
-			wordScores.push_back(std::make_tuple(words[i].getWord(), words[i].getScore()));
-		}
+		if (!found)
+			wordScores.push_back(std::make_tuple(words[i]->getWord(),
+					words[i]->getScore()));
 	}
 
 	//Calculate averages and total
 	double total = 0;
-	for (std::tuple<std::string, double> wordScore : wordScores) {
+	for (std::tuple<std::string, double> wordScore : wordScores)
 		total += std::get<1>(wordScore);
-	}
 	double mean = total / wordScores.size();
 
 	//Standard deviation
 	double sum = 0;
-	for (std::tuple<std::string, double> wordScore : wordScores) {
+	for (std::tuple<std::string, double> wordScore : wordScores)
 		sum += std::pow(std::get<1>(wordScore) - mean, 2);
-	}
 
 	double stdDev = std::sqrt(sum / wordScores.size());
-	
+
 	//Sort scores
 	std::sort(wordScores.begin(), wordScores.end(),
 			[](std::tuple<std::string, double> i, std::tuple<std::string, double> j) -> bool
@@ -579,17 +551,16 @@ void TypingTest::calculateScore()
 		if (std::get<1>(wordScore) - mean <= config.minZScore * stdDev) {
 			troubleWords.push_back(std::get<0>(wordScore));
 			troubleWordsStr += std::get<0>(wordScore) + "\n";
-		} else if (std::get<1>(wordScore) - mean > config.maxZScore * stdDev) {
+		} else if (std::get<1>(wordScore) - mean > config.maxZScore * stdDev)
 			goodWords.push_back(std::get<0>(wordScore));
-		}
 	}
 
-	std::ifstream file(data_dir + "troublewords.txt");
-	std::ofstream temp(data_dir + ".troublewords.txt.swp", std::ios::trunc);
+	std::ifstream file(config.dataDir + "troublewords.txt");
+	std::ofstream temp(config.dataDir + ".troublewords.txt.swp",
+		std::ios::trunc);
 
-	if (!temp.is_open()) {
-		std::exit(1);
-	}
+	if (!temp.is_open())
+		errx(EXIT_FAILURE, nullptr);
 
 	if (file.is_open()) {
 		std::string line;
@@ -597,41 +568,43 @@ void TypingTest::calculateScore()
 			std::string word = line.substr(0, line.find(","));
 			int num = std::stoi(line.substr(line.find(",") + 1));
 
-			std::vector<std::string>::iterator it = std::find(troubleWords.begin(), troubleWords.end(), word);
+			std::vector<std::string>::iterator it
+				= std::find(troubleWords.begin(), troubleWords.end(), word);
 			if (it != troubleWords.end()) {
 				temp << word << "," << num + config.troubleInc << "\n";
 				troubleWords.erase(it);
 			} else {
 				it = std::find(goodWords.begin(), goodWords.end(), word);
 				if (it != goodWords.end()) {
-					if (num > 1) {
+					if (num > 1)
 						temp << word << "," << num - config.troubleDec << "\n";
-					}
 					goodWords.erase(it);
-				} else {
+				} else
 					temp << line << "\n";
-				}
 			}
 		}
 	}
 
-	for (std::string word : troubleWords) {
+	for (std::string word : troubleWords)
 		temp << word << "," << config.startTroubleScore << "\n";
-	}
 
 	file.close();
 	temp.close();
 
-	std::remove((data_dir + "troublewords.txt").c_str());
-	std::rename((data_dir + ".troublewords.txt.swp").c_str(), (data_dir + "troublewords.txt").c_str());
+	std::remove((config.dataDir + "troublewords.txt").c_str());
+	std::rename((config.dataDir + ".troublewords.txt.swp").c_str(),
+		(config.dataDir + "troublewords.txt").c_str());
 
-	wpmLabel->set_text("WPM: " + std::to_string((int) ((charsCorrect / 5.0) / (start.count() / 60.0))));
+	wpmLabel->set_text("WPM: " + std::to_string((int) ((charsCorrect / 5.0)
+				/ (start.count() / 60.0))));
 	wordNumLabel->set_text("Words: " + std::to_string(wordNum));
 	wordsCorrectLabel->set_text("Correct: " + std::to_string(wordsCorrect));
-	wordsWrongLabel->set_text("Wrong: " + std::to_string(wordNum - wordsCorrect));
+	wordsWrongLabel->set_text("Wrong: " + std::to_string(wordNum
+			- wordsCorrect));
 	charNumLabel->set_text("Characters: " + std::to_string(charNum));
 	charsCorrectLabel->set_text("Correct: " + std::to_string(charsCorrect));
-	charsWrongLabel->set_text("Wrong: " + std::to_string(charNum - charsCorrect));
+	charsWrongLabel->set_text("Wrong: " + std::to_string(charNum
+			- charsCorrect));
 	troubleWordsLabel->set_text(troubleWordsStr);
 }
 } /* namespace typingtest */

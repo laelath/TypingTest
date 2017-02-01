@@ -24,12 +24,9 @@
 #include <string>
 #include <vector>
 
-#include <gtkmm/entry.h>
-#include <gtkmm/entrybuffer.h>
-#include <gtkmm/label.h>
-#include <gtkmm/textbuffer.h>
-#include <gtkmm/textview.h>
+#include <gtkmm.h>
 
+#include "config.h"
 #include "test_settings.h"
 #include "word.h"
 
@@ -37,33 +34,44 @@ namespace typingtest {
 
 class TypingTest {
 public:
-	TypingTest(Gtk::Window *parent, const TestSettings &settings);
-	TypingTest(Gtk::Window *parent);
+	TypingTest(Gtk::Window *parent, const TestSettings &settings,
+		const Config &config);
+	TypingTest();
+
+	// Generates a word from the personal selection based on the personal
+	// frequency.
+	//
+	// Returns a newly generated word.
+	std::string genWord();
+	// Returns words as a long string with each word separated by spaces.
+	std::string getWordsAsString();
+	const std::vector<std::shared_ptr<Word>> &getWords();
+
+	const TestSettings &getSettings() const;
+	void setSettings(const TestSettings &settings);
+	const Config &getConfig() const;
+	void setConfig(const Config &config);
 
 private:
-	std::string genWord();
-	std::string getWordsAsString();
-	std::string getTime();
-	bool updateTimer();
-	void calculateScore();
+	// Settings and config for behavior.
+	TestSettings settings;
+	Config config;
 
+	// Parent widget for creating transient dialogs.
 	Gtk::Window *parent;
 
+	// Random generator.
 	std::minstd_rand rand;
 
+	// Selection of words to choose from.
 	std::vector<std::string> wordSelection;
+	// The user's personal selection of words.
 	std::vector<std::string> personalSelection;
+	// The list of words generated.
 	std::vector<std::shared_ptr<Word>> words;
 
+	// The frequency for the user specifically.
 	double personalFrequency;
-
-	std::chrono::seconds seconds;
-	std::chrono::seconds start;
-
-	int wordIndex = 0;
-	int wordCharIndex = 0;
-	bool testStarted = false;
-	bool testEnded = false;
 };
 } // namespace typingtest
 

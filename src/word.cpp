@@ -54,7 +54,7 @@ void Word::startTime()
 	started = true;
 }
 
-bool Word::enterWord(std::string enter)
+bool Word::enterWord(std::string enter, const Config& config)
 {
 	correct = word == enter;
 	enteredWord = enter;

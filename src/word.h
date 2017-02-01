@@ -21,6 +21,8 @@
 #include <chrono>
 #include <string>
 
+#include "config.h"
+
 namespace typingtest {
 
 class Word {
@@ -34,7 +36,7 @@ public:
 	bool getStarted();
 
 	void startTime();
-	bool enterWord(std::string enter);
+	bool enterWord(std::string enter, const Config& config);
 	bool getCorrect();
 	std::chrono::milliseconds getTime();
 

@@ -19,7 +19,9 @@
 
 #include <gtkmm.h>
 
+#include "config.h"
 #include "test_settings.h"
+#include "typing_test.h"
 #include "word.h"
 
 namespace typingtest {
@@ -32,8 +34,14 @@ public:
 private:
 	Glib::RefPtr<Gtk::Builder> builder;
 
+	Config config;
+
+	TypingTest currentTest;
+
 	// Initializes widgets from builder file.
 	void initWidgets();
+	// Connects most of the widget's signals.
+	void connectSignals();
 
 	// Main window widgets
 	Gtk::ApplicationWindow *appWindow;
@@ -67,7 +75,7 @@ private:
 	Gtk::Label *charsWrongLabel;
 	Gtk::Label *troubleWordsLabel;
 
-	//Settings window widgets
+	// Settings window widgets
 	Gtk::Dialog *settingsDialog;
 	Gtk::Button *cancel;
 	Gtk::Button *apply;
@@ -78,7 +86,7 @@ private:
 	Gtk::SpinButton *testLength;
 	Gtk::Entry *seedEntry;
 	Gtk::Button *randomizeSeed;
-	Gtk::SpinButton *personalFrequency;
+	Gtk::SpinButton *personalFrequencyButton;
 
 	// Font chooser
 	Gtk::FontChooserDialog *fontChooser;
@@ -93,11 +101,11 @@ private:
 	Gtk::TreeModelColumn<std::string> strCol;
 	Gtk::TreeModelColumn<unsigned int> valCol;
 
-	//Test settings
-	TestSettings settings = basic_test;
+	// Test settings
+	TestSettings settings = BASIC_TEST;
 	std::string currFont = "Sans 25";
 
-	//Advanced settings widgets
+	// Advanced settings widgets
 	Gtk::Dialog *advSettingsDialog;
 	Gtk::SpinButton *startWords;
 	Gtk::SpinButton *minZScore;

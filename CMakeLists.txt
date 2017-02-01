@@ -21,6 +21,8 @@ set (
 	SOURCES
 	src/main.cpp
 	src/typing_test.cpp
+	src/typing_test_window.cpp
+	src/test_settings.cpp
 	src/word.cpp
 	src/config.cpp
 	${CMAKE_CURRENT_BINARY_DIR}/resources.c)

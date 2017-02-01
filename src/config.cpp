@@ -30,7 +30,6 @@ namespace typingtest {
 Config::Config()
 {
 	setPaths();
-	loadConfig();
 }
 
 void Config::loadConfig()
