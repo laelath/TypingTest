@@ -31,29 +31,15 @@ TypingTestWindow::TypingTestWindow(BaseObjectType *cobject,
 	initWidgets();
 	connectSignals();
 
-	seconds = settings.seconds;
-	start = settings.seconds;
-
 	config.loadConfig();
-	currentTest = TypingTest((Gtk::Window *)this, settings, config);
-
-	words = currentTest.getWords();
-
-	typingEntry->set_text("");
-	typingEntry->grab_focus();
+	genNewTest();
 
 	insertConnection = typingEntry->signal_insert_text().connect(sigc::mem_fun(
 			this, &TypingTestWindow::textInsert));
 	backspConnection = typingEntry->signal_delete_text().connect(sigc::mem_fun(
 			this, &TypingTestWindow::textDelete));
 
-	timerLabel->set_text("Timer: " + getTime());
 
-	textBuffer->set_text(getWords());
-	textBuffer->apply_tag_by_name("current", textBuffer->get_iter_at_offset(0),
-			textBuffer->get_iter_at_offset(words[0]->getWord().length()));
-	textBuffer->apply_tag_by_name( "uglyhack", textBuffer->get_iter_at_offset(
-			words[0]->getWord().length() + 1), textBuffer->end());
 }
 
 void TypingTestWindow::initWidgets()
@@ -194,7 +180,22 @@ void TypingTestWindow::connectSignals()
 
 void TypingTestWindow::genNewTest()
 {
+	seconds = settings.seconds;
+	start = settings.seconds;
+
 	currentTest = TypingTest(this, settings, config);
+	words = currentTest.getWords();
+
+	timerLabel->set_text("Timer: " + getTime());
+	textBuffer->set_text(currentTest.getWordsAsString());
+	textBuffer->apply_tag_by_name("current", textBuffer->get_iter_at_offset(0),
+			textBuffer->get_iter_at_offset(words[0]->getWord().length()));
+	textBuffer->apply_tag_by_name( "uglyhack", textBuffer->get_iter_at_offset(
+			words[0]->getWord().length() + 1), textBuffer->end());
+
+	typingEntry->set_text("");
+	typingEntry->grab_focus();
+
 }
 
 void TypingTestWindow::updateSettings()
@@ -330,15 +331,6 @@ void TypingTestWindow::openAbout()
 {
 	aboutDialog->run();
 	aboutDialog->close();
-}
-
-std::string TypingTestWindow::getWords()
-{
-	std::string text = words[0]->getWord();
-	for (unsigned long i = 1; i < words.size(); ++i) {
-		text += " " + words[i]->getWord();
-	}
-	return text;
 }
 
 std::string TypingTestWindow::getTime()
