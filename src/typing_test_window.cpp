@@ -39,7 +39,6 @@ TypingTestWindow::TypingTestWindow(BaseObjectType *cobject,
 	backspConnection = typingEntry->signal_delete_text().connect(sigc::mem_fun(
 			this, &TypingTestWindow::textDelete));
 
-
 }
 
 void TypingTestWindow::initWidgets()
@@ -180,10 +179,15 @@ void TypingTestWindow::connectSignals()
 
 void TypingTestWindow::genNewTest()
 {
+	testEnded = false;
+	testStarted = false;
+
 	seconds = settings.seconds;
 	start = settings.seconds;
 
 	currentTest = TypingTest(this, settings, config);
+	wordIndex = 0;
+	wordCharIndex = 0;
 	words = currentTest.getWords();
 
 	timerLabel->set_text("Timer: " + getTime());
@@ -196,6 +200,7 @@ void TypingTestWindow::genNewTest()
 	typingEntry->set_text("");
 	typingEntry->grab_focus();
 
+	timerConnection.disconnect();
 }
 
 void TypingTestWindow::updateSettings()
@@ -457,9 +462,9 @@ bool TypingTestWindow::updateTimer()
 {
 	seconds--;
 	timerLabel->set_text("Timer: " + getTime());
-	if (seconds != std::chrono::seconds::duration::zero()) {
+	if (seconds != std::chrono::seconds::duration::zero())
 		return true;
-	} else {
+	else {
 		textBuffer->erase(textBuffer->get_iter_at_offset(wordCharIndex
 				+ words[wordIndex]->getWord().length()), textBuffer->end());
 		calculateScore();
