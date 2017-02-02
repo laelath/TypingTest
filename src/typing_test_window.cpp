@@ -332,17 +332,6 @@ void TypingTestWindow::openAbout()
 	aboutDialog->close();
 }
 
-std::string TypingTestWindow::genWord()
-{
-	std::string word;
-	if (rand() / (double) rand.max() < settings.personalFrequency) {
-		word = personalSelection[rand() % personalSelection.size()];
-	} else {
-		word = wordSelection[rand() % wordSelection.size()];
-	}
-	return word;
-}
-
 std::string TypingTestWindow::getWords()
 {
 	std::string text = words[0]->getWord();
@@ -402,7 +391,7 @@ void TypingTestWindow::textInsert(std::string text, int *)
 			textBuffer->remove_tag_by_name("uglyhack",
 				textBuffer->get_iter_at_offset(0), textBuffer->end());
 
-			std::string newWord = genWord();
+			std::string newWord = currentTest.genWord();
 			words.push_back(std::shared_ptr<Word>(new Word(newWord)));
 			textBuffer->insert(textBuffer->end(), " " + newWord);
 

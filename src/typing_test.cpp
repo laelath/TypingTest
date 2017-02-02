@@ -121,7 +121,7 @@ std::string TypingTest::getWordsAsString()
 	return text;
 }
 
-const std::vector<std::shared_ptr<Word>> &TypingTest::getWords()
+const std::vector<std::shared_ptr<Word>> &TypingTest::getWords() const
 {
 	return words;
 }
@@ -144,5 +144,15 @@ const Config &TypingTest::getConfig() const
 void TypingTest::setConfig(const Config &config)
 {
 	this->config = config;
+}
+
+const std::vector<std::string> &TypingTest::getWordSelection() const
+{
+	return wordSelection;
+}
+
+const std::vector<std::string> &TypingTest::getPersonalSelection() const
+{
+	return personalSelection;
 }
 } // namespace typingtest

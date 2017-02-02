@@ -45,7 +45,10 @@ public:
 	std::string genWord();
 	// Returns words as a long string with each word separated by spaces.
 	std::string getWordsAsString();
-	const std::vector<std::shared_ptr<Word>> &getWords();
+
+	const std::vector<std::shared_ptr<Word>> &getWords() const;
+	const std::vector<std::string> &getWordSelection() const;
+	const std::vector<std::string> &getPersonalSelection() const;
 
 	const TestSettings &getSettings() const;
 	void setSettings(const TestSettings &settings);

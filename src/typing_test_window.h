@@ -136,8 +136,6 @@ private:
 
 	std::minstd_rand rand;
 
-	std::vector<std::string> wordSelection;
-	std::vector<std::string> personalSelection;
 	std::vector<std::shared_ptr<Word>> words;
 
 	std::chrono::seconds seconds;
