@@ -24,18 +24,28 @@
 #include "typing_test.h"
 #include "word.h"
 
+#ifndef TYPING_TEST_WINDOW_H
+#define TYPING_TEST_WINDOW_H
+
 namespace typingtest {
 
+// A window that is the main driver for the TypingTest program. An application
+// window that the user interacts with to take typing tests.
 class TypingTestWindow : public Gtk::ApplicationWindow {
 public:
+	// Constructor for use with Gtk::Builder.
 	TypingTestWindow(BaseObjectType *cobject,
 		const Glib::RefPtr<Gtk::Builder>& builder);
 
 private:
+	// The builder used to construct the window's children.
 	Glib::RefPtr<Gtk::Builder> builder;
 
+	// Test configuration.
 	Config config;
 
+	// The current test being taken. Contains info about the words and can be
+	// used to retreive text to be used with textBuffer.
 	TypingTest currentTest;
 
 	// Initializes widgets from builder file.
@@ -43,7 +53,7 @@ private:
 	// Connects most of the widget's signals.
 	void connectSignals();
 
-	// Main window widgets
+	// Main window widgets.
 	Gtk::ApplicationWindow *appWindow;
 	Gtk::Button *newTest;
 	Gtk::ImageMenuItem *settingsItem;
@@ -75,7 +85,7 @@ private:
 	Gtk::Label *charsWrongLabel;
 	Gtk::Label *troubleWordsLabel;
 
-	// Settings window widgets
+	// Settings window widgets.
 	Gtk::Dialog *settingsDialog;
 	Gtk::Button *cancel;
 	Gtk::Button *apply;
@@ -88,14 +98,15 @@ private:
 	Gtk::Button *randomizeSeed;
 	Gtk::SpinButton *personalFrequencyButton;
 
-	// Font chooser
+	// Font chooser.
 	Gtk::FontChooserDialog *fontChooser;
 
-	// Trouble words window
+	// Trouble words window.
 	Gtk::Dialog *troubleDialog;
 	Gtk::TreeView *troubleList;
 	Gtk::Button *troubleClose;
 
+	// List of trouble words to be used with the trouble words display.
 	Glib::RefPtr<Gtk::ListStore> troubleListStore;
 
 	Gtk::TreeModelColumn<std::string> strCol;
@@ -121,21 +132,40 @@ private:
 	//About dialog
 	Gtk::AboutDialog *aboutDialog;
 
-	void disconnectSignals();
-	std::string genWord();
-	std::string getWords();
+	// Returns the current time as a string.
 	std::string getTime();
+	// Signal to be used when text is inserted to textBuffer. It may start the
+	// test if it hasn't been started yet and updates the words being typed on
+	// the display.
 	void textInsert(std::string text, int *pos);
+	// Signal for when text is deleted from textbuffer.
 	void textDelete(int pos, int num);
+	// Signal handler for keeping track of test times. It is meant to be called
+	// once per second by the timeout. Calculates the score if the test is
+	// over.
+	//
+	// Returns true if another second is meant to be waited, false if the test
+	// is over and the timer needs to be stopped.
 	bool updateTimer();
+	// Calculates the score based on the words and how many were correct and
+	// incorrect.
 	void calculateScore();
 
+	// Connection for inserting text.
 	sigc::connection insertConnection;
+	// Connection for deleting text.
 	sigc::connection backspConnection;
+	// Connection that is connected to the timeout with updateTimer as a
+	// callback. Meant to be cleared when the test is over and connected when
+	// it starts.
 	sigc::connection timerConnection;
 
+	// Random number generator.
 	std::minstd_rand rand;
 
+	// The list of for use with the test. It is a list of smart pointers so
+	// when it is copied from currentTest it copies the same addresses. This is
+	// desired as doing a deep copy would be a waste of memory.
 	std::vector<std::shared_ptr<Word>> words;
 
 	std::chrono::seconds seconds;
@@ -146,6 +176,8 @@ private:
 	bool testStarted = false;
 	bool testEnded = false;
 
+	// Generates a new list of words and updates textBuffer to be ready for a
+	// new test.
 	void genNewTest();
 	void updateSettings();
 	void randomSeed();
@@ -158,3 +190,5 @@ private:
 	void openAbout();
 };
 } // namespace typingtest
+
+#endif // TYPING_TEST_WINDOW_H

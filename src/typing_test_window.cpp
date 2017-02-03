@@ -21,7 +21,6 @@
 #include <stdlib.h>
 
 #include <fstream>
-#include <iostream>
 
 namespace typingtest {
 
@@ -341,7 +340,7 @@ void TypingTestWindow::openAbout()
 
 std::string TypingTestWindow::getTime()
 {
-	std::string secstr = (seconds.count() % 60 < 10 ?  "0"
+	std::string secstr = (seconds.count() % 60 < 10 ? "0"
 		+ std::to_string(seconds.count() % 60) : std::to_string(seconds.count()
 			% 60));
 	return std::to_string(seconds.count() / 60) + ":" + secstr;

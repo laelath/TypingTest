@@ -32,10 +32,15 @@
 
 namespace typingtest {
 
+// Represents a class that contains the words for a typing test. It is meant to
+// be create and have its words retrieved with getWords().
 class TypingTest {
 public:
+	// Constructor that uses the given settings and configuration. The parent
+	// window is used to create transient dialogs.
 	TypingTest(Gtk::Window *parent, const TestSettings &settings,
 		const Config &config);
+	// No-argument constructor.
 	TypingTest();
 
 	// Generates a word from the personal selection based on the personal

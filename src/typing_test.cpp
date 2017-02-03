@@ -18,7 +18,6 @@
 #include "typing_test.h"
 
 #include <fstream>
-#include <iostream>
 #include <map>
 
 #include <glibmm/main.h>
