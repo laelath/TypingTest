@@ -1,3 +1,4 @@
+
 // Copyright (C) 2017 Justin Frank, Jason Waataja
 //
 // This file is part of TypingTest.
@@ -15,40 +16,38 @@
 // You should have received a copy of the GNU General Public License along with
 // TypingTest.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef WORD_H
-#define WORD_H
-
-#include <chrono>
-#include <string>
-
-#include "config.h"
+#include "test_settings.h"
 
 namespace typingtest {
 
-class Word {
-public:
-	Word(std::string word);
+TestSettings::TestSettings()
+{
+}
 
-	std::string getWord();
-	std::string getEntry();
+TestSettings::TestSettings(TestType type)
+{
+	switch (type) {
+	case ADVANCED:
+		*this = ADVANCED_TEST;
+		break;
+	case ENDURANCE:
+		*this = ENDURANCE_TEST;
+		break;
+	default:
+		*this = BASIC_TEST;
+		break;
+	}
+}
 
-	double getScore();
-	bool getStarted();
-
-	void startTime();
-	bool enterWord(std::string enter, const Config& config);
-	bool getCorrect();
-	std::chrono::milliseconds getTime();
-
-private:
-	bool correct = false;
-	double score;
-	std::string word;
-	std::string enteredWord;
-	std::chrono::high_resolution_clock::time_point start;
-	std::chrono::milliseconds time;
-	bool started = false;
-};
-} // namespace typingtest
-
-#endif // WORD_H
+TestSettings::TestSettings(TestType t, size_t tw, size_t minl, size_t maxl,
+    std::chrono::seconds sec, uint32_t sd, double pf)
+    : type(t),
+      topWords(tw),
+      minLength(minl),
+      maxLength(maxl),
+      seconds(sec),
+      seed(sd),
+      personalFrequency(pf)
+{
+}
+} /* namespace typingtest */
