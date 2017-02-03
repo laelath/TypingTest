@@ -526,12 +526,13 @@
         </child>
       </object>
     </child>
-    <child type="titlebar">
+    <child>
       <placeholder/>
     </child>
   </object>
   <object class="GtkAboutDialog" id="aboutdialog">
     <property name="can_focus">False</property>
+    <property name="title" translatable="yes">TypingTest</property>
     <property name="modal">True</property>
     <property name="type_hint">dialog</property>
     <property name="transient_for">typingtest</property>
@@ -539,7 +540,8 @@
     <property name="version">v1.0.2</property>
     <property name="website">https://github.com/laelath/TypingTest</property>
     <property name="website_label" translatable="yes">Github Page</property>
-    <property name="authors">Justin Frank</property>
+    <property name="authors">Justin Frank
+Jason Waataja</property>
     <property name="logo_icon_name">input-keyboard</property>
     <property name="license_type">gpl-3-0</property>
     <child internal-child="vbox">
@@ -923,6 +925,7 @@
   </object>
   <object class="GtkDialog" id="advancedsettingsdialog">
     <property name="can_focus">False</property>
+    <property name="title" translatable="yes">Advanced Settings</property>
     <property name="type_hint">dialog</property>
     <property name="transient_for">typingtest</property>
     <child internal-child="vbox">

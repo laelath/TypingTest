@@ -1,86 +1,119 @@
-#include "config.h"
+// Copyright (C) 2017 Justin Frank, Jason Waataja
+//
+// This file is part of TypingTest.
+//
+// TypingTest is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License as published by the Free
+// Software Foundation, either version 3 of the License, or (at your option)
+// any later version.
+//
+// TypingTest is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+// more details.
+//
+// You should have received a copy of the GNU General Public License along with
+// TypingTest.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <cstdlib>
-#include <iostream>
-#include <fstream>
+#include "config.h"
 
 #include <sys/stat.h>
 
-Config config;
+#include <err.h>
 
-std::string config_dir;
-std::string data_dir;
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
 
-void loadConfig()
+namespace typingtest {
+
+Config::Config()
 {
-	std::ifstream file(config_dir + "config.cfg");
-	if (!file.is_open()) {
+	setPaths();
+}
+
+void Config::loadConfig()
+{
+	std::ifstream reader(configDir + "config.cfg");
+	if (!reader.is_open()) {
 		saveConfig();
 		return;
 	}
 
 	std::string line;
-	while(std::getline(file, line)) {
-		std::string var = line.substr(0, line.find("="));
-		std::string param = line.substr(line.find("=") + 1);
-		if (var == "start_words") {
-			config.startWords = std::stoi(param);
-		} else if (var == "min_zscore") {
-			config.minZScore = std::stod(param);
-		} else if (var == "max_zscore") {
-			config.maxZScore = std::stod(param);
-		} else if (var == "start_trouble_words") {
-			config.startTroubleScore = std::stoi(param);
-		} else if (var == "trouble_dec") {
-			config.troubleDec = std::stoi(param);
-		} else if (var == "trouble_inc") {
-			config.troubleInc = std::stoi(param);
-		} else if (var == "word_wrong_mult") {
-			config.wordWrongWeight = std::stod(param);
-		}
-	}
+	while(std::getline(reader, line))
+		processLine(line);
+	reader.close();
 }
 
-void saveConfig()
+void Config::processLine(const std::string& line)
 {
-	std::ofstream file(config_dir + ".config.cfg.swp", std::ios::trunc);
-	if (!file.is_open()) {
-		std::exit(1);
+	std::string::size_type splitPosition = line.find("=");
+	if (splitPosition == std::string::npos)
+		return;
+	std::string var = line.substr(0, line.find("="));
+	std::string param = line.substr(line.find("=") + 1);
+	try {
+		if (var == "start_words")
+			startWords = std::stoi(param);
+		else if (var == "min_zscore")
+			minZScore = std::stod(param);
+		else if (var == "max_zscore")
+			maxZScore = std::stod(param);
+		else if (var == "start_trouble_words")
+			startTroubleScore = std::stoi(param);
+		else if (var == "trouble_dec")
+			troubleDec = std::stoi(param);
+		else if (var == "trouble_inc")
+			troubleInc = std::stoi(param);
+		else if (var == "word_wrong_mult")
+			wordWrongWeight = std::stod(param);
+	} catch (const std::invalid_argument& e) {
 	}
-
-	file << "start_words=" << config.startWords << "\n";
-	file << "min_zscore=" << config.minZScore << "\n";
-	file << "max_zscore=" << config.maxZScore << "\n";
-	file << "start_trouble_words=" << config.startTroubleScore << "\n";
-	file << "trouble_dec=" << config.troubleDec << "\n";
-	file << "trouble_inc=" << config.troubleInc << "\n";
-	file << "word_wrong_mult=" << config.wordWrongWeight << "\n";
-
-	std::remove((config_dir + "config.cfg").c_str());
-	std::rename((config_dir + ".config.cfg.swp").c_str(), (config_dir + "config.cfg").c_str());
 }
 
-void getPaths()
+void Config::saveConfig()
+{
+	std::ofstream writer(configDir + ".config.cfg.swp", std::ios::trunc);
+	if (!writer.is_open())
+		errx(EXIT_FAILURE, NULL);
+
+	writer << "start_words=" << startWords << "\n";
+	writer << "min_zscore=" << minZScore << "\n";
+	writer << "max_zscore=" << maxZScore << "\n";
+	writer << "start_trouble_words=" << startTroubleScore << "\n";
+	writer << "trouble_dec=" << troubleDec << "\n";
+	writer << "trouble_inc=" << troubleInc << "\n";
+	writer << "word_wrong_mult=" << wordWrongWeight << "\n";
+
+	std::remove((configDir + "config.cfg").c_str());
+	std::rename((configDir + ".config.cfg.swp").c_str(),
+		(configDir + "config.cfg").c_str());
+	writer.close();
+}
+
+void Config::setPaths()
 {
 	std::string home;
-	if (char *val = std::getenv("HOME")) {
-		home = val;
-	} else {
-		std::cout << "HOME variable not found" << std::endl;
-		std::exit(1);
-	}
+	char *homeString = std::getenv("HOME");
+	if (homeString != nullptr)
+		home = homeString;
+	else
+		errx(EXIT_FAILURE, "HOME variable not found.");
 
-	if (char *val = std::getenv("XDG_CONFIG_HOME")) {
-		config_dir = val;
-	} else {
-		config_dir = home + "/.config/typingtest/";
-	}
-	mkdir(config_dir.c_str(), 0755);
+	char *configString = std::getenv("XDG_CONFIG_HOME");
+	if (configString != nullptr)
+		configDir = configString;
+	 else
+		configDir = home + "/.config/typingtest/";
+	mkdir(configDir.c_str(), 0755);
 
-	if (char *val = std::getenv("XDG_DATA_HOME")) {
-		data_dir = val;
-	} else {
-		data_dir = home + "/.local/share/typingtest/";
-	}
-	mkdir(data_dir.c_str(), 0755);
+	char* dataString = std::getenv("XDG_DATA_HOME");
+	if (dataString != nullptr)
+		dataDir = dataString;
+	else
+		dataDir = home + "/.local/share/typingtest/";
+
+	mkdir(dataDir.c_str(), 0755);
 }
+} // namespace typingtest
