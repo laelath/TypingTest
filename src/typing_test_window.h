@@ -103,7 +103,7 @@ private:
 
 	// Test settings
 	TestSettings settings = BASIC_TEST;
-	std::string currFont = "Sans 25";
+	std::string currFont = "Serif 25";
 
 	// Advanced settings widgets
 	Gtk::Dialog *advSettingsDialog;

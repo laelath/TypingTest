@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include <fstream>
+#include <iostream>
 
 namespace typingtest {
 
@@ -348,7 +349,7 @@ std::string TypingTestWindow::getTime()
 
 void TypingTestWindow::textInsert(std::string text, int *)
 {
-	if (!testStarted) {
+	if (!testStarted && text.length() > 0) {
 		testStarted = true;
 		timerConnection =
 			Glib::signal_timeout().connect(sigc::mem_fun(*this,
@@ -460,6 +461,8 @@ void TypingTestWindow::textDelete(int, int)
 
 bool TypingTestWindow::updateTimer()
 {
+	if (testEnded)
+		return false;
 	seconds--;
 	timerLabel->set_text("Timer: " + getTime());
 	if (seconds != std::chrono::seconds::duration::zero())

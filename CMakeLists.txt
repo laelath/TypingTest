@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 2.6)
-project(typing-test)
+cmake_minimum_required (VERSION 2.6)
+project(TypingTest)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
+find_package (PkgConfig REQUIRED)
+pkg_check_modules (GTKMM REQUIRED gtkmm-3.0)
 
 execute_process (
 	COMMAND ${PKG_CONFIG_EXECUTABLE} --variable=glib_compile_resources gio-2.0
@@ -27,9 +27,13 @@ set (
 	src/config.cpp
 	${CMAKE_CURRENT_BINARY_DIR}/resources.c)
 
-add_executable(typingtest ${SOURCES})
+add_executable (typingtest ${SOURCES})
 
-target_link_libraries(typingtest ${GTKMM_LIBRARIES})
-set_property(TARGET typingtest PROPERTY CXX_STANDARD 11)
+target_link_libraries (typingtest ${GTKMM_LIBRARIES})
+set_property (TARGET typingtest PROPERTY CXX_STANDARD 11)
 
 install (TARGETS typingtest DESTINATION bin)
+
+file (COPY "TypingTest.desktop" DESTINATION ${CMAKE_BINARY_DIR})
+find_program (XDG-DESKTOP-MENU_EXECUTABLE xdg-desktop-menu)
+install (CODE "execute_process(COMMAND ${XDG-DESKTOP-MENU_EXECUTABLE} install --novendor TypingTest.desktop)")

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=TypingTest
+Type=Application
+Comment=A program to practice typing
+Exec=typingtest
+Icon=preferences-desktop-keyboard
+Terminal=false
+Categories=Utility;GTK;
