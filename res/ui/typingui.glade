@@ -539,7 +539,7 @@
     <property name="type_hint">dialog</property>
     <property name="transient_for">typingtest</property>
     <property name="program_name">TypingTest</property>
-    <property name="version">v1.0.2</property>
+    <property name="version">v1.0.3</property>
     <property name="website">https://github.com/laelath/TypingTest</property>
     <property name="website_label" translatable="yes">Github Page</property>
     <property name="authors">Justin Frank

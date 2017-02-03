@@ -4,7 +4,7 @@ Typing test desktop program with a large amount of customization
 ## Synopsis
 TypingTest is a program to test your typing ability and allows you to practice
 to improve it. It was created to have an open-source and native alternative to
-10FastFingers.com as a school project. It seeks to improve upon the feauters of
+10FastFingers.com as a school project. It seeks to improve upon the features of
 10FastFingers by adding customization and features.
 
 English language files taken from
@@ -21,8 +21,8 @@ The build dependencies are:
 
 - A C++11 compiler, GCC and Clang both work.
 - CMake 2.6 or higher.
-- The xdg-desktop-menu executable.
-- The glib\_compile\_resources command.
+- The `xdg-desktop-menu executable`.
+- The `glib-compile-resources command`.
 
 ### Compilation
 TypingTest uses CMake. Navigate into the build directory. TypingTest supports
