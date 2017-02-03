@@ -40,7 +40,13 @@ TypingTest::TypingTest(Gtk::Window *parent, const TestSettings &settings,
 	std::istringstream dictStream((char *) Gio::Resource::lookup_data_global(
 			"/us/laelath/typingtest/dictionary.txt")->get_data(size));
 
-	wordSelection.reserve(settings.topWords);
+	try {
+		wordSelection.reserve(settings.topWords);
+	} catch (std::bad_alloc) {
+		// Ignore the error, it's not a necessary call. This is in a try-catch
+		// block because when testing on GCC this call produced a bad_alloc
+		// exception. Clang did not have this issue.
+	}
 	for (size_t i = 0; i < settings.topWords; ) {
 		std::string line;
 		if (std::getline(dictStream, line)) {
@@ -94,7 +100,13 @@ TypingTest::TypingTest(Gtk::Window *parent, const TestSettings &settings,
 	else
 		rand.seed(settings.seed);
 
-	words.reserve(config.startWords);
+	try {
+		words.reserve(config.startWords);
+	} catch (std::bad_alloc) {
+		// Ignore the error, it's not a necessary call. This is in a try-catch
+		// block because when testing on GCC this call produced a bad_alloc
+		// exception. Clang did not have this issue.
+	}
 	for (int i = 0; i < config.startWords; ++i)
 		words.push_back(std::shared_ptr<Word>(new Word(genWord())));
 }

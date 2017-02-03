@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 	try {
 		auto builder = Gtk::Builder::create_from_resource(
 			"/us/laelath/typingtest/ui/typingui.glade");
-		typingtest::TypingTestWindow* window = nullptr;
+		typingtest::TypingTestWindow *window = nullptr;
 		builder->get_widget_derived("typingtest", window);
 		int status = app->run(*window);
 		delete window;
