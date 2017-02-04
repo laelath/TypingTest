@@ -21,7 +21,6 @@ The build dependencies are:
 
 - A C++11 compiler, GCC and Clang both work.
 - CMake 2.6 or higher.
-- The `xdg-desktop-menu executable`.
 - The `glib-compile-resources command`.
 
 ### Compilation
