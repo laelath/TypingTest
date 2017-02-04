@@ -34,6 +34,5 @@ set_property (TARGET typingtest PROPERTY CXX_STANDARD 11)
 
 install (TARGETS typingtest DESTINATION bin)
 
-file (COPY "TypingTest.desktop" DESTINATION ${CMAKE_BINARY_DIR})
-find_program (XDG-DESKTOP-MENU_EXECUTABLE xdg-desktop-menu)
-install (CODE "execute_process(COMMAND ${XDG-DESKTOP-MENU_EXECUTABLE} install --novendor TypingTest.desktop)")
+file (COPY TypingTest.desktop DESTINATION ${CMAKE_BINARY_DIR})
+install (FILES ${CMAKE_BINARY_DIR}/TypingTest.desktop DESTINATION share/applications)
