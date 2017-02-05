@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include <fstream>
+#include <set>
 
 namespace typingtest {
 
@@ -499,18 +500,16 @@ void TypingTestWindow::calculateScore()
 	// Calculate averages and total
 	double total = 0;
 	for (std::shared_ptr<Word> word : enteredWords) {
-		if (word->getCorrect()) {
+		if (word->getCorrect())
 			total += word->getScore();
-		}
 	}
 	double mean = total / wordsCorrect;
 
 	// Standard deviation
 	double sum = 0;
 	for (std::shared_ptr<Word> word : enteredWords) {
-		if (word->getCorrect()) {
+		if (word->getCorrect())
 			sum += std::pow(word->getScore() - mean, 2);
-		}
 	}
 	double stdDev = std::sqrt(sum / wordsCorrect);
 
@@ -521,29 +520,21 @@ void TypingTestWindow::calculateScore()
 			return i->getScore() < j->getScore();
 		});
 
-	std::vector<std::string> troubleWords;
-	std::vector<std::string> goodWords;
+	std::set<std::string> troubleWords;
+	std::set<std::string> goodWords;
 
 	// Find trouble and good words
 	for (std::shared_ptr<Word> word : enteredWords) {
-		if (word->getScore() - mean <= config.minZScore * stdDev) {
-			troubleWords.push_back(word->getWord());
-		} else if (word->getScore() - mean > config.maxZScore * stdDev)
-			goodWords.push_back(word->getWord());
+		if (word->getScore() - mean <= config.minZScore * stdDev)
+			troubleWords.insert(word->getWord());
+		else if (word->getScore() - mean > config.maxZScore * stdDev)
+			goodWords.insert(word->getWord());
 	}
-
-	// Remove duplicates
-	std::sort(troubleWords.begin(), troubleWords.end());
-	std::unique(troubleWords.begin(), troubleWords.end());
-
-	std::sort(goodWords.begin(), goodWords.end());
-	std::unique(goodWords.begin(), goodWords.end());
 
 	// Create label text
 	std::string troubleWordsStr;
-	for (std::string word : troubleWords) {
+	for (std::string word : troubleWords)
 		troubleWordsStr += word + "\n";
-	}
 
 	std::ifstream file(config.dataDir + "troublewords.txt");
 	std::ofstream temp(config.dataDir + ".troublewords.txt.swp",
@@ -558,8 +549,8 @@ void TypingTestWindow::calculateScore()
 			std::string word = line.substr(0, line.find(","));
 			int num = std::stoi(line.substr(line.find(",") + 1));
 
-			std::vector<std::string>::iterator it
-				= std::find(troubleWords.begin(), troubleWords.end(), word);
+			auto it = std::find(troubleWords.begin(), troubleWords.end(),
+				word);
 			if (it != troubleWords.end()) {
 				temp << word << "," << num + config.troubleInc << "\n";
 				troubleWords.erase(it);
