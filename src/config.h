@@ -27,8 +27,8 @@ public:
 	Config();
 
 	int startWords = 500;
-	double wordWrongWeight = 0.4;
-	double minZScore = -2.0;
+	double wordWrongWeight = 0.50;
+	double minZScore = -2.2;
 	double maxZScore = 0.0;
 	int startTroubleScore = 3;
 	int troubleDec = 1;

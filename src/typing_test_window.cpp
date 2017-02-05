@@ -13,7 +13,7 @@
 // more details.
 //
 // You should have received a copy of the GNU General Public License along with
-// TypingTest.  If not, see <http://www.gnu.org/licenses/>.
+// TypingTest.  If not, see <http:// www.gnu.org/licenses/>.
 
 #include "typing_test_window.h"
 
@@ -477,7 +477,7 @@ bool TypingTestWindow::updateTimer()
 
 void TypingTestWindow::calculateScore()
 {
-	//Test information
+	// Test information
 	int wordNum = 0;
 	int wordsCorrect = 0;
 	int charNum = 0;
@@ -492,60 +492,62 @@ void TypingTestWindow::calculateScore()
 		}
 	}
 
-	//Trouble words
-	std::vector<std::tuple<std::string, double>> wordScores;
-	for (int i = 0; i < wordIndex; ++i) {
-		bool found = false;
-		for (std::tuple<std::string, double> wordScore : wordScores) {
-			if (words[i]->getWord() == std::get<0>(wordScore)) {
-				std::get<1>(wordScore) = std::min(std::get<1>(wordScore),
-					words[i]->getScore());
-				found = true;
-				break;
-			}
-		}
-		if (!found)
-			wordScores.push_back(std::make_tuple(words[i]->getWord(),
-					words[i]->getScore()));
-	}
+	// Trouble words
+	std::vector<std::shared_ptr<Word>> enteredWords(words.begin(),
+			words.begin() + wordIndex);
 
-	//Calculate averages and total
+	// Calculate averages and total
 	double total = 0;
-	for (std::tuple<std::string, double> wordScore : wordScores)
-		total += std::get<1>(wordScore);
-	double mean = total / wordScores.size();
+	for (std::shared_ptr<Word> word : enteredWords) {
+		if (word->getCorrect()) {
+			total += word->getScore();
+		}
+	}
+	double mean = total / wordsCorrect;
 
-	//Standard deviation
+	// Standard deviation
 	double sum = 0;
-	for (std::tuple<std::string, double> wordScore : wordScores)
-		sum += std::pow(std::get<1>(wordScore) - mean, 2);
+	for (std::shared_ptr<Word> word : enteredWords) {
+		if (word->getCorrect()) {
+			sum += std::pow(word->getScore() - mean, 2);
+		}
+	}
+	double stdDev = std::sqrt(sum / wordsCorrect);
 
-	double stdDev = std::sqrt(sum / wordScores.size());
-
-	//Sort scores
-	std::sort(wordScores.begin(), wordScores.end(),
-			[](std::tuple<std::string, double> i, std::tuple<std::string, double> j) -> bool
-			{
-				return std::get<1>(i) < std::get<1>(j);
-			});
+	// Sort scores
+	std::sort(enteredWords.begin(), enteredWords.end(),
+		[](std::shared_ptr<Word> i, std::shared_ptr<Word> j) -> bool
+		{
+			return i->getScore() < j->getScore();
+		});
 
 	std::vector<std::string> troubleWords;
 	std::vector<std::string> goodWords;
 
-	std::string troubleWordsStr;
+	// Find trouble and good words
+	for (std::shared_ptr<Word> word : enteredWords) {
+		if (word->getScore() - mean <= config.minZScore * stdDev) {
+			troubleWords.push_back(word->getWord());
+		} else if (word->getScore() - mean > config.maxZScore * stdDev)
+			goodWords.push_back(word->getWord());
+	}
 
-	//Print out scores
-	for (std::tuple<std::string, double> wordScore : wordScores) {
-		if (std::get<1>(wordScore) - mean <= config.minZScore * stdDev) {
-			troubleWords.push_back(std::get<0>(wordScore));
-			troubleWordsStr += std::get<0>(wordScore) + "\n";
-		} else if (std::get<1>(wordScore) - mean > config.maxZScore * stdDev)
-			goodWords.push_back(std::get<0>(wordScore));
+	// Remove duplicates
+	std::sort(troubleWords.begin(), troubleWords.end());
+	std::unique(troubleWords.begin(), troubleWords.end());
+
+	std::sort(goodWords.begin(), goodWords.end());
+	std::unique(goodWords.begin(), goodWords.end());
+
+	// Create label text
+	std::string troubleWordsStr;
+	for (std::string word : troubleWords) {
+		troubleWordsStr += word + "\n";
 	}
 
 	std::ifstream file(config.dataDir + "troublewords.txt");
 	std::ofstream temp(config.dataDir + ".troublewords.txt.swp",
-		std::ios::trunc);
+			std::ios::trunc);
 
 	if (!temp.is_open())
 		errx(EXIT_FAILURE, nullptr);
