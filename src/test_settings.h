@@ -29,7 +29,6 @@ const char ADVANCED_TEST_STRING[] = "advanced";
 const char ENDURANCE_TEST_STRING[] = "endurance";
 const char CUSTOM_TEST_STRING[] = "custom";
 
-
 class TestSettings {
 public:
 	enum TestType {
@@ -53,6 +52,7 @@ public:
 	double personalFrequency;
 };
 
+std::string toString(TestSettings::TestType type);
 std::ostream& operator<<(std::ostream& os, TestSettings::TestType type);
 std::istream& operator>>(std::istream& is, TestSettings::TestType& type);
 

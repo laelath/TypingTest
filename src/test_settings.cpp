@@ -58,12 +58,16 @@ std::ostream& operator<<(std::ostream& os, TestSettings::TestType type)
 	switch (type) {
 	case TestSettings::BASIC:
 		os << BASIC_TEST_STRING;
+		break;
 	case TestSettings::ADVANCED:
 		os << ADVANCED_TEST_STRING;
+		break;
 	case TestSettings::ENDURANCE:
 		os << ENDURANCE_TEST_STRING;
+		break;
 	case TestSettings::CUSTOM:
 		os << CUSTOM_TEST_STRING;
+		break;
 	}
 	return os;
 }
@@ -88,5 +92,19 @@ std::istream& operator>>(std::istream& is, TestSettings::TestType& type)
 		is.setstate(std::ios_base::failbit);
 	}
 	return is;
+}
+
+std::string toString(TestSettings::TestType type) 
+{
+	switch (type) {
+	case TestSettings::BASIC:
+		return BASIC_TEST_STRING;
+	case TestSettings::ADVANCED:
+		return ADVANCED_TEST_STRING;
+	case TestSettings::ENDURANCE:
+		return ENDURANCE_TEST_STRING;
+	case TestSettings::CUSTOM:
+		return CUSTOM_TEST_STRING;
+	}
 }
 } // namespace typingtest

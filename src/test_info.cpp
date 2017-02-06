@@ -73,7 +73,8 @@ void TestInfo::setFromSettings(const TestSettings& settings)
 
 std::ostream& operator<<(std::ostream& os, const TestInfo& info)
 {
-	os << info.getWpm() << " " << info.getLength().count() << info.getType();
+	os << info.getWpm() << " " << info.getLength().count() << " "
+		<< info.getType();
 	return os;
 }
 

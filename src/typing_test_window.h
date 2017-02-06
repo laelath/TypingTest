@@ -16,10 +16,13 @@
 // TypingTest.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <random>
+#include <set>
+#include <thread>
 
 #include <gtkmm.h>
 
 #include "config.h"
+#include "test_info.h"
 #include "test_settings.h"
 #include "typing_test.h"
 #include "word.h"
@@ -28,6 +31,8 @@
 #define TYPING_TEST_WINDOW_H
 
 namespace typingtest {
+
+const int HISTORY_SIZE = 100;
 
 // A window that is the main driver for the TypingTest program. An application
 // window that the user interacts with to take typing tests.
@@ -116,6 +121,7 @@ private:
 	Gtk::Label *fastestTimeLabel;
 	Gtk::Label *currentFastestTimeLabel;
 	Gtk::Label *currentSlowestTimeLabel;
+	Gtk::Label *currentStandardDeviationLabel;
 	Gtk::TreeView *testHistoryView;
 
 	// Helper objects for history dialog.
@@ -215,8 +221,50 @@ private:
 
 	// For the history dialog close button to give the dialog response signal.
 	void onHistoryCloseButtonClicked();
+	void onEraseHistoryButtonClicked();
 	// Opens the history dialog.
 	void onActionShowHistory();
+
+
+	// Assuming a score of wpm was just achieved, updates the history file to
+	// reflect the new score.
+	void updateHistoryFile(int wpm);
+	// Assuming a test with troubleWords and goodWords was achieved, then
+	// updates the trouble words file accordingly. Passed by value because it
+	// shouldn't affect the variables used but also needs to modify a copy.
+	// Copying a short list of strings shouldn't be an issue.
+	void updateTroubleWordsFile(std::set<std::string> troubleWords,
+		std::set<std::string> goodWords);
+
+	// Reads the file given by path and returns the list of tests it
+	// represents. If there was an error then an empty vector is returned and
+	// recordWpm is changed to 0.
+	static std::vector<TestInfo> readHistory(const std::string &path,
+		int &recordWpm);
+	// Returns the average wpm if size is greater than 0 and 0 otherwise.
+	static double getAverageWpm(const std::vector<TestInfo> &history);
+	// Returns the standard deviation if the size is greater than 0 and 0
+	// otherwise.
+	static double getStandardDeviation(const std::vector<TestInfo> &history);
+	// Returns the maximum wpm in history or 0 if there are no elements.
+	static int getMaxWpm(const std::vector<TestInfo> &history);
+	// Returns the minimum wpm in history or 0 if there are no elements.
+	static int getMinWpm(const std::vector<TestInfo> &history);
+
+	// Implements comparator for the WPM of TestInfo objects.
+	static bool compareWpm(const TestInfo &t1, const TestInfo &t2);
+
+
+	// Returns the path to use for the file storing history data.
+	std::string getHistoryPath() const;
+	// Lock to ensure there is not simultaneous reading and writing to the
+	// history file.
+	std::mutex historyFileLock;
+	// Returns the path to use for the file storing history data.
+	std::string getTroubleWordsPath() const;
+	// Lock to ensure there is not simultaneous access to the trouble words
+	// file.
+	std::mutex troubleWordsFileLock;
 };
 } // namespace typingtest
 
