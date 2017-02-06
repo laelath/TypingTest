@@ -20,8 +20,14 @@
 #include <err.h>
 #include <stdlib.h>
 
+#include <algorithm>
+#include <cmath>
 #include <fstream>
+#include <numeric>
 #include <set>
+
+#include "files.h"
+#include "test_info.h"
 
 namespace typingtest {
 
@@ -31,6 +37,7 @@ TypingTestWindow::TypingTestWindow(BaseObjectType *cobject,
 {
 	initWidgets();
 	connectSignals();
+	initActions();
 
 	config.loadConfig();
 	genNewTest();
@@ -115,6 +122,24 @@ void TypingTestWindow::initWidgets()
 	builder->get_widget("canceladv", cancelAdv);
 	builder->get_widget("applyadv", applyAdv);
 
+
+	builder->get_widget("history_dialog", historyDialog);
+	builder->get_widget("history_close_button", historyCloseButton);
+	builder->get_widget("track_history_button", trackHistoryButton);
+	builder->get_widget("erase_history_button", eraseHistoryButton);
+	builder->get_widget("test_count_button", testCountButton);
+	builder->get_widget("average_speed_label", averageSpeedLabel);
+	builder->get_widget("fastest_time_label", fastestTimeLabel);
+	builder->get_widget("current_fastest_time_label", currentFastestTimeLabel);
+	builder->get_widget("current_slowest_time_label", currentSlowestTimeLabel);
+	builder->get_widget("test_history_view", testHistoryView);
+	
+	historyColumnRecord.add(wpmColumn);
+	historyColumnRecord.add(lengthColumn);
+	historyColumnRecord.add(typeColumn);
+	historyStore = Gtk::ListStore::create(historyColumnRecord);
+
+
 	// Trouble words viewer
 	builder->get_widget("troubledialog", troubleDialog);
 	builder->get_widget("troublelist", troubleList);
@@ -176,6 +201,9 @@ void TypingTestWindow::connectSignals()
 
 	troubleClose->signal_clicked().connect(sigc::bind<int>(sigc::mem_fun(
 				troubleDialog, &Gtk::Dialog::response), Gtk::RESPONSE_CLOSE));
+
+	historyCloseButton->signal_clicked().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onHistoryCloseButtonClicked));
 }
 
 void TypingTestWindow::genNewTest()
@@ -588,4 +616,72 @@ void TypingTestWindow::calculateScore()
 			- charsCorrect));
 	troubleWordsLabel->set_text(troubleWordsStr);
 }
-} /* namespace typingtest */
+
+void TypingTestWindow::initActions()
+{
+	this->add_action("show-history", sigc::mem_fun(*this,
+			&TypingTestWindow::onActionShowHistory));
+}
+
+void TypingTestWindow::onHistoryCloseButtonClicked()
+{
+	historyDialog->response(Gtk::RESPONSE_CLOSE);
+}
+
+void TypingTestWindow::onActionShowHistory()
+{
+	std::string outputPath{config.dataDir + "history"};
+	std::string outputSwapPath{getSwapPath(outputPath)};
+	std::vector<TestInfo> historyInfo;
+
+	std::ifstream reader{outputPath};
+	std::ofstream writer{outputSwapPath};
+
+	int recordWpm{0};
+
+	// The data file stats with one line that is the record wpm, then a list of
+	// TestInfo objects.
+	if (reader.is_open() && reader >> recordWpm) {
+		TestInfo testInfo;
+		while (reader >> testInfo)
+			historyInfo.push_back(testInfo);
+	}
+
+	int averageWpm{0};
+	double standardDeviation{0};
+	int maxWpm{0};
+	int minWpm{0};
+	if (historyInfo.size() > 0) {
+		int totalWpm{0};
+		std::accumulate(historyInfo.begin(), historyInfo.end(), totalWpm,
+			[](int init, const TestInfo &info) {
+				return init + info.getWpm();
+			});
+		averageWpm = totalWpm / historyInfo.size();
+
+		double variance = std::accumulate(historyInfo.begin(),
+			historyInfo.end(), 0.0,
+			[&averageWpm](double init, const TestInfo &info) {
+				return init + std::pow(averageWpm - info.getWpm(), 2);
+			});
+		variance /= historyInfo.size();
+		standardDeviation = std::sqrt(variance);
+
+		auto testInfoCmp = [](const TestInfo &t1, const TestInfo &t2) {
+			return t1.getWpm() < t2.getWpm();
+		};
+		auto maxIt = std::max_element(historyInfo.begin(), historyInfo.end(),
+			testInfoCmp);
+		if (maxIt != historyInfo.end())
+			maxWpm = maxIt->getWpm();
+		auto minIt = std::min_element(historyInfo.begin(), historyInfo.end(),
+			testInfoCmp);
+		if (minIt != historyInfo.end())
+			minWpm = minIt->getWpm();
+	}
+
+	fastestTimeLabel->set_text(std::to_string(recordWpm));
+	currentFastestTimeLabel->set_text(std::to_string(maxWpm));
+	currentSlowestTimeLabel->set_text(std::to_string(minWpm));
+}
+} // namespace typingtest

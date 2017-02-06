@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <glibmm.h>
 
 namespace typingtest {
 
@@ -94,26 +95,10 @@ void Config::saveConfig()
 
 void Config::setPaths()
 {
-	std::string home;
-	char *homeString = std::getenv("HOME");
-	if (homeString != nullptr)
-		home = homeString;
-	else
-		errx(EXIT_FAILURE, "HOME variable not found.");
-
-	char *configString = std::getenv("XDG_CONFIG_HOME");
-	if (configString != nullptr)
-		configDir = configString;
-	 else
-		configDir = home + "/.config/typingtest/";
+	configDir = Glib::get_user_config_dir();
 	mkdir(configDir.c_str(), 0755);
 
-	char* dataString = std::getenv("XDG_DATA_HOME");
-	if (dataString != nullptr)
-		dataDir = dataString;
-	else
-		dataDir = home + "/.local/share/typingtest/";
-
+	dataDir = Glib::get_user_data_dir();
 	mkdir(dataDir.c_str(), 0755);
 }
 } // namespace typingtest
