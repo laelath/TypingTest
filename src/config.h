@@ -39,9 +39,6 @@ public:
 	void setPaths();
 	void loadConfig();
 	void saveConfig();
-
-private:
-	void processLine(const std::string& line);
 };
 } // namespace typingtest
 
