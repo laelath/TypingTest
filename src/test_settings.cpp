@@ -89,4 +89,18 @@ std::istream& operator>>(std::istream& is, TestSettings::TestType& type)
 	}
 	return is;
 }
+
+std::string toString(TestSettings::TestType type) 
+{
+	switch (type) {
+	case TestSettings::BASIC:
+		return BASIC_TEST_STRING;
+	case TestSettings::ADVANCED:
+		return ADVANCED_TEST_STRING;
+	case TestSettings::ENDURANCE:
+		return ENDURANCE_TEST_STRING;
+	case TestSettings::CUSTOM:
+		return CUSTOM_TEST_STRING;
+	}
+}
 } // namespace typingtest

@@ -27,7 +27,6 @@
 #include <set>
 
 #include "files.h"
-#include "test_info.h"
 
 namespace typingtest {
 
@@ -125,19 +124,20 @@ void TypingTestWindow::initWidgets()
 
 	builder->get_widget("history_dialog", historyDialog);
 	builder->get_widget("history_close_button", historyCloseButton);
-	builder->get_widget("track_history_button", trackHistoryButton);
 	builder->get_widget("erase_history_button", eraseHistoryButton);
-	builder->get_widget("test_count_button", testCountButton);
 	builder->get_widget("average_speed_label", averageSpeedLabel);
 	builder->get_widget("fastest_time_label", fastestTimeLabel);
 	builder->get_widget("current_fastest_time_label", currentFastestTimeLabel);
 	builder->get_widget("current_slowest_time_label", currentSlowestTimeLabel);
 	builder->get_widget("test_history_view", testHistoryView);
+	builder->get_widget("current_standard_deviation_label",
+		currentStandardDeviationLabel);
 	
 	historyColumnRecord.add(wpmColumn);
 	historyColumnRecord.add(lengthColumn);
 	historyColumnRecord.add(typeColumn);
 	historyStore = Gtk::ListStore::create(historyColumnRecord);
+	testHistoryView->set_model(historyStore);
 
 
 	// Trouble words viewer
@@ -604,8 +604,9 @@ void TypingTestWindow::calculateScore()
 	std::rename((config.dataDir + ".troublewords.txt.swp").c_str(),
 		(config.dataDir + "troublewords.txt").c_str());
 
-	wpmLabel->set_text("WPM: " + std::to_string((int) ((charsCorrect / 5.0)
-				/ (start.count() / 60.0))));
+	int wpm = static_cast<int>((charsCorrect / 5.0) / (start.count() / 60.0));
+
+	wpmLabel->set_text("WPM: " + std::to_string(wpm));
 	wordNumLabel->set_text("Words: " + std::to_string(wordNum));
 	wordsCorrectLabel->set_text("Correct: " + std::to_string(wordsCorrect));
 	wordsWrongLabel->set_text("Wrong: " + std::to_string(wordNum
@@ -615,6 +616,11 @@ void TypingTestWindow::calculateScore()
 	charsWrongLabel->set_text("Wrong: " + std::to_string(charNum
 			- charsCorrect));
 	troubleWordsLabel->set_text(troubleWordsStr);
+
+	std::unique_lock<std::mutex> lock{historyFileLock};
+	int recordWpm{0};
+	std::vector<TestInfo> history = readHistory(getHistoryPath(), recordWpm);
+	history.push_back(TestInfo{wpm, settings});
 }
 
 void TypingTestWindow::initActions()
@@ -630,58 +636,101 @@ void TypingTestWindow::onHistoryCloseButtonClicked()
 
 void TypingTestWindow::onActionShowHistory()
 {
-	std::string outputPath{config.dataDir + "history"};
-	std::string outputSwapPath{getSwapPath(outputPath)};
-	std::vector<TestInfo> historyInfo;
+	std::unique_lock<std::mutex> lock{historyFileLock};
 
-	std::ifstream reader{outputPath};
-	std::ofstream writer{outputSwapPath};
+	std::string outputPath{getHistoryPath()};
 
 	int recordWpm{0};
+	std::vector<TestInfo> historyInfo = readHistory(outputPath, recordWpm);
+
+	int averageWpm{static_cast<int>(getAverageWpm(historyInfo))};
+	double standardDeviation{getStandardDeviation(historyInfo)};
+	int maxWpm{getMaxWpm(historyInfo)};
+	int minWpm{getMinWpm(historyInfo)};
+
+	fastestTimeLabel->set_text(std::to_string(recordWpm));
+	averageSpeedLabel->set_text(std::to_string(averageWpm));
+	currentFastestTimeLabel->set_text(std::to_string(maxWpm));
+	currentSlowestTimeLabel->set_text(std::to_string(minWpm));
+	currentStandardDeviationLabel->set_text(std::to_string(standardDeviation));
+
+	historyStore.clear();
+	for (const auto &info : historyInfo) {
+		Gtk::TreeIter iter = historyStore->append();
+		Gtk::TreeRow row = *iter;
+		row[wpmColumn] = info.getWpm();
+		row[lengthColumn] = std::to_string(info.getLength().count());
+		row[typeColumn] = toString(info.getType());
+	}
+
+	historyDialog->run();
+	historyDialog->close();
+}
+
+double TypingTestWindow::getAverageWpm(const std::vector<TestInfo> &history)
+{
+	if (history.size() == 0)
+		return 0;
+	int averageWpm{0};
+	for (const auto &info : history)
+		averageWpm += info.getWpm();
+	averageWpm /= history.size();
+	return averageWpm;
+}
+
+double TypingTestWindow::getStandardDeviation(
+	const std::vector<TestInfo> &history)
+{
+	if (history.size() == 0)
+		return 0;
+	double average{getAverageWpm(history)};
+	auto diff = [&average](double total, const TestInfo &info) {
+		return total + std::pow(info.getWpm() - average, 2);
+	};
+	double variance{std::accumulate(history.begin(), history.end(), 0.0,
+		diff) / history.size()};
+	return std::sqrt(variance);
+}
+
+int TypingTestWindow::getMaxWpm(const std::vector<TestInfo> &history)
+{
+	auto maxIt = std::max_element(history.begin(), history.end(),
+		&TypingTestWindow::compareWpm);
+	return (maxIt != history.end()) ? maxIt->getWpm() : 0;
+}
+
+int TypingTestWindow::getMinWpm(const std::vector<TestInfo> &history)
+{
+	auto maxIt = std::min_element(history.begin(), history.end(),
+		&TypingTestWindow::compareWpm);
+	return (maxIt != history.end()) ? maxIt->getWpm() : 0;
+}
+
+bool TypingTestWindow::compareWpm(const TestInfo &t1, const TestInfo &t2)
+{
+	return t1.getWpm() < t2.getWpm();
+}
+
+std::string TypingTestWindow::getHistoryPath() const
+{
+	return config.dataDir + "history";
+}
+
+std::vector<TestInfo> TypingTestWindow::readHistory(const std::string &path,
+	int &recordWpm)
+{
+	std::ifstream reader{path};
+	std::vector<TestInfo> history;
+	recordWpm = 0;
 
 	// The data file stats with one line that is the record wpm, then a list of
 	// TestInfo objects.
 	if (reader.is_open() && reader >> recordWpm) {
 		TestInfo testInfo;
 		while (reader >> testInfo)
-			historyInfo.push_back(testInfo);
+			history.push_back(testInfo);
 	}
-
-	int averageWpm{0};
-	double standardDeviation{0};
-	int maxWpm{0};
-	int minWpm{0};
-	if (historyInfo.size() > 0) {
-		int totalWpm{0};
-		std::accumulate(historyInfo.begin(), historyInfo.end(), totalWpm,
-			[](int init, const TestInfo &info) {
-				return init + info.getWpm();
-			});
-		averageWpm = totalWpm / historyInfo.size();
-
-		double variance = std::accumulate(historyInfo.begin(),
-			historyInfo.end(), 0.0,
-			[&averageWpm](double init, const TestInfo &info) {
-				return init + std::pow(averageWpm - info.getWpm(), 2);
-			});
-		variance /= historyInfo.size();
-		standardDeviation = std::sqrt(variance);
-
-		auto testInfoCmp = [](const TestInfo &t1, const TestInfo &t2) {
-			return t1.getWpm() < t2.getWpm();
-		};
-		auto maxIt = std::max_element(historyInfo.begin(), historyInfo.end(),
-			testInfoCmp);
-		if (maxIt != historyInfo.end())
-			maxWpm = maxIt->getWpm();
-		auto minIt = std::min_element(historyInfo.begin(), historyInfo.end(),
-			testInfoCmp);
-		if (minIt != historyInfo.end())
-			minWpm = minIt->getWpm();
-	}
-
-	fastestTimeLabel->set_text(std::to_string(recordWpm));
-	currentFastestTimeLabel->set_text(std::to_string(maxWpm));
-	currentSlowestTimeLabel->set_text(std::to_string(minWpm));
+	reader.close();
+	return history;
 }
 } // namespace typingtest

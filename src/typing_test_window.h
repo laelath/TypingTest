@@ -16,10 +16,12 @@
 // TypingTest.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <random>
+#include <thread>
 
 #include <gtkmm.h>
 
 #include "config.h"
+#include "test_info.h"
 #include "test_settings.h"
 #include "typing_test.h"
 #include "word.h"
@@ -116,6 +118,7 @@ private:
 	Gtk::Label *fastestTimeLabel;
 	Gtk::Label *currentFastestTimeLabel;
 	Gtk::Label *currentSlowestTimeLabel;
+	Gtk::Label *currentStandardDeviationLabel;
 	Gtk::TreeView *testHistoryView;
 
 	// Helper objects for history dialog.
@@ -217,6 +220,29 @@ private:
 	void onHistoryCloseButtonClicked();
 	// Opens the history dialog.
 	void onActionShowHistory();
+
+
+	std::string getHistoryPath() const;
+	// Reads the file given by path and returns the list of tests it
+	// represents. If there was an error then an empty vector is returned and
+	// recordWpm is changed to 0.
+	static std::vector<TestInfo> readHistory(const std::string &path,
+		int &recordWpm);
+	// Returns the average wpm if size is greater than 0 and 0 otherwise.
+	static double getAverageWpm(const std::vector<TestInfo> &history);
+	// Returns the standard deviation if the size is greater than 0 and 0
+	// otherwise.
+	static double getStandardDeviation(const std::vector<TestInfo> &history);
+	// Returns the maximum wpm in history or 0 if there are no elements.
+	static int getMaxWpm(const std::vector<TestInfo> &history);
+	// Returns the minimum wpm in history or 0 if there are no elements.
+	static int getMinWpm(const std::vector<TestInfo> &history);
+
+	static bool compareWpm(const TestInfo &t1, const TestInfo &t2);
+
+	// Lock to ensure there is not simultaneous reading and writing to the
+	// history file.
+	std::mutex historyFileLock;
 };
 } // namespace typingtest
 
