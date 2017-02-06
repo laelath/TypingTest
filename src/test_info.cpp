@@ -17,6 +17,8 @@
 
 #include "test_info.h"
 
+#include <stdexcept>
+
 namespace typingtest {
 
 TestInfo::TestInfo(int wpm, std::chrono::seconds length, TestSettings::TestType type)
@@ -53,9 +55,49 @@ void TestInfo::setLength(std::chrono::seconds length)
 	this->length = length;
 }
 
+TestSettings::TestType TestInfo::getType() const
+{
+	return type;
+}
+
+void TestInfo::setType(TestSettings::TestType type)
+{
+	this->type = type;
+}
+
 void TestInfo::setFromSettings(const TestSettings& settings)
 {
 	this->length = settings.seconds;
 	this->type = settings.type;
+}
+
+std::ostream& operator<<(std::ostream& os, const TestInfo& info)
+{
+	os << info.getWpm() << " " << info.getLength().count() << info.getType();
+	return os;
+}
+
+std::istream& operator>>(std::istream& is, TestInfo& info)
+{
+	int wpm;
+	if (!(is >> wpm)) {
+		is.setstate(std::ios_base::failbit);
+		return is;
+	}
+	long length;
+	if (!(is >> length)) {
+		is.setstate(std::ios_base::failbit);
+		return is;
+	}
+	TestSettings::TestType type;
+	if (!(is >> type)) {
+		is.setstate(std::ios_base::failbit);
+		return is;
+	}
+
+	info.setWpm(wpm);
+	info.setLength(std::chrono::seconds(length));
+	info.setType(type);
+	return is;
 }
 } // namespace typingtest

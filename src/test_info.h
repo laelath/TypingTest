@@ -18,8 +18,9 @@
 #ifndef TEST_INFO_H
 #define TEST_INFO_H
 
-#include <string>
 #include <chrono>
+#include <iostream>
+#include <string>
 
 #include "test_settings.h"
 
@@ -38,6 +39,9 @@ public:
 	void setWpm(int wpm);
 	std::chrono::seconds getLength() const;
 	void setLength(std::chrono::seconds length);
+	TestSettings::TestType getType() const;
+	void setType(TestSettings::TestType type);
+
 	void setFromSettings(const TestSettings& settings);
 
 private:
@@ -48,6 +52,12 @@ private:
 	// Type of test taken.
 	TestSettings::TestType type;
 };
+
+// Output operator for writing to files.
+std::ostream& operator<<(std::ostream& os, const TestInfo& info);
+// Input operator for reading from file.
+std::istream& operator>>(std::istream& is, TestInfo& info);
+
 } // namespace typingtest
 
 #endif // TEST_INFO_H

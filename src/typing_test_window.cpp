@@ -31,6 +31,7 @@ TypingTestWindow::TypingTestWindow(BaseObjectType *cobject,
 {
 	initWidgets();
 	connectSignals();
+	initActions();
 
 	config.loadConfig();
 	genNewTest();
@@ -115,6 +116,24 @@ void TypingTestWindow::initWidgets()
 	builder->get_widget("canceladv", cancelAdv);
 	builder->get_widget("applyadv", applyAdv);
 
+
+	builder->get_widget("history_dialog", historyDialog);
+	builder->get_widget("history_close_button", historyCloseButton);
+	builder->get_widget("track_history_button", trackHistoryButton);
+	builder->get_widget("erase_history_button", eraseHistoryButton);
+	builder->get_widget("test_count_button", testCountButton);
+	builder->get_widget("average_speed_label", averageSpeedLabel);
+	builder->get_widget("fastest_time_label", fastestTimeLabel);
+	builder->get_widget("current_fastest_time_label", currentFastestTimeLabel);
+	builder->get_widget("current_slowest_time_label", currentSlowestTimeLabel);
+	builder->get_widget("test_history_view", testHistoryView);
+	
+	historyColumnRecord.add(wpmColumn);
+	historyColumnRecord.add(lengthColumn);
+	historyColumnRecord.add(typeColumn);
+	historyStore = Gtk::ListStore::create(historyColumnRecord);
+
+
 	// Trouble words viewer
 	builder->get_widget("troubledialog", troubleDialog);
 	builder->get_widget("troublelist", troubleList);
@@ -176,6 +195,9 @@ void TypingTestWindow::connectSignals()
 
 	troubleClose->signal_clicked().connect(sigc::bind<int>(sigc::mem_fun(
 				troubleDialog, &Gtk::Dialog::response), Gtk::RESPONSE_CLOSE));
+
+	historyCloseButton->signal_clicked().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onHistoryCloseButtonClicked));
 }
 
 void TypingTestWindow::genNewTest()
@@ -588,4 +610,19 @@ void TypingTestWindow::calculateScore()
 			- charsCorrect));
 	troubleWordsLabel->set_text(troubleWordsStr);
 }
-} /* namespace typingtest */
+
+void TypingTestWindow::initActions()
+{
+	this->add_action("show-history", sigc::mem_fun(*this,
+			&TypingTestWindow::onActionShowHistory));
+}
+
+void TypingTestWindow::onHistoryCloseButtonClicked()
+{
+	historyDialog->response(Gtk::RESPONSE_CLOSE);
+}
+
+void TypingTestWindow::onActionShowHistory()
+{
+}
+} // namespace typingtest

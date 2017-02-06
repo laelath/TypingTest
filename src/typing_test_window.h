@@ -106,6 +106,25 @@ private:
 	Gtk::TreeView *troubleList;
 	Gtk::Button *troubleClose;
 
+	// History info widgets.
+	Gtk::Dialog *historyDialog;
+	Gtk::Button *historyCloseButton;
+	Gtk::CheckButton *trackHistoryButton;
+	Gtk::Button *eraseHistoryButton;
+	Gtk::SpinButton *testCountButton;
+	Gtk::Label *averageSpeedLabel;
+	Gtk::Label *fastestTimeLabel;
+	Gtk::Label *currentFastestTimeLabel;
+	Gtk::Label *currentSlowestTimeLabel;
+	Gtk::TreeView *testHistoryView;
+
+	// Helper objects for history dialog.
+	Glib::RefPtr<Gtk::ListStore> historyStore;
+	Gtk::TreeModelColumnRecord historyColumnRecord;
+	Gtk::TreeModelColumn<int> wpmColumn;
+	Gtk::TreeModelColumn<Glib::ustring> lengthColumn;
+	Gtk::TreeModelColumn<Glib::ustring> typeColumn;
+
 	// List of trouble words to be used with the trouble words display.
 	Glib::RefPtr<Gtk::ListStore> troubleListStore;
 
@@ -188,6 +207,16 @@ private:
 	void openAdvSettings();
 	void openTroubleWords();
 	void openAbout();
+
+	// Initialize actions so that action names from glade activate correctly.
+	void initActions();
+
+	// Signal handlers.
+
+	// For the history dialog close button to give the dialog response signal.
+	void onHistoryCloseButtonClicked();
+	// Opens the history dialog.
+	void onActionShowHistory();
 };
 } // namespace typingtest
 
