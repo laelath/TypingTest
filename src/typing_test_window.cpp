@@ -121,7 +121,6 @@ void TypingTestWindow::initWidgets()
 	builder->get_widget("canceladv", cancelAdv);
 	builder->get_widget("applyadv", applyAdv);
 
-
 	builder->get_widget("history_dialog", historyDialog);
 	builder->get_widget("history_close_button", historyCloseButton);
 	builder->get_widget("erase_history_button", eraseHistoryButton);
@@ -132,12 +131,15 @@ void TypingTestWindow::initWidgets()
 	builder->get_widget("test_history_view", testHistoryView);
 	builder->get_widget("current_standard_deviation_label",
 		currentStandardDeviationLabel);
-	
+
 	historyColumnRecord.add(wpmColumn);
 	historyColumnRecord.add(lengthColumn);
 	historyColumnRecord.add(typeColumn);
 	historyStore = Gtk::ListStore::create(historyColumnRecord);
 	testHistoryView->set_model(historyStore);
+	testHistoryView->append_column("WPM", wpmColumn);
+	testHistoryView->append_column("Length", lengthColumn);
+	testHistoryView->append_column("Type", typeColumn);
 
 
 	// Trouble words viewer
@@ -204,6 +206,8 @@ void TypingTestWindow::connectSignals()
 
 	historyCloseButton->signal_clicked().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::onHistoryCloseButtonClicked));
+	eraseHistoryButton->signal_clicked().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onEraseHistoryButtonClicked));
 }
 
 void TypingTestWindow::genNewTest()
@@ -623,10 +627,13 @@ void TypingTestWindow::calculateScore()
 	std::string historySwapPath{getSwapPath(historyPath)};
 	std::vector<TestInfo> history = readHistory(historyPath, recordWpm);
 	history.push_back(TestInfo{wpm, settings});
-	if (history.size() > 100) {
-		std::vector<TestInfo>newHistory{history.end() - 100, history.end()};
+	if (history.size() > HISTORY_SIZE) {
+		std::vector<TestInfo>newHistory{history.end() - HISTORY_SIZE,
+			history.end()};
 		history = newHistory;
 	}
+
+	recordWpm = (wpm > recordWpm) ? wpm : recordWpm;
 	std::ofstream writer{historySwapPath};
 	if (writer.is_open()) {
 		writer << recordWpm << std::endl;
@@ -655,10 +662,11 @@ void TypingTestWindow::onActionShowHistory()
 	std::string outputPath{getHistoryPath()};
 
 	int recordWpm{0};
-	std::vector<TestInfo> historyInfo = readHistory(outputPath, recordWpm);
+	std::vector<TestInfo> historyInfo{readHistory(outputPath, recordWpm)};
 
 	int averageWpm{static_cast<int>(getAverageWpm(historyInfo))};
 	double standardDeviation{getStandardDeviation(historyInfo)};
+	standardDeviation = std::round(standardDeviation * 100) / 100;
 	int maxWpm{getMaxWpm(historyInfo)};
 	int minWpm{getMinWpm(historyInfo)};
 
@@ -668,10 +676,11 @@ void TypingTestWindow::onActionShowHistory()
 	currentSlowestTimeLabel->set_text(std::to_string(minWpm));
 	currentStandardDeviationLabel->set_text(std::to_string(standardDeviation));
 
-	historyStore.clear();
+	historyStore->clear();
 	for (const auto &info : historyInfo) {
-		Gtk::TreeIter iter = historyStore->append();
-		Gtk::TreeRow row = *iter;
+		std::cout << "Appending thing" << std::endl;
+		Gtk::TreeIter iter{historyStore->append()};
+		Gtk::TreeRow row{*iter};
 		row[wpmColumn] = info.getWpm();
 		row[lengthColumn] = std::to_string(info.getLength().count());
 		row[typeColumn] = toString(info.getType());
@@ -727,7 +736,7 @@ bool TypingTestWindow::compareWpm(const TestInfo &t1, const TestInfo &t2)
 
 std::string TypingTestWindow::getHistoryPath() const
 {
-	return config.dataDir + "history";
+	return config.dataDir + "history.txt";
 }
 
 std::vector<TestInfo> TypingTestWindow::readHistory(const std::string &path,
@@ -746,5 +755,14 @@ std::vector<TestInfo> TypingTestWindow::readHistory(const std::string &path,
 	}
 	reader.close();
 	return history;
+}
+
+void TypingTestWindow::onEraseHistoryButtonClicked()
+{
+	Gtk::MessageDialog dialog{*historyDialog, "Delete history?", false,
+		Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true};
+	int response = dialog.run();
+	if (response == Gtk::RESPONSE_YES)
+		std::remove(getHistoryPath().c_str());
 }
 } // namespace typingtest

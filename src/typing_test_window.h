@@ -31,6 +31,8 @@
 
 namespace typingtest {
 
+const int HISTORY_SIZE = 100;
+
 // A window that is the main driver for the TypingTest program. An application
 // window that the user interacts with to take typing tests.
 class TypingTestWindow : public Gtk::ApplicationWindow {
@@ -218,6 +220,7 @@ private:
 
 	// For the history dialog close button to give the dialog response signal.
 	void onHistoryCloseButtonClicked();
+	void onEraseHistoryButtonClicked();
 	// Opens the history dialog.
 	void onActionShowHistory();
 

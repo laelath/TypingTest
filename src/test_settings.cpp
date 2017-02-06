@@ -58,12 +58,16 @@ std::ostream& operator<<(std::ostream& os, TestSettings::TestType type)
 	switch (type) {
 	case TestSettings::BASIC:
 		os << BASIC_TEST_STRING;
+		break;
 	case TestSettings::ADVANCED:
 		os << ADVANCED_TEST_STRING;
+		break;
 	case TestSettings::ENDURANCE:
 		os << ENDURANCE_TEST_STRING;
+		break;
 	case TestSettings::CUSTOM:
 		os << CUSTOM_TEST_STRING;
+		break;
 	}
 	return os;
 }
