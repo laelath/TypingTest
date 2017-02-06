@@ -133,7 +133,7 @@ void TypingTestWindow::initWidgets()
 	builder->get_widget("current_fastest_time_label", currentFastestTimeLabel);
 	builder->get_widget("current_slowest_time_label", currentSlowestTimeLabel);
 	builder->get_widget("test_history_view", testHistoryView);
-	
+
 	historyColumnRecord.add(wpmColumn);
 	historyColumnRecord.add(lengthColumn);
 	historyColumnRecord.add(typeColumn);
