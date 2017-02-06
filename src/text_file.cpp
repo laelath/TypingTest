@@ -17,6 +17,8 @@
 
 #include "text_file.h"
 
+#include <sys/stat.h>
+
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
@@ -65,6 +67,20 @@ TextFile::~TextFile()
 	removeSwapFile();
 }
 
+std::string TextFile::getSwapFileName(const std::string &path)
+{
+	std::string swapPathTest = path + ".swp";
+	struct stat pathInfo;
+	if (stat(swapPathTest.c_str(), &pathInfo) != 0 && errno == ENOENT)
+		return swapPathTest;
+	for (int i = 0; i < 20; ++i) {
+		swapPathTest = path + ".swp" + std::to_string(i);
+		if (stat(swapPathTest.c_str(), &pathInfo) != 0 && errno == ENOENT)
+			return swapPathTest;
+	}
+	throw std::runtime_error("Failed to find suitable swap file");
+}
+
 void TextFile::save()
 {
 	close();
@@ -93,19 +109,19 @@ const std::string &TextFile::getSwapPath() const
 }
 
 template <typename T>
-TextFile &operator<<(TextFile &file, const T &object)
+std::ostream &operator<<(TextFile &file, const T &object)
 {
 	if (file.writer.is_open())
 		file.writer << object;
-	return file;
+	return file.writer;
 }
 
 template <typename T>
-TextFile &operator>>(TextFile &file, const T &object)
+std::istream &operator>>(TextFile &file, const T &object)
 {
 	if (file.reader.is_open())
 		file.reader >> object;
-	return file;
+	return file.reader;
 }
 
 void TextFile::close()
@@ -114,5 +130,10 @@ void TextFile::close()
 		reader.close();
 	if (writer.is_open())
 		writer.close();
+}
+
+TextFile::operator bool() const
+{
+	return reader.is_open() && writer.is_open();
 }
 } // namespace typingtest

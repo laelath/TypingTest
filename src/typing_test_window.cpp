@@ -20,8 +20,14 @@
 #include <err.h>
 #include <stdlib.h>
 
+#include <algorithm>
+#include <cmath>
 #include <fstream>
+#include <numeric>
 #include <set>
+
+#include "text_file.h"
+#include "test_info.h"
 
 namespace typingtest {
 
@@ -624,5 +630,55 @@ void TypingTestWindow::onHistoryCloseButtonClicked()
 
 void TypingTestWindow::onActionShowHistory()
 {
+	std::string outputPath{config.dataDir + "history"};
+	TextFile outputFile{outputPath};
+	std::vector<TestInfo> historyInfo;
+
+	int recordWpm{0};
+
+	// The data file stats with one line that is the record wpm, then a list of
+	// TestInfo objects.
+	if (outputFile.hasOpenReader() && outputFile >> recordWpm) {
+		TestInfo testInfo;
+		while (outputFile >> testInfo)
+			historyInfo.push_back(testInfo);
+	}
+
+	int averageWpm{0};
+	double standardDeviation{0};
+	int maxWpm{0};
+	int minWpm{0};
+	if (historyInfo.size() > 0) {
+		int totalWpm{0};
+		std::accumulate(historyInfo.begin(), historyInfo.end(), totalWpm,
+			[](int init, const TestInfo &info) {
+				return init + info.getWpm();
+			});
+		averageWpm = totalWpm / historyInfo.size();
+
+		double variance = std::accumulate(historyInfo.begin(),
+			historyInfo.end(), 0.0,
+			[&averageWpm](double init, const TestInfo &info) {
+				return init + std::pow(averageWpm - info.getWpm(), 2);
+			});
+		variance /= historyInfo.size();
+		standardDeviation = std::sqrt(variance);
+
+		auto testInfoCmp = [](const TestInfo &t1, const TestInfo &t2) {
+			return t1.getWpm() < t2.getWpm();
+		};
+		auto maxIt = std::max_element(historyInfo.begin(), historyInfo.end(),
+			testInfoCmp);
+		if (maxIt != historyInfo.end())
+			maxWpm = maxIt->getWpm();
+		auto minIt = std::min_element(historyInfo.begin(), historyInfo.end(),
+			testInfoCmp);
+		if (minIt != historyInfo.end())
+			minWpm = minIt->getWpm();
+	}
+
+	fastestTimeLabel->set_text(std::to_string(recordWpm));
+	currentFastestTimeLabel->set_text(std::to_string(maxWpm));
+	currentSlowestTimeLabel->set_text(std::to_string(minWpm));
 }
 } // namespace typingtest

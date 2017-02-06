@@ -56,18 +56,24 @@ public:
 	// after this unless openFile is called.
 	void close();
 
+	// Implicit conversion to boolean that returns true if both the reader and
+	// writer are open.
+	operator bool() const;
+
 	// For easy writing.
 	template <typename T>
-	friend TextFile& operator<<(TextFile &file, const T &object);
+	friend std::ostream& operator<<(TextFile &file, const T &object);
 	// For easy reading.
 	template <typename T>
-	friend TextFile& operator>>(TextFile &file, const T &object);
+	friend std::istream& operator>>(TextFile &file, const T &object);
 
 private:
 	std::string path;
 	std::string swapPath;
-	
+
+	// Reads the file given by path.
 	std::ifstream reader;
+	// Writes to the file given by swapPath.
 	std::ofstream writer;
 
 	// Remove the swap file. Throws a runtime_error if it fails with the given
@@ -77,16 +83,19 @@ private:
 	// Checks for a file with the given path with ".swp" appended. If such a
 	// file already exists then it tries appending the number 1 to the end.
 	// Continues to do this until a file that doesn't already exists is found.
-	std::string getSwapFileName(const std::string path);
+	//
+	// Tries opening 20 files. If a suitable file could not be found then it
+	// throws a runtime_exception.
+	std::string getSwapFileName(const std::string &path);
 };
 
 // For easy writing.
 template <typename T>
-TextFile& operator<<(TextFile &file, const T &object);
+std::ostream &operator<<(TextFile &file, const T &object);
 
 // For easy reading.
 template <typename T>
-TextFile& operator>>(TextFile &file, const T &object);
+std::istream &operator>>(TextFile &file, const T &object);
 } // namespace typingtest
 
 #endif // TEXT_FILE_H
