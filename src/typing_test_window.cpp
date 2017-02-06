@@ -619,8 +619,22 @@ void TypingTestWindow::calculateScore()
 
 	std::unique_lock<std::mutex> lock{historyFileLock};
 	int recordWpm{0};
-	std::vector<TestInfo> history = readHistory(getHistoryPath(), recordWpm);
+	std::string historyPath{getHistoryPath()};
+	std::string historySwapPath{getSwapPath(historyPath)};
+	std::vector<TestInfo> history = readHistory(historyPath, recordWpm);
 	history.push_back(TestInfo{wpm, settings});
+	if (history.size() > 100) {
+		std::vector<TestInfo>newHistory{history.end() - 100, history.end()};
+		history = newHistory;
+	}
+	std::ofstream writer{historySwapPath};
+	if (writer.is_open()) {
+		writer << recordWpm << std::endl;
+		for (const auto &info : history)
+			writer << info << std::endl;
+		writer.close();
+		save(historyPath, historySwapPath);
+	}
 }
 
 void TypingTestWindow::initActions()
