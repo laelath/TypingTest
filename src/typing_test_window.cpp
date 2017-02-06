@@ -26,7 +26,7 @@
 #include <numeric>
 #include <set>
 
-#include "text_file.h"
+#include "files.h"
 #include "test_info.h"
 
 namespace typingtest {
@@ -631,16 +631,19 @@ void TypingTestWindow::onHistoryCloseButtonClicked()
 void TypingTestWindow::onActionShowHistory()
 {
 	std::string outputPath{config.dataDir + "history"};
-	TextFile outputFile{outputPath};
+	std::string outputSwapPath{getSwapPath(outputPath)};
 	std::vector<TestInfo> historyInfo;
+
+	std::ifstream reader{outputPath};
+	std::ofstream writer{outputSwapPath};
 
 	int recordWpm{0};
 
 	// The data file stats with one line that is the record wpm, then a list of
 	// TestInfo objects.
-	if (outputFile.hasOpenReader() && outputFile >> recordWpm) {
+	if (reader.is_open() && reader >> recordWpm) {
 		TestInfo testInfo;
-		while (outputFile >> testInfo)
+		while (reader >> testInfo)
 			historyInfo.push_back(testInfo);
 	}
 

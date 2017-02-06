@@ -26,7 +26,7 @@ set (
 	src/word.cpp
 	src/config.cpp
 	src/test_info.cpp
-	src/text_file.cpp
+	src/files.cpp
 	${CMAKE_CURRENT_BINARY_DIR}/resources.c)
 
 add_executable (typingtest ${SOURCES})
