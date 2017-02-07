@@ -13,33 +13,28 @@
 // more details.
 //
 // You should have received a copy of the GNU General Public License along with
-// TypingTest.  If not, see <http://www.gnu.org/licenses/>.
+// TypingTest.  If not, see <http:// www.gnu.org/licenses/>.
 
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef FILES_H
+#define FILES_H
 
+#include <iostream>
+#include <fstream>
 #include <string>
 
 namespace typingtest {
 
-class Config {
-public:
-	Config();
+// Checks for a file with the given path with ".swp" appended. If such a file
+// already exists then it tries appending the number 1 to the end.  Continues
+// to do this until a file that doesn't already exists is found.
+//
+// Tries opening 20 files. If a suitable file could not be found then it throws
+// a runtime_exception.
+std::string getSwapPath(const std::string &path);
 
-	int startWords = 500;
-	double wordWrongWeight = 0.50;
-	double minZScore = -2.2;
-	double maxZScore = 0.0;
-	int startTroubleScore = 3;
-	int troubleDec = 1;
-	int troubleInc = 1;
-	std::string configDir;
-	std::string dataDir;
-
-	void setPaths();
-	void loadConfig();
-	void saveConfig();
-};
+// Renames the file at swapPath to the file at path. Throws a runtime_error on
+// failure.
+void save(const std::string &path, const std::string &swapPath);
 } // namespace typingtest
 
-#endif // CONFIG_H
+#endif // FILES_H

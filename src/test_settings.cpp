@@ -18,6 +18,8 @@
 
 #include "test_settings.h"
 
+#include <string>
+
 namespace typingtest {
 
 TestSettings::TestSettings()
@@ -50,4 +52,59 @@ TestSettings::TestSettings(TestType t, size_t tw, size_t minl, size_t maxl,
       personalFrequency(pf)
 {
 }
-} /* namespace typingtest */
+
+std::ostream& operator<<(std::ostream& os, TestSettings::TestType type)
+{
+	switch (type) {
+	case TestSettings::BASIC:
+		os << BASIC_TEST_STRING;
+		break;
+	case TestSettings::ADVANCED:
+		os << ADVANCED_TEST_STRING;
+		break;
+	case TestSettings::ENDURANCE:
+		os << ENDURANCE_TEST_STRING;
+		break;
+	case TestSettings::CUSTOM:
+		os << CUSTOM_TEST_STRING;
+		break;
+	}
+	return os;
+}
+
+std::istream& operator>>(std::istream& is, TestSettings::TestType& type)
+{
+	std::string typeString;
+	if (!(is >> typeString)) {
+		is.setstate(std::ios_base::failbit);
+		return is;
+	}
+
+	if (typeString == BASIC_TEST_STRING)
+		type = TestSettings::BASIC;
+	else if (typeString == ADVANCED_TEST_STRING)
+		type = TestSettings::ADVANCED;
+	else if (typeString == ENDURANCE_TEST_STRING)
+		type = TestSettings::ENDURANCE;
+	else if (typeString == CUSTOM_TEST_STRING)
+		type = TestSettings::CUSTOM;
+	else {
+		is.setstate(std::ios_base::failbit);
+	}
+	return is;
+}
+
+std::string toString(TestSettings::TestType type) 
+{
+	switch (type) {
+	case TestSettings::BASIC:
+		return BASIC_TEST_STRING;
+	case TestSettings::ADVANCED:
+		return ADVANCED_TEST_STRING;
+	case TestSettings::ENDURANCE:
+		return ENDURANCE_TEST_STRING;
+	case TestSettings::CUSTOM:
+		return CUSTOM_TEST_STRING;
+	}
+}
+} // namespace typingtest

@@ -21,9 +21,10 @@
 
 #include <err.h>
 
-#include <cstdlib>
-#include <fstream>
 #include <iostream>
+#include <cstdlib>
+#include <glibmm.h>
+#include <glibmm/keyfile.h>
 
 namespace typingtest {
 
@@ -34,86 +35,49 @@ Config::Config()
 
 void Config::loadConfig()
 {
-	std::ifstream reader(configDir + "config.cfg");
-	if (!reader.is_open()) {
-		saveConfig();
-		return;
-	}
-
-	std::string line;
-	while(std::getline(reader, line))
-		processLine(line);
-	reader.close();
-}
-
-void Config::processLine(const std::string& line)
-{
-	std::string::size_type splitPosition = line.find("=");
-	if (splitPosition == std::string::npos)
-		return;
-	std::string var = line.substr(0, line.find("="));
-	std::string param = line.substr(line.find("=") + 1);
+	Glib::KeyFile settingsFile;
 	try {
-		if (var == "start_words")
-			startWords = std::stoi(param);
-		else if (var == "min_zscore")
-			minZScore = std::stod(param);
-		else if (var == "max_zscore")
-			maxZScore = std::stod(param);
-		else if (var == "start_trouble_words")
-			startTroubleScore = std::stoi(param);
-		else if (var == "trouble_dec")
-			troubleDec = std::stoi(param);
-		else if (var == "trouble_inc")
-			troubleInc = std::stoi(param);
-		else if (var == "word_wrong_mult")
-			wordWrongWeight = std::stod(param);
-	} catch (const std::invalid_argument& e) {
+		if (settingsFile.load_from_file(configDir + "typingtest.conf")) {
+			startWords = settingsFile.get_integer("Test Setup", "start_words");
+			wordWrongWeight = settingsFile.get_double("Trouble Words",
+					"word_wrong_weight");
+			minZScore = settingsFile.get_double("Trouble Words", "min_zscore");
+			maxZScore = settingsFile.get_double("Trouble Words", "max_zscore");
+			startTroubleScore = settingsFile.get_integer("Trouble Words",
+					"start_trouble_score");
+			troubleDec = settingsFile.get_integer("Trouble Words", "trouble_dec");
+			troubleInc = settingsFile.get_integer("Trouble Words", "trouble_inc");
+		} else {
+			saveConfig();
+		}
+	} catch (Glib::FileError) {
+		saveConfig();
+	} catch (Glib::KeyFileError) {
+		saveConfig();
 	}
 }
 
 void Config::saveConfig()
 {
-	std::ofstream writer(configDir + ".config.cfg.swp", std::ios::trunc);
-	if (!writer.is_open())
-		errx(EXIT_FAILURE, NULL);
-
-	writer << "start_words=" << startWords << "\n";
-	writer << "min_zscore=" << minZScore << "\n";
-	writer << "max_zscore=" << maxZScore << "\n";
-	writer << "start_trouble_words=" << startTroubleScore << "\n";
-	writer << "trouble_dec=" << troubleDec << "\n";
-	writer << "trouble_inc=" << troubleInc << "\n";
-	writer << "word_wrong_mult=" << wordWrongWeight << "\n";
-
-	std::remove((configDir + "config.cfg").c_str());
-	std::rename((configDir + ".config.cfg.swp").c_str(),
-		(configDir + "config.cfg").c_str());
-	writer.close();
+	Glib::KeyFile settingsFile;
+	settingsFile.set_integer("Test Setup", "start_words", startWords);
+	settingsFile.set_double("Trouble Words", "word_wrong_weight",
+			wordWrongWeight);
+	settingsFile.set_double("Trouble Words", "min_zscore", minZScore);
+	settingsFile.set_double("Trouble Words", "max_zscore", maxZScore);
+	settingsFile.set_integer("Trouble Words", "start_trouble_score",
+			startTroubleScore);
+	settingsFile.set_integer("Trouble Words", "trouble_dec", troubleDec);
+	settingsFile.set_integer("Trouble Words", "trouble_inc", troubleInc);
+	settingsFile.save_to_file(configDir + "typingtest.conf");
 }
 
 void Config::setPaths()
 {
-	std::string home;
-	char *homeString = std::getenv("HOME");
-	if (homeString != nullptr)
-		home = homeString;
-	else
-		errx(EXIT_FAILURE, "HOME variable not found.");
-
-	char *configString = std::getenv("XDG_CONFIG_HOME");
-	if (configString != nullptr)
-		configDir = configString;
-	 else
-		configDir = home + "/.config/typingtest/";
+	configDir = Glib::get_user_config_dir() + "/typingtest/";
 	mkdir(configDir.c_str(), 0755);
 
-	char* dataString = std::getenv("XDG_DATA_HOME");
-	if (dataString != nullptr)
-		dataDir = dataString;
-	else
-		dataDir = home + "/.local/share/typingtest/";
-
+	dataDir = Glib::get_user_data_dir() + "/typingtest/";
 	mkdir(dataDir.c_str(), 0755);
 }
 } // namespace typingtest

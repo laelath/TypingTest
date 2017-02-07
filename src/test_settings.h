@@ -20,8 +20,14 @@
 
 #include <chrono>
 #include <cstdlib>
+#include <iostream>
 
 namespace typingtest {
+
+const char BASIC_TEST_STRING[] = "basic";
+const char ADVANCED_TEST_STRING[] = "advanced";
+const char ENDURANCE_TEST_STRING[] = "endurance";
+const char CUSTOM_TEST_STRING[] = "custom";
 
 class TestSettings {
 public:
@@ -44,8 +50,11 @@ public:
 	std::chrono::seconds seconds;
 	uint32_t seed;
 	double personalFrequency;
-
 };
+
+std::string toString(TestSettings::TestType type);
+std::ostream& operator<<(std::ostream& os, TestSettings::TestType type);
+std::istream& operator>>(std::istream& is, TestSettings::TestType& type);
 
 const TestSettings BASIC_TEST = { TestSettings::BASIC, 200, 2, 100,
 	std::chrono::seconds(60), 0, 0 };
@@ -53,6 +62,6 @@ const TestSettings ADVANCED_TEST = { TestSettings::ADVANCED, 10000, 3, 100,
 	std::chrono::seconds(60), 0, 0 };
 const TestSettings ENDURANCE_TEST = { TestSettings::ENDURANCE, 500, 2, 100,
 	std::chrono::seconds(300), 0, 0 };
-} /* namespace typingtest */
+} // namespace typingtest
 
-#endif /* TEST_SETTINGS_H */
+#endif // TEST_SETTINGS_H

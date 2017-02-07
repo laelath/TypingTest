@@ -13,14 +13,19 @@
 // more details.
 //
 // You should have received a copy of the GNU General Public License along with
-// TypingTest.  If not, see <http://www.gnu.org/licenses/>.
+// TypingTest.  If not, see <http:// www.gnu.org/licenses/>.
 
 #include "typing_test_window.h"
 
 #include <err.h>
 #include <stdlib.h>
 
+#include <algorithm>
+#include <cmath>
 #include <fstream>
+#include <numeric>
+
+#include "files.h"
 
 namespace typingtest {
 
@@ -30,6 +35,7 @@ TypingTestWindow::TypingTestWindow(BaseObjectType *cobject,
 {
 	initWidgets();
 	connectSignals();
+	initActions();
 
 	config.loadConfig();
 	genNewTest();
@@ -114,6 +120,27 @@ void TypingTestWindow::initWidgets()
 	builder->get_widget("canceladv", cancelAdv);
 	builder->get_widget("applyadv", applyAdv);
 
+	builder->get_widget("history_dialog", historyDialog);
+	builder->get_widget("history_close_button", historyCloseButton);
+	builder->get_widget("erase_history_button", eraseHistoryButton);
+	builder->get_widget("average_speed_label", averageSpeedLabel);
+	builder->get_widget("fastest_time_label", fastestTimeLabel);
+	builder->get_widget("current_fastest_time_label", currentFastestTimeLabel);
+	builder->get_widget("current_slowest_time_label", currentSlowestTimeLabel);
+	builder->get_widget("test_history_view", testHistoryView);
+	builder->get_widget("current_standard_deviation_label",
+		currentStandardDeviationLabel);
+
+	historyColumnRecord.add(wpmColumn);
+	historyColumnRecord.add(lengthColumn);
+	historyColumnRecord.add(typeColumn);
+	historyStore = Gtk::ListStore::create(historyColumnRecord);
+	testHistoryView->set_model(historyStore);
+	testHistoryView->append_column("WPM", wpmColumn);
+	testHistoryView->append_column("Length", lengthColumn);
+	testHistoryView->append_column("Type", typeColumn);
+
+
 	// Trouble words viewer
 	builder->get_widget("troubledialog", troubleDialog);
 	builder->get_widget("troublelist", troubleList);
@@ -175,6 +202,11 @@ void TypingTestWindow::connectSignals()
 
 	troubleClose->signal_clicked().connect(sigc::bind<int>(sigc::mem_fun(
 				troubleDialog, &Gtk::Dialog::response), Gtk::RESPONSE_CLOSE));
+
+	historyCloseButton->signal_clicked().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onHistoryCloseButtonClicked));
+	eraseHistoryButton->signal_clicked().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onEraseHistoryButtonClicked));
 }
 
 void TypingTestWindow::genNewTest()
@@ -314,7 +346,8 @@ void TypingTestWindow::openAdvSettings()
 
 void TypingTestWindow::openTroubleWords()
 {
-	std::ifstream trWords(config.dataDir + "troublewords.txt");
+	std::unique_lock<std::mutex>{troubleWordsFileLock};
+	std::ifstream trWords(getTroubleWordsPath());
 
 	troubleListStore->clear();
 
@@ -477,7 +510,7 @@ bool TypingTestWindow::updateTimer()
 
 void TypingTestWindow::calculateScore()
 {
-	//Test information
+	// Test information
 	int wordNum = 0;
 	int wordsCorrect = 0;
 	int charNum = 0;
@@ -492,72 +525,159 @@ void TypingTestWindow::calculateScore()
 		}
 	}
 
-	//Trouble words
-	std::vector<std::tuple<std::string, double>> wordScores;
-	for (int i = 0; i < wordIndex; ++i) {
-		bool found = false;
-		for (std::tuple<std::string, double> wordScore : wordScores) {
-			if (words[i]->getWord() == std::get<0>(wordScore)) {
-				std::get<1>(wordScore) = std::min(std::get<1>(wordScore),
-					words[i]->getScore());
-				found = true;
-				break;
-			}
-		}
-		if (!found)
-			wordScores.push_back(std::make_tuple(words[i]->getWord(),
-					words[i]->getScore()));
-	}
+	// Trouble words
+	std::vector<std::shared_ptr<Word>> enteredWords(words.begin(),
+			words.begin() + wordIndex);
 
-	//Calculate averages and total
+	// Calculate averages and total
 	double total = 0;
-	for (std::tuple<std::string, double> wordScore : wordScores)
-		total += std::get<1>(wordScore);
-	double mean = total / wordScores.size();
+	for (std::shared_ptr<Word> word : enteredWords) {
+		if (word->getCorrect())
+			total += word->getScore();
+	}
+	double mean = total / wordsCorrect;
 
-	//Standard deviation
+	// Standard deviation
 	double sum = 0;
-	for (std::tuple<std::string, double> wordScore : wordScores)
-		sum += std::pow(std::get<1>(wordScore) - mean, 2);
+	for (std::shared_ptr<Word> word : enteredWords) {
+		if (word->getCorrect())
+			sum += std::pow(word->getScore() - mean, 2);
+	}
+	double stdDev = std::sqrt(sum / wordsCorrect);
 
-	double stdDev = std::sqrt(sum / wordScores.size());
+	// Sort scores
+	std::sort(enteredWords.begin(), enteredWords.end(),
+		[](std::shared_ptr<Word> i, std::shared_ptr<Word> j) -> bool
+		{
+			return i->getScore() < j->getScore();
+		});
 
-	//Sort scores
-	std::sort(wordScores.begin(), wordScores.end(),
-			[](std::tuple<std::string, double> i, std::tuple<std::string, double> j) -> bool
-			{
-				return std::get<1>(i) < std::get<1>(j);
-			});
+	std::set<std::string> troubleWords;
+	std::set<std::string> goodWords;
 
-	std::vector<std::string> troubleWords;
-	std::vector<std::string> goodWords;
-
-	std::string troubleWordsStr;
-
-	//Print out scores
-	for (std::tuple<std::string, double> wordScore : wordScores) {
-		if (std::get<1>(wordScore) - mean <= config.minZScore * stdDev) {
-			troubleWords.push_back(std::get<0>(wordScore));
-			troubleWordsStr += std::get<0>(wordScore) + "\n";
-		} else if (std::get<1>(wordScore) - mean > config.maxZScore * stdDev)
-			goodWords.push_back(std::get<0>(wordScore));
+	// Find trouble and good words
+	for (std::shared_ptr<Word> word : enteredWords) {
+		if (word->getScore() - mean <= config.minZScore * stdDev)
+			troubleWords.insert(word->getWord());
+		else if (word->getScore() - mean > config.maxZScore * stdDev)
+			goodWords.insert(word->getWord());
 	}
 
-	std::ifstream file(config.dataDir + "troublewords.txt");
-	std::ofstream temp(config.dataDir + ".troublewords.txt.swp",
-		std::ios::trunc);
+	// Create label text
+	std::string troubleWordsStr;
+	for (std::string word : troubleWords)
+		troubleWordsStr += word + "\n";
 
+	updateTroubleWordsFile(troubleWords, goodWords);
+
+
+	int wpm = static_cast<int>((charsCorrect / 5.0) / (start.count() / 60.0));
+
+	wpmLabel->set_text("WPM: " + std::to_string(wpm));
+	wordNumLabel->set_text("Words: " + std::to_string(wordNum));
+	wordsCorrectLabel->set_text("Correct: " + std::to_string(wordsCorrect));
+	wordsWrongLabel->set_text("Wrong: " + std::to_string(wordNum
+			- wordsCorrect));
+	charNumLabel->set_text("Characters: " + std::to_string(charNum));
+	charsCorrectLabel->set_text("Correct: " + std::to_string(charsCorrect));
+	charsWrongLabel->set_text("Wrong: " + std::to_string(charNum
+			- charsCorrect));
+	troubleWordsLabel->set_text(troubleWordsStr);
+
+	updateHistoryFile(wpm);
+}
+
+void TypingTestWindow::initActions()
+{
+	this->add_action("show-history", sigc::mem_fun(*this,
+			&TypingTestWindow::onActionShowHistory));
+}
+
+void TypingTestWindow::onHistoryCloseButtonClicked()
+{
+	historyDialog->response(Gtk::RESPONSE_CLOSE);
+}
+
+void TypingTestWindow::onActionShowHistory()
+{
+	std::unique_lock<std::mutex> lock{historyFileLock};
+
+	std::string outputPath{getHistoryPath()};
+
+	int recordWpm{0};
+	std::vector<TestInfo> historyInfo{readHistory(outputPath, recordWpm)};
+
+	int averageWpm{static_cast<int>(getAverageWpm(historyInfo))};
+	double standardDeviation{getStandardDeviation(historyInfo)};
+	int maxWpm{getMaxWpm(historyInfo)};
+	int minWpm{getMinWpm(historyInfo)};
+
+	fastestTimeLabel->set_text(std::to_string(recordWpm));
+	averageSpeedLabel->set_text(std::to_string(averageWpm));
+	currentFastestTimeLabel->set_text(std::to_string(maxWpm));
+	currentSlowestTimeLabel->set_text(std::to_string(minWpm));
+	currentStandardDeviationLabel->set_text(std::to_string(standardDeviation));
+
+	historyStore->clear();
+	for (const auto &info : historyInfo) {
+		Gtk::TreeIter iter{historyStore->append()};
+		Gtk::TreeRow row{*iter};
+		row[wpmColumn] = info.getWpm();
+		row[lengthColumn] = std::to_string(info.getLength().count());
+		row[typeColumn] = toString(info.getType());
+	}
+
+	historyDialog->run();
+	historyDialog->close();
+}
+
+void TypingTestWindow::updateHistoryFile(int wpm)
+{
+	std::unique_lock<std::mutex> lock{historyFileLock};
+	int recordWpm{0};
+	std::string historyPath{getHistoryPath()};
+	std::string historySwapPath{getSwapPath(historyPath)};
+	std::vector<TestInfo> history = readHistory(historyPath, recordWpm);
+	history.push_back(TestInfo{wpm, settings});
+	if (history.size() > HISTORY_SIZE) {
+		std::vector<TestInfo>newHistory{history.end() - HISTORY_SIZE,
+			history.end()};
+		history = newHistory;
+	}
+
+	recordWpm = (wpm > recordWpm) ? wpm : recordWpm;
+	std::ofstream writer{historySwapPath};
+	if (writer.is_open()) {
+		writer << recordWpm << std::endl;
+		for (const auto &info : history)
+			writer << info << std::endl;
+		writer.close();
+		save(historyPath, historySwapPath);
+	}
+}
+
+void TypingTestWindow::updateTroubleWordsFile(
+	std::set<std::string> troubleWords,
+	std::set<std::string> goodWords)
+{
+	std::unique_lock<std::mutex>{troubleWordsFileLock};
+
+	std::string troubleWordsPath{getTroubleWordsPath()};
+	std::string troubleWordsSwapPath{getSwapPath(troubleWordsPath)};
+
+	std::ofstream temp{troubleWordsSwapPath};
 	if (!temp.is_open())
-		errx(EXIT_FAILURE, nullptr);
+		return;
 
+	std::ifstream file{troubleWordsPath};
 	if (file.is_open()) {
 		std::string line;
 		while (std::getline(file, line)) {
 			std::string word = line.substr(0, line.find(","));
 			int num = std::stoi(line.substr(line.find(",") + 1));
 
-			std::vector<std::string>::iterator it
-				= std::find(troubleWords.begin(), troubleWords.end(), word);
+			auto it = std::find(troubleWords.begin(), troubleWords.end(),
+				word);
 			if (it != troubleWords.end()) {
 				temp << word << "," << num + config.troubleInc << "\n";
 				troubleWords.erase(it);
@@ -579,20 +699,87 @@ void TypingTestWindow::calculateScore()
 	file.close();
 	temp.close();
 
-	std::remove((config.dataDir + "troublewords.txt").c_str());
-	std::rename((config.dataDir + ".troublewords.txt.swp").c_str(),
-		(config.dataDir + "troublewords.txt").c_str());
-
-	wpmLabel->set_text("WPM: " + std::to_string((int) ((charsCorrect / 5.0)
-				/ (start.count() / 60.0))));
-	wordNumLabel->set_text("Words: " + std::to_string(wordNum));
-	wordsCorrectLabel->set_text("Correct: " + std::to_string(wordsCorrect));
-	wordsWrongLabel->set_text("Wrong: " + std::to_string(wordNum
-			- wordsCorrect));
-	charNumLabel->set_text("Characters: " + std::to_string(charNum));
-	charsCorrectLabel->set_text("Correct: " + std::to_string(charsCorrect));
-	charsWrongLabel->set_text("Wrong: " + std::to_string(charNum
-			- charsCorrect));
-	troubleWordsLabel->set_text(troubleWordsStr);
+	save(troubleWordsPath, troubleWordsSwapPath);
 }
-} /* namespace typingtest */
+
+double TypingTestWindow::getAverageWpm(const std::vector<TestInfo> &history)
+{
+	if (history.size() == 0)
+		return 0;
+	int averageWpm{0};
+	for (const auto &info : history)
+		averageWpm += info.getWpm();
+	averageWpm /= history.size();
+	return averageWpm;
+}
+
+double TypingTestWindow::getStandardDeviation(
+	const std::vector<TestInfo> &history)
+{
+	if (history.size() == 0)
+		return 0;
+	double average{getAverageWpm(history)};
+	auto diff = [&average](double total, const TestInfo &info) {
+		return total + std::pow(info.getWpm() - average, 2);
+	};
+	double variance{std::accumulate(history.begin(), history.end(), 0.0,
+		diff) / history.size()};
+	return std::sqrt(variance);
+}
+
+int TypingTestWindow::getMaxWpm(const std::vector<TestInfo> &history)
+{
+	auto maxIt = std::max_element(history.begin(), history.end(),
+		&TypingTestWindow::compareWpm);
+	return (maxIt != history.end()) ? maxIt->getWpm() : 0;
+}
+
+int TypingTestWindow::getMinWpm(const std::vector<TestInfo> &history)
+{
+	auto maxIt = std::min_element(history.begin(), history.end(),
+		&TypingTestWindow::compareWpm);
+	return (maxIt != history.end()) ? maxIt->getWpm() : 0;
+}
+
+bool TypingTestWindow::compareWpm(const TestInfo &t1, const TestInfo &t2)
+{
+	return t1.getWpm() < t2.getWpm();
+}
+
+std::string TypingTestWindow::getHistoryPath() const
+{
+	return config.dataDir + "history.txt";
+}
+
+std::string TypingTestWindow::getTroubleWordsPath() const
+{
+	return config.dataDir + "troublewords.txt";
+}
+
+std::vector<TestInfo> TypingTestWindow::readHistory(const std::string &path,
+	int &recordWpm)
+{
+	std::ifstream reader{path};
+	std::vector<TestInfo> history;
+	recordWpm = 0;
+
+	// The data file stats with one line that is the record wpm, then a list of
+	// TestInfo objects.
+	if (reader.is_open() && reader >> recordWpm) {
+		TestInfo testInfo;
+		while (reader >> testInfo)
+			history.push_back(testInfo);
+	}
+	reader.close();
+	return history;
+}
+
+void TypingTestWindow::onEraseHistoryButtonClicked()
+{
+	Gtk::MessageDialog dialog{*historyDialog, "Delete history?", false,
+		Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true};
+	int response = dialog.run();
+	if (response == Gtk::RESPONSE_YES)
+		std::remove(getHistoryPath().c_str());
+}
+} // namespace typingtest
