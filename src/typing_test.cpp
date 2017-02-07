@@ -36,8 +36,10 @@ TypingTest::TypingTest(Gtk::Window *parent, const TestSettings &settings,
 	personalFrequency = settings.personalFrequency;
 
 	gsize size;
-	std::istringstream dictStream((char *) Gio::Resource::lookup_data_global(
-			"/us/laelath/typingtest/dictionary.txt")->get_data(size));
+	auto data = Gio::Resource::lookup_data_global(
+		"/us/laelath/typingtest/dictionary.txt");
+	std::string resourceString(static_cast<const char *>(data->get_data(size)));
+	std::istringstream dictStream(resourceString);
 
 	try {
 		wordSelection.reserve(settings.topWords);
