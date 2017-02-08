@@ -34,6 +34,7 @@ TypingTest::TypingTest(Gtk::Window *parent, const TestSettings &settings,
 	: settings(settings), config(config), parent(parent)
 {
 	personalFrequency = settings.personalFrequency;
+	capitalFrequency = settings.capitalFrequency;
 
 	gsize size;
 	auto data = Gio::Resource::lookup_data_global(
@@ -51,8 +52,8 @@ TypingTest::TypingTest(Gtk::Window *parent, const TestSettings &settings,
 	for (size_t i = 0; i < settings.topWords; ) {
 		std::string line;
 		if (std::getline(dictStream, line)) {
-			if (line.length() >= settings.minLength && line.length()
-				<= settings.maxLength) {
+			if (line.length() >= settings.minLength
+				&& line.length() <= settings.maxLength) {
 				wordSelection.push_back(line);
 				++i;
 			}
@@ -77,7 +78,8 @@ TypingTest::TypingTest(Gtk::Window *parent, const TestSettings &settings,
 		std::string line;
 		while (std::getline(trWords, line)) {
 			std::string word = line.substr(0, line.find(","));
-			if (word.length() >=  settings.minLength && line.length() <= settings.maxLength) {
+			if (word.length() >=  settings.minLength
+				&& line.length() <= settings.maxLength) {
 				int num = std::stoi(line.substr(line.find(",") + 1));
 				for (int i = 0; i < num; ++i)
 					personalSelection.push_back(word);
@@ -119,10 +121,17 @@ TypingTest::TypingTest() : TypingTest(nullptr, TestSettings(), Config())
 std::string TypingTest::genWord()
 {
 	std::string word;
-	if (rand() / (double) rand.max() < personalFrequency)
-		word = personalSelection[rand() % personalSelection.size()];
-	else if (wordSelection.size() > 0)
-		word = wordSelection[rand() % wordSelection.size()];
+	std::uniform_real_distribution<double> realDistr;
+	if (realDistr(rand) < personalFrequency) {
+		std::uniform_int_distribution<> distr(0, personalSelection.size() - 1);
+		word = personalSelection[distr(rand)];
+	} else if (wordSelection.size() > 0) {
+		std::uniform_int_distribution<> distr(0, wordSelection.size() - 1);
+		word = wordSelection[distr(rand)];
+	}
+
+	if (realDistr(rand) < capitalFrequency)
+		word[0] = std::toupper(word[0]);
 	return word;
 }
 

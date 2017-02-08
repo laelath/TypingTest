@@ -84,7 +84,7 @@ std::istream& operator>>(std::istream& is, TestSettings::TestType& type)
 	return is;
 }
 
-std::string toString(TestSettings::TestType type) 
+std::string toString(TestSettings::TestType type)
 {
 	switch (type) {
 	case TestSettings::BASIC:
@@ -107,18 +107,21 @@ void TestSettings::setType(TestType type)
 		minLength = 2;
 		maxLength = 100;
 		seconds = std::chrono::seconds(60);
+		capitalFrequency = 0;
 		break;
 	case ADVANCED:
 		topWords = 10000;
 		minLength = 3;
 		maxLength = 100;
 		seconds = std::chrono::seconds(60);
+		capitalFrequency = 0.1;
 		break;
 	case ENDURANCE:
 		topWords = 500;
 		minLength = 2;
 		maxLength = 100;
 		seconds = std::chrono::seconds(300);
+		capitalFrequency = 0.05;
 		break;
 	default:
 		break;

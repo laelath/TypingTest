@@ -107,6 +107,7 @@ void TypingTestWindow::initWidgets()
 	builder->get_widget("seedentry", seedEntry);
 	builder->get_widget("randomizeseed", randomizeSeed);
 	builder->get_widget("personalratioentry", personalFrequencyButton);
+	builder->get_widget("capital_frequency_entry", capitalFrequencyButton);
 
 	// Advanced settings window
 	builder->get_widget("advancedsettingsdialog", advSettingsDialog);
@@ -249,6 +250,7 @@ void TypingTestWindow::updateSettings()
 		seedEntry->set_sensitive(true);
 		randomizeSeed->set_sensitive(true);
 		personalFrequencyButton->set_sensitive(true);
+		capitalFrequencyButton->set_sensitive(true);
 		settings.type = TestSettings::CUSTOM;
 		break;
 	default :
@@ -259,6 +261,7 @@ void TypingTestWindow::updateSettings()
 		seedEntry->set_sensitive(false);
 		randomizeSeed->set_sensitive(false);
 		personalFrequencyButton->set_sensitive(false);
+		capitalFrequencyButton->set_sensitive(false);
 		settings = type;
 		break;
 	}
@@ -268,6 +271,8 @@ void TypingTestWindow::updateSettings()
 	maxWordLength->set_value(settings.maxLength);
 	testLength->set_value(settings.seconds.count());
 	seedEntry->set_text(std::to_string(settings.seed));
+	personalFrequencyButton->set_value(settings.personalFrequency);
+	capitalFrequencyButton->set_value(settings.capitalFrequency);
 }
 
 void TypingTestWindow::randomSeed()
@@ -289,6 +294,7 @@ void TypingTestWindow::openSettings()
 		settings.seconds = std::chrono::seconds(testLength->get_value_as_int());
 		settings.seed = std::stoul(seedEntry->get_text());
 		settings.personalFrequency = personalFrequencyButton->get_value();
+		settings.capitalFrequency = capitalFrequencyButton->get_value();
 
 		genNewTest();
 	}
@@ -558,10 +564,15 @@ void TypingTestWindow::calculateScore()
 
 	// Find trouble and good words
 	for (std::shared_ptr<Word> word : enteredWords) {
-		if (word->getScore() - mean <= config.minZScore * stdDev)
-			troubleWords.insert(word->getWord());
-		else if (word->getScore() - mean > config.maxZScore * stdDev)
-			goodWords.insert(word->getWord());
+		if (word->getScore() - mean <= config.minZScore * stdDev) {
+			std::string wordStr = word->getWord();
+			wordStr[0] = std::tolower(wordStr[0]);
+			troubleWords.insert(wordStr);
+		} else if (word->getScore() - mean > config.maxZScore * stdDev) {
+			std::string wordStr = word->getWord();
+			wordStr[0] = std::tolower(wordStr[0]);
+			goodWords.insert(wordStr);
+		}
 	}
 
 	// Create label text
@@ -780,7 +791,23 @@ void TypingTestWindow::onEraseHistoryButtonClicked()
 	Gtk::MessageDialog dialog{*historyDialog, "Delete history?", false,
 		Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true};
 	int response = dialog.run();
-	if (response == Gtk::RESPONSE_YES)
+	if (response == Gtk::RESPONSE_YES) {
 		std::remove(getHistoryPath().c_str());
+		resetHistoryDisplay();
+	}
+}
+
+void TypingTestWindow::resetHistoryDisplay()
+{
+	std::string zeroString{std::to_string(0)};
+	std::string zeroDoubleString{std::to_string(0.0)};
+
+	averageSpeedLabel->set_text(zeroString);
+	fastestTimeLabel->set_text(zeroString);
+	currentFastestTimeLabel->set_text(zeroString);
+	currentSlowestTimeLabel->set_text(zeroString);
+	currentStandardDeviationLabel->set_text(zeroDoubleString);
+
+	historyStore->clear();
 }
 } // namespace typingtest
