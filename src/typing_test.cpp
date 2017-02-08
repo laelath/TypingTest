@@ -121,7 +121,7 @@ std::string TypingTest::genWord()
 	std::string word;
 	if (rand() / (double) rand.max() < personalFrequency)
 		word = personalSelection[rand() % personalSelection.size()];
-	else
+	else if (wordSelection.size() > 0)
 		word = wordSelection[rand() % wordSelection.size()];
 	return word;
 }

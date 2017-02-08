@@ -138,7 +138,7 @@ private:
 	Gtk::TreeModelColumn<unsigned int> valCol;
 
 	// Test settings
-	TestSettings settings = BASIC_TEST;
+	TestSettings settings;
 	std::string currFont = "Serif 25";
 
 	// Advanced settings widgets
