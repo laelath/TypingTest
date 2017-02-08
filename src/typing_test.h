@@ -69,7 +69,7 @@ private:
 	Gtk::Window *parent;
 
 	// Random generator.
-	std::minstd_rand rand;
+	std::default_random_engine rand;
 
 	// Selection of words to choose from.
 	std::vector<std::string> wordSelection;

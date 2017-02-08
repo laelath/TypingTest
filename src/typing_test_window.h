@@ -185,7 +185,7 @@ private:
 	sigc::connection timerConnection;
 
 	// Random number generator.
-	std::minstd_rand rand;
+	std::default_random_engine rand;
 
 	// The list of for use with the test. It is a list of smart pointers so
 	// when it is copied from currentTest it copies the same addresses. This is

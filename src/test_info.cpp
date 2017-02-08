@@ -21,7 +21,8 @@
 
 namespace typingtest {
 
-TestInfo::TestInfo(int wpm, std::chrono::seconds length, TestSettings::TestType type)
+TestInfo::TestInfo(int wpm, std::chrono::seconds length,
+	TestSettings::TestType type)
 	: wpm(wpm), length(length), type(type)
 {
 }
