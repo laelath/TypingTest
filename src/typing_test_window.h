@@ -102,6 +102,7 @@ private:
 	Gtk::Entry *seedEntry;
 	Gtk::Button *randomizeSeed;
 	Gtk::SpinButton *personalFrequencyButton;
+	Gtk::SpinButton *capitalFrequencyButton;
 
 	// Font chooser.
 	Gtk::FontChooserDialog *fontChooser;

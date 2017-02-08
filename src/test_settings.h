@@ -52,6 +52,7 @@ public:
 	std::chrono::seconds seconds;
 	uint32_t seed;
 	double personalFrequency;
+	double capitalFrequency;
 };
 
 std::string toString(TestSettings::TestType type);

@@ -7,6 +7,11 @@
     <property name="can_focus">False</property>
     <property name="icon_name">preferences-other</property>
   </object>
+  <object class="GtkAdjustment" id="capital_frequency_adj">
+    <property name="upper">1</property>
+    <property name="step_increment">0.01</property>
+    <property name="page_increment">0.10000000000000001</property>
+  </object>
   <object class="GtkTextTag" id="currenterrortag">
     <property name="name">currenterror</property>
     <property name="background_rgba">rgb(239,41,41)</property>
@@ -211,10 +216,11 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem">
-                        <property name="label">Show history</property>
+                        <property name="label">_Show history</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="action_name">win.show-history</property>
+                        <property name="use_underline">True</property>
                         <property name="image">troublewordsimage1</property>
                         <property name="use_stock">False</property>
                       </object>
@@ -1030,7 +1036,7 @@ Jason Waataja</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Personalized word frequency</property>
-                <property name="label" translatable="yes">PWF:</property>
+                <property name="label" translatable="yes">Personal Frequency:</property>
               </object>
               <packing>
                 <property name="left_attach">0</property>
@@ -1049,6 +1055,30 @@ Jason Waataja</property>
               <packing>
                 <property name="left_attach">1</property>
                 <property name="top_attach">5</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Capital Frequency:</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">6</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSpinButton" id="capital_frequency_entry">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="adjustment">capital_frequency_adj</property>
+                <property name="digits">2</property>
+                <property name="numeric">True</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">6</property>
               </packing>
             </child>
           </object>

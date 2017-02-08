@@ -80,6 +80,7 @@ private:
 
 	// The frequency for the user specifically.
 	double personalFrequency;
+	double capitalFrequency;
 };
 } // namespace typingtest
 

@@ -34,6 +34,7 @@ TypingTest::TypingTest(Gtk::Window *parent, const TestSettings &settings,
 	: settings(settings), config(config), parent(parent)
 {
 	personalFrequency = settings.personalFrequency;
+	capitalFrequency = settings.capitalFrequency;
 
 	gsize size;
 	auto data = Gio::Resource::lookup_data_global(
@@ -123,6 +124,9 @@ std::string TypingTest::genWord()
 		word = personalSelection[rand() % personalSelection.size()];
 	else if (wordSelection.size() > 0)
 		word = wordSelection[rand() % wordSelection.size()];
+
+	if (rand() / (double) rand.max() < capitalFrequency)
+		word[0] = std::toupper(word[0]);
 	return word;
 }
 
