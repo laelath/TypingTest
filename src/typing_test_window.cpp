@@ -780,7 +780,23 @@ void TypingTestWindow::onEraseHistoryButtonClicked()
 	Gtk::MessageDialog dialog{*historyDialog, "Delete history?", false,
 		Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true};
 	int response = dialog.run();
-	if (response == Gtk::RESPONSE_YES)
+	if (response == Gtk::RESPONSE_YES) {
 		std::remove(getHistoryPath().c_str());
+		resetHistoryDisplay();
+	}
+}
+
+void TypingTestWindow::resetHistoryDisplay()
+{
+	std::string zeroString{std::to_string(0)};
+	std::string zeroDoubleString{std::to_string(0.0)};
+
+	averageSpeedLabel->set_text(zeroString);
+	fastestTimeLabel->set_text(zeroString);
+	currentFastestTimeLabel->set_text(zeroString);
+	currentSlowestTimeLabel->set_text(zeroString);
+	currentStandardDeviationLabel->set_text(zeroDoubleString);
+
+	historyStore->clear();
 }
 } // namespace typingtest

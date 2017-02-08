@@ -114,9 +114,7 @@ private:
 	// History info widgets.
 	Gtk::Dialog *historyDialog;
 	Gtk::Button *historyCloseButton;
-	Gtk::CheckButton *trackHistoryButton;
 	Gtk::Button *eraseHistoryButton;
-	Gtk::SpinButton *testCountButton;
 	Gtk::Label *averageSpeedLabel;
 	Gtk::Label *fastestTimeLabel;
 	Gtk::Label *currentFastestTimeLabel;
@@ -250,6 +248,9 @@ private:
 	static int getMaxWpm(const std::vector<TestInfo> &history);
 	// Returns the minimum wpm in history or 0 if there are no elements.
 	static int getMinWpm(const std::vector<TestInfo> &history);
+	// Sets all labels in the history dialog to 0 and removes all items from
+	// the tree view.
+	void resetHistoryDisplay();
 
 	// Implements comparator for the WPM of TestInfo objects.
 	static bool compareWpm(const TestInfo &t1, const TestInfo &t2);
