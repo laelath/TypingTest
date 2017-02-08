@@ -43,6 +43,8 @@ public:
 	TestSettings(TestType t, size_t tw, size_t minl, size_t maxl,
 		std::chrono::seconds sec, uint32_t sd, double pf);
 
+	void setType(TestType type);
+
 	TestType type;
 	size_t topWords;
 	size_t minLength;
@@ -56,12 +58,6 @@ std::string toString(TestSettings::TestType type);
 std::ostream& operator<<(std::ostream& os, TestSettings::TestType type);
 std::istream& operator>>(std::istream& is, TestSettings::TestType& type);
 
-const TestSettings BASIC_TEST = { TestSettings::BASIC, 200, 2, 100,
-	std::chrono::seconds(60), 0, 0 };
-const TestSettings ADVANCED_TEST = { TestSettings::ADVANCED, 10000, 3, 100,
-	std::chrono::seconds(60), 0, 0 };
-const TestSettings ENDURANCE_TEST = { TestSettings::ENDURANCE, 500, 2, 100,
-	std::chrono::seconds(300), 0, 0 };
 } // namespace typingtest
 
 #endif // TEST_SETTINGS_H

@@ -31,7 +31,9 @@ namespace typingtest {
 
 TypingTestWindow::TypingTestWindow(BaseObjectType *cobject,
 	const Glib::RefPtr<Gtk::Builder>& builder)
-	: Gtk::ApplicationWindow(cobject), builder(builder)
+	: Gtk::ApplicationWindow(cobject),
+	  builder(builder),
+	  settings(TestSettings::BASIC)
 {
 	initWidgets();
 	connectSignals();
@@ -44,7 +46,6 @@ TypingTestWindow::TypingTestWindow(BaseObjectType *cobject,
 			this, &TypingTestWindow::textInsert));
 	backspConnection = typingEntry->signal_delete_text().connect(sigc::mem_fun(
 			this, &TypingTestWindow::textDelete));
-
 }
 
 void TypingTestWindow::initWidgets()

@@ -22,23 +22,13 @@
 
 namespace typingtest {
 
-TestSettings::TestSettings()
+TestSettings::TestSettings() : TestSettings(TestSettings::BASIC)
 {
 }
 
 TestSettings::TestSettings(TestType type)
 {
-	switch (type) {
-	case ADVANCED:
-		*this = ADVANCED_TEST;
-		break;
-	case ENDURANCE:
-		*this = ENDURANCE_TEST;
-		break;
-	default:
-		*this = BASIC_TEST;
-		break;
-	}
+	setType(type);
 }
 
 TestSettings::TestSettings(TestType t, size_t tw, size_t minl, size_t maxl,
@@ -106,5 +96,34 @@ std::string toString(TestSettings::TestType type)
 	case TestSettings::CUSTOM:
 		return CUSTOM_TEST_STRING;
 	}
+}
+
+void TestSettings::setType(TestType type)
+{
+	this->type = type;
+	switch (type) {
+	case BASIC:
+		topWords = 200;
+		minLength = 2;
+		maxLength = 100;
+		seconds = std::chrono::seconds(60);
+		break;
+	case ADVANCED:
+		topWords = 10000;
+		minLength = 3;
+		maxLength = 100;
+		seconds = std::chrono::seconds(60);
+		break;
+	case ENDURANCE:
+		topWords = 500;
+		minLength = 2;
+		maxLength = 100;
+		seconds = std::chrono::seconds(300);
+		break;
+	default:
+		break;
+	}
+	seed = 0;
+	personalFrequency = 0;
 }
 } // namespace typingtest
