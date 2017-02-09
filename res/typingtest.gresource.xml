@@ -4,5 +4,6 @@
 		<file preprocess="xml-stripblanks">ui/typingui.glade</file>
 		<file>ui/dice-icon-small.png</file>
 		<file>dictionary.txt</file>
+		<file preprocess="to-pixdata">stickers/stallman1</file>
 	</gresource>
 </gresources>
