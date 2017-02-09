@@ -28,6 +28,20 @@
 
 namespace typingtest {
 
+HighlightMode getHighlight(std::string str)
+{
+	if (str == "Some") return HighlightMode::SOME;
+	else if (str == "None") return HighlightMode::NONE;
+	else return HighlightMode::ALL;
+}
+
+std::string getString(HighlightMode hl)
+{
+	if (hl == HighlightMode::SOME) return "Some";
+	else if (hl == HighlightMode::NONE) return "None";
+	else return "All";
+}
+
 Config::Config()
 {
 	setPaths();
@@ -45,8 +59,12 @@ void Config::loadConfig()
 			maxZScore = settingsFile.get_double("Trouble Words", "max_zscore");
 			startTroubleScore = settingsFile.get_integer("Trouble Words",
 					"start_trouble_score");
-			troubleDec = settingsFile.get_integer("Trouble Words", "trouble_dec");
-			troubleInc = settingsFile.get_integer("Trouble Words", "trouble_inc");
+			troubleDec = settingsFile.get_integer("Trouble Words",
+					"trouble_dec");
+			troubleInc = settingsFile.get_integer("Trouble Words",
+					"trouble_inc");
+			hlMode = getHighlight(settingsFile.get_string("Highlights",
+						"highlight_mode"));
 		} else {
 			saveConfig();
 		}
@@ -69,15 +87,16 @@ void Config::saveConfig()
 			startTroubleScore);
 	settingsFile.set_integer("Trouble Words", "trouble_dec", troubleDec);
 	settingsFile.set_integer("Trouble Words", "trouble_inc", troubleInc);
+	settingsFile.set_string("Highlights", "highlight_mode", getString(hlMode));
 	settingsFile.save_to_file(configDir + "typingtest.conf");
 }
 
 void Config::setPaths()
 {
 	configDir = Glib::get_user_config_dir() + "/typingtest/";
-	mkdir(configDir.c_str(), 0755);
-
 	dataDir = Glib::get_user_data_dir() + "/typingtest/";
+
+	mkdir(configDir.c_str(), 0755);
 	mkdir(dataDir.c_str(), 0755);
 }
 } // namespace typingtest

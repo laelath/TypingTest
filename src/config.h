@@ -22,6 +22,15 @@
 
 namespace typingtest {
 
+enum HighlightMode {
+	ALL = 0,
+	SOME,
+	NONE,
+};
+
+HighlightMode getHighlight(std::string str);
+std::string getString(HighlightMode hl);
+
 class Config {
 public:
 	Config();
@@ -33,6 +42,7 @@ public:
 	int startTroubleScore = 3;
 	int troubleDec = 1;
 	int troubleInc = 1;
+	HighlightMode hlMode = HighlightMode::ALL;
 	std::string configDir;
 	std::string dataDir;
 

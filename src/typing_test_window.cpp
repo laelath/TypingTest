@@ -118,6 +118,7 @@ void TypingTestWindow::initWidgets()
 	builder->get_widget("troubledec", troubleDec);
 	builder->get_widget("troubleinc", troubleInc);
 	builder->get_widget("wordwrongmult", wordWrongMult);
+	builder->get_widget("highlight_mode_box", hlModeBox);
 	builder->get_widget("restoredefaultadv", restoreDefaultAdv);
 	builder->get_widget("canceladv", cancelAdv);
 	builder->get_widget("applyadv", applyAdv);
@@ -141,7 +142,6 @@ void TypingTestWindow::initWidgets()
 	testHistoryView->append_column("WPM", wpmColumn);
 	testHistoryView->append_column("Length", lengthColumn);
 	testHistoryView->append_column("Type", typeColumn);
-
 
 	// Trouble words viewer
 	builder->get_widget("troubledialog", troubleDialog);
@@ -321,6 +321,7 @@ void TypingTestWindow::updateAdvSettings()
 	troubleDec->set_value(config.troubleDec);
 	troubleInc->set_value(config.troubleInc);
 	wordWrongMult->set_value(config.wordWrongWeight);
+	hlModeBox->set_active(config.hlMode);
 }
 
 void TypingTestWindow::applyDefaultSettings()
@@ -344,6 +345,8 @@ void TypingTestWindow::openAdvSettings()
 		config.troubleDec = troubleDec->get_value_as_int();
 		config.troubleInc = troubleInc->get_value_as_int();
 		config.wordWrongWeight = wordWrongMult->get_value();
+		config.hlMode = static_cast<HighlightMode>(
+				hlModeBox->get_active_row_number());
 		config.saveConfig();
 		genNewTest();
 	}
@@ -411,19 +414,28 @@ void TypingTestWindow::textInsert(std::string text, int *)
 				textBuffer->get_iter_at_offset(wordCharIndex
 					+ words[wordIndex]->getWord().length()));
 
-			if (words[wordIndex]->enterWord(word, config))
-				textBuffer->apply_tag_by_name("good",
-					textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex +
-						words[wordIndex]->getWord().length()));
-			else
-				textBuffer->apply_tag_by_name("error",
-					textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex
-						+ words[wordIndex]->getWord().length()));
+			bool correct = words[wordIndex]->enterWord(word, config);
+			if (config.hlMode != HighlightMode::NONE) {
+				if (correct)
+					textBuffer->apply_tag_by_name("good",
+						textBuffer->get_iter_at_offset(wordCharIndex),
+						textBuffer->get_iter_at_offset(wordCharIndex +
+							words[wordIndex]->getWord().length()));
+				else
+					textBuffer->apply_tag_by_name("error",
+						textBuffer->get_iter_at_offset(wordCharIndex),
+						textBuffer->get_iter_at_offset(wordCharIndex
+							+ words[wordIndex]->getWord().length()));
+			}
 
 			wordCharIndex += words[wordIndex]->getWord().length() + 1;
 			wordIndex++;
+
+			if (config.hlMode != HighlightMode::ALL)
+				textBuffer->apply_tag_by_name("current",
+						textBuffer->get_iter_at_offset(wordCharIndex),
+						textBuffer->get_iter_at_offset(wordCharIndex
+							+ words[wordIndex]->getWord().length()));
 
 			textBuffer->remove_tag_by_name("uglyhack",
 				textBuffer->get_iter_at_offset(0), textBuffer->end());
@@ -446,33 +458,36 @@ void TypingTestWindow::textInsert(std::string text, int *)
 			}
 		}
 
-		std::string text = typingEntry->get_text();
-		std::string word = words[wordIndex]->getWord();
-		if (text.length() <= word.length() && text == word.substr(0, text.length())) {
-			textBuffer->remove_tag_by_name("currenterror",
-				textBuffer->get_iter_at_offset(wordCharIndex),
-				textBuffer->get_iter_at_offset(wordCharIndex
-					+ words[wordIndex]->getWord().length()));
-			textBuffer->apply_tag_by_name("current",
-				textBuffer->get_iter_at_offset(wordCharIndex),
-				textBuffer->get_iter_at_offset(wordCharIndex
-					+ words[wordIndex]->getWord().length()));
-		} else {
-			textBuffer->remove_tag_by_name("current",
-				textBuffer->get_iter_at_offset(wordCharIndex),
-				textBuffer->get_iter_at_offset(wordCharIndex +
-					words[wordIndex]->getWord().length()));
-			textBuffer->apply_tag_by_name("currenterror",
-				textBuffer->get_iter_at_offset(wordCharIndex),
-				textBuffer->get_iter_at_offset(wordCharIndex +
-					words[wordIndex]->getWord().length()));
+		if (config.hlMode == HighlightMode::ALL) {
+			std::string text = typingEntry->get_text();
+			std::string word = words[wordIndex]->getWord();
+			if (text.length() <= word.length()
+					&& text == word.substr(0, text.length())) {
+				textBuffer->remove_tag_by_name("currenterror",
+					textBuffer->get_iter_at_offset(wordCharIndex),
+					textBuffer->get_iter_at_offset(wordCharIndex
+						+ words[wordIndex]->getWord().length()));
+				textBuffer->apply_tag_by_name("current",
+					textBuffer->get_iter_at_offset(wordCharIndex),
+					textBuffer->get_iter_at_offset(wordCharIndex
+						+ words[wordIndex]->getWord().length()));
+			} else {
+				textBuffer->remove_tag_by_name("current",
+					textBuffer->get_iter_at_offset(wordCharIndex),
+					textBuffer->get_iter_at_offset(wordCharIndex +
+						words[wordIndex]->getWord().length()));
+				textBuffer->apply_tag_by_name("currenterror",
+					textBuffer->get_iter_at_offset(wordCharIndex),
+					textBuffer->get_iter_at_offset(wordCharIndex +
+						words[wordIndex]->getWord().length()));
+			}
 		}
 	}
 }
 
 void TypingTestWindow::textDelete(int, int)
 {
-	if (!testEnded) {
+	if (!testEnded && config.hlMode == HighlightMode::ALL) {
 		std::string text = typingEntry->get_text();
 		std::string word = words[wordIndex]->getWord();
 		if (text.length() <= word.length() && text == word.substr(0,

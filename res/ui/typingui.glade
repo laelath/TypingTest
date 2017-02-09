@@ -1396,6 +1396,33 @@ Jason Waataja</property>
                 <property name="top_attach">6</property>
               </packing>
             </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Highlight Mode:</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">7</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkComboBoxText" id="highlight_mode_box">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="active">0</property>
+                <items>
+                  <item translatable="yes">All</item>
+                  <item translatable="yes">Some</item>
+                  <item translatable="yes">None</item>
+                </items>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">7</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="expand">True</property>
