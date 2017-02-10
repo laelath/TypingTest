@@ -22,7 +22,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <ctime>
 #include <fstream>
+#include <iomanip>
 #include <numeric>
 
 #include "files.h"
@@ -143,12 +145,13 @@ void TypingTestWindow::initWidgets()
 	testHistoryView->append_column("Type", typeColumn);
 
 	builder->get_widget("notes_dialog", notesDialog);
-	builder->get_widget("save_note_button", saveNoteButton);
-	builder->get_widget("insert_sticker_button", insertStickerButton);
+	builder->get_widget("dialog_save_note_button", dialogSaveNoteButton);
+	builder->get_widget("dialog_insert_sticker_button",
+		dialogInsertStickerButton);
 	builder->get_widget("close_notes_button", closeNotesButton);
 	builder->get_widget("notes_view", notesView);
 	builder->get_widget("note_name_entry", noteNameEntry);
-	builder->get_widget("note_view", noteView);
+	builder->get_widget("dialog_note_view", dialogNoteView);
 
 	notesColumnRecord.add(noteNameColumn);
 	notesColumnRecord.add(noteDateColumn);
@@ -157,7 +160,7 @@ void TypingTestWindow::initWidgets()
 	notesView->set_model(notesStore);
 	notesView->append_column("Name", noteNameColumn);
 	notesView->append_column("Date", noteDateColumn);
-	noteBuffer = noteView->get_buffer();
+	dialogNoteBuffer = dialogNoteView->get_buffer();
 
 	// Trouble words viewer
 	builder->get_widget("troubledialog", troubleDialog);
@@ -227,10 +230,10 @@ void TypingTestWindow::connectSignals()
 			&TypingTestWindow::onEraseHistoryButtonClicked));
 
 
-	saveNoteButton->signal_clicked().connect(sigc::mem_fun(*this,
-			&TypingTestWindow::onSaveNoteButtonClicked));
-	insertStickerButton->signal_clicked().connect(sigc::mem_fun(*this,
-			&TypingTestWindow::onInsertStickerButtonClicked));
+	dialogSaveNoteButton->signal_clicked().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onDialogSaveNoteButtonClicked));
+	dialogInsertStickerButton->signal_clicked().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onDialogInsertStickerButtonClicked));
 	closeNotesButton->signal_clicked().connect(sigc::mem_fun(*notesDialog,
 			&Gtk::Dialog::close));
 }
@@ -856,20 +859,26 @@ void TypingTestWindow::resetHistoryDisplay()
 	historyStore->clear();
 }
 
-void TypingTestWindow::onSaveNoteButtonClicked()
+void TypingTestWindow::onDialogSaveNoteButtonClicked()
 {
 	Glib::ustring noteName = noteNameEntry->get_text();
 	noteNameEntry->set_text("");
-	Glib::ustring noteText = noteBuffer->get_text();
-	noteBuffer->set_text("");
+	Glib::ustring noteText = dialogNoteBuffer->get_text();
+	dialogNoteBuffer->set_text("");
 	Gtk::TreeIter iter = notesStore->append();
 	Gtk::TreeRow row = *iter;
 
+	time_t now = std::time(nullptr);
+	std::tm currentDate = *std::localtime(&now);
+
+	std::string dateString(std::asctime(&currentDate));
+
 	row[noteNameColumn] = noteName;
 	row[noteContentsColumn] = noteText;
+	row[noteDateColumn] = dateString;
 }
 
-void TypingTestWindow::onInsertStickerButtonClicked()
+void TypingTestWindow::onDialogInsertStickerButtonClicked()
 {
 }
 } // namespace typingtest

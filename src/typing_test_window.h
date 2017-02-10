@@ -132,12 +132,12 @@ private:
 
 	// Notes dialog widgets
 	Gtk::Dialog *notesDialog;
-	Gtk::Button *saveNoteButton;
-	Gtk::Button *insertStickerButton;
+	Gtk::Button *dialogSaveNoteButton;
+	Gtk::Button *dialogInsertStickerButton;
 	Gtk::Button *closeNotesButton;
 	Gtk::TreeView *notesView;
 	Gtk::Entry *noteNameEntry;
-	Gtk::TextView *noteView;
+	Gtk::TextView *dialogNoteView;
 
 	// Helper object for notes dialog.
 	Glib::RefPtr<Gtk::ListStore> notesStore;
@@ -145,7 +145,7 @@ private:
 	Gtk::TreeModelColumn<Glib::ustring> noteNameColumn;
 	Gtk::TreeModelColumn<Glib::ustring> noteDateColumn;
 	Gtk::TreeModelColumn<Glib::ustring> noteContentsColumn;
-	Glib::RefPtr<Gtk::TextBuffer> noteBuffer;
+	Glib::RefPtr<Gtk::TextBuffer> dialogNoteBuffer;
 
 	// List of trouble words to be used with the trouble words display.
 	Glib::RefPtr<Gtk::ListStore> troubleListStore;
@@ -238,8 +238,8 @@ private:
 	// For the history dialog close button to give the dialog response signal.
 	void onHistoryCloseButtonClicked();
 	void onEraseHistoryButtonClicked();
-	void onSaveNoteButtonClicked();
-	void onInsertStickerButtonClicked();
+	void onDialogSaveNoteButtonClicked();
+	void onDialogInsertStickerButtonClicked();
 	// Opens the history dialog.
 	void onActionShowHistory();
 	// Opens the notes dialog.
