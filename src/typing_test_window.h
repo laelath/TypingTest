@@ -130,6 +130,23 @@ private:
 	Gtk::TreeModelColumn<Glib::ustring> lengthColumn;
 	Gtk::TreeModelColumn<Glib::ustring> typeColumn;
 
+	// Notes dialog widgets
+	Gtk::Dialog *notesDialog;
+	Gtk::Button *saveNoteButton;
+	Gtk::Button *insertStickerButton;
+	Gtk::Button *closeNotesButton;
+	Gtk::TreeView *notesView;
+	Gtk::Entry *noteNameEntry;
+	Gtk::TextView *noteView;
+
+	// Helper object for notes dialog.
+	Glib::RefPtr<Gtk::ListStore> notesStore;
+	Gtk::TreeModelColumnRecord notesColumnRecord;
+	Gtk::TreeModelColumn<Glib::ustring> noteNameColumn;
+	Gtk::TreeModelColumn<Glib::ustring> noteDateColumn;
+	Gtk::TreeModelColumn<Glib::ustring> noteContentsColumn;
+	Glib::RefPtr<Gtk::TextBuffer> noteBuffer;
+
 	// List of trouble words to be used with the trouble words display.
 	Glib::RefPtr<Gtk::ListStore> troubleListStore;
 
@@ -221,8 +238,12 @@ private:
 	// For the history dialog close button to give the dialog response signal.
 	void onHistoryCloseButtonClicked();
 	void onEraseHistoryButtonClicked();
+	void onSaveNoteButtonClicked();
+	void onInsertStickerButtonClicked();
 	// Opens the history dialog.
 	void onActionShowHistory();
+	// Opens the notes dialog.
+	void onActionOpenNotes();
 
 
 	// Assuming a score of wpm was just achieved, updates the history file to
