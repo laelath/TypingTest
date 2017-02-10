@@ -36,7 +36,6 @@ public:
 	Config();
 
 	int startWords = 500;
-	double wordWrongWeight = 0.50;
 	double minZScore = -2.2;
 	double maxZScore = 0.0;
 	int startTroubleScore = 3;

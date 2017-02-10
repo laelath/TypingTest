@@ -36,7 +36,7 @@ public:
 	bool getStarted();
 
 	void startTime();
-	bool enterWord(std::string enter, const Config& config);
+	bool enterWord(std::string enter);
 	bool getCorrect();
 	std::chrono::milliseconds getTime();
 

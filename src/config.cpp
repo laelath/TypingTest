@@ -53,8 +53,6 @@ void Config::loadConfig()
 	try {
 		if (settingsFile.load_from_file(configDir + "typingtest.conf")) {
 			startWords = settingsFile.get_integer("Test Setup", "start_words");
-			wordWrongWeight = settingsFile.get_double("Trouble Words",
-					"word_wrong_weight");
 			minZScore = settingsFile.get_double("Trouble Words", "min_zscore");
 			maxZScore = settingsFile.get_double("Trouble Words", "max_zscore");
 			startTroubleScore = settingsFile.get_integer("Trouble Words",
@@ -79,8 +77,6 @@ void Config::saveConfig()
 {
 	Glib::KeyFile settingsFile;
 	settingsFile.set_integer("Test Setup", "start_words", startWords);
-	settingsFile.set_double("Trouble Words", "word_wrong_weight",
-			wordWrongWeight);
 	settingsFile.set_double("Trouble Words", "min_zscore", minZScore);
 	settingsFile.set_double("Trouble Words", "max_zscore", maxZScore);
 	settingsFile.set_integer("Trouble Words", "start_trouble_score",
