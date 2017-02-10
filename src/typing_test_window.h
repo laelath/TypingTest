@@ -22,6 +22,7 @@
 #include <gtkmm.h>
 
 #include "config.h"
+#include "sticker_buffer.h"
 #include "test_info.h"
 #include "test_settings.h"
 #include "typing_test.h"
@@ -40,7 +41,7 @@ class TypingTestWindow : public Gtk::ApplicationWindow {
 public:
 	// Constructor for use with Gtk::Builder.
 	TypingTestWindow(BaseObjectType *cobject,
-		const Glib::RefPtr<Gtk::Builder>& builder);
+		const Glib::RefPtr<Gtk::Builder> &builder);
 
 private:
 	// The builder used to construct the window's children.
@@ -77,7 +78,6 @@ private:
 	Glib::RefPtr<Gtk::TextTag> goodTag;
 	Glib::RefPtr<Gtk::TextTag> uglyHackTag;
 
-	Gtk::Window *parent;
 	Gtk::TextView *textView;
 	Gtk::Entry *typingEntry;
 	Gtk::Label *timerLabel;
@@ -89,6 +89,12 @@ private:
 	Gtk::Label *charsCorrectLabel;
 	Gtk::Label *charsWrongLabel;
 	Gtk::Label *troubleWordsLabel;
+
+	Gtk::TextView *noteView;
+	Gtk::Button *saveNoteButton;
+	Gtk::Button *insertStickerButton;
+
+	Glib::RefPtr<StickerBuffer> noteBuffer;
 
 	// Settings window widgets.
 	Gtk::Dialog *settingsDialog;

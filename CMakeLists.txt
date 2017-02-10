@@ -28,6 +28,7 @@ set (
 	src/test_info.cpp
 	src/files.cpp
 	src/sticker_engine.cpp
+	src/sticker_buffer.cpp
 	${CMAKE_CURRENT_BINARY_DIR}/resources.c)
 
 add_executable (typingtest ${SOURCES})

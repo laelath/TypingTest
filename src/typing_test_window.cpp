@@ -32,7 +32,7 @@
 namespace typingtest {
 
 TypingTestWindow::TypingTestWindow(BaseObjectType *cobject,
-	const Glib::RefPtr<Gtk::Builder>& builder)
+	const Glib::RefPtr<Gtk::Builder> &builder)
 	: Gtk::ApplicationWindow(cobject),
 	  builder(builder),
 	  settings(TestSettings::BASIC)
@@ -96,6 +96,14 @@ void TypingTestWindow::initWidgets()
 	textTags->add(errorTag);
 	textTags->add(goodTag);
 	textTags->add(uglyHackTag);
+
+	// Notes
+	builder->get_widget("note_view", noteView);
+	builder->get_widget("save_note_button", saveNoteButton);
+	builder->get_widget("insert_sticker_button", insertStickerButton);
+
+	noteBuffer = StickerBuffer::create();
+	noteView->set_buffer(noteBuffer);
 
 	// Prepare settings window
 	builder->get_widget("settingsdialog", settingsDialog);
