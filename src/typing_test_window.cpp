@@ -17,7 +17,6 @@
 
 #include "typing_test_window.h"
 
-#include <err.h>
 #include <stdlib.h>
 
 #include <algorithm>
