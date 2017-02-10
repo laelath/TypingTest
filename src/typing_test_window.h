@@ -165,7 +165,7 @@ private:
 	Gtk::SpinButton *startTroubleScore;
 	Gtk::SpinButton *troubleDec;
 	Gtk::SpinButton *troubleInc;
-	Gtk::SpinButton *wordWrongMult;
+	Gtk::ComboBoxText *hlModeBox;
 	Gtk::Button *restoreDefaultAdv;
 	Gtk::Button *cancelAdv;
 	Gtk::Button *applyAdv;
