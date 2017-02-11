@@ -102,6 +102,7 @@ void TypingTestWindow::initWidgets()
 	builder->get_widget("save_note_button", saveNoteButton);
 	builder->get_widget("insert_sticker_button", insertStickerButton);
 
+	noteView->set_wrap_mode(Gtk::WRAP_WORD);
 	noteBuffer = StickerBuffer::create();
 	noteView->set_buffer(noteBuffer);
 

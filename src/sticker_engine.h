@@ -24,7 +24,10 @@
 
 namespace typingtest {
 
+// The default path to find stickers with in the resources.
 const char STICKER_PREFIX[] = "/us/laelath/typingtest/stickers/";
+// The default width for stickers to be used in text.
+const int DEFAULT_STICKER_WIDTH = 64;
 
 class StickerEngine {
 public:
@@ -42,6 +45,20 @@ public:
 	// smart pointer otherwise.
 	Glib::RefPtr<Gdk::Pixbuf> createPixbufForSticker(
 		const std::string &stickerName);
+	Glib::RefPtr<Gdk::Pixbuf> createPixbufForSticker(
+		const std::string &stickerName, int width, int height);
+	// Like createPixbufForSticker except the sticker has the default
+	// dimensions.
+	Glib::RefPtr<Gdk::Pixbuf> createPixbufDefaultSize(
+		const std::string &stickerName);
+	// Like createPixbufForSticker except the sticker is scaled to the given
+	// width.
+	Glib::RefPtr<Gdk::Pixbuf> createPixbufWithWidth(
+		const std::string &stickerName, int width);
+	// Like createPixbufForSticker except the sticker is scaled to the given
+	// height.
+	Glib::RefPtr<Gdk::Pixbuf> createPixbufWithHeight(
+		const std::string &stickerName, int height);
 };
 } // namespace typingtest
 

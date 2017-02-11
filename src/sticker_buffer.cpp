@@ -43,11 +43,13 @@ void StickerBuffer::onInsertText(const Gtk::TextIter &pos,
 				+ match.length())};
 			erase(startIter, endIter);
 			Glib::RefPtr<Gdk::Pixbuf> sticker =
-				engine.createPixbufForSticker(match.str(1));
+				engine.createPixbufDefaultSize(match.str(1));
 			if (sticker) {
-				/* Gtk::TextIter pixbufIter = get_iter_at_offset(match.position()); */
-				/* insert_pixbuf(pixbufIter, sticker); */
+				Gtk::TextIter pixbufIter = get_iter_at_offset(match.position());
+				insert_pixbuf(pixbufIter, sticker);
 			}
+
+			fullText = get_text();
 		}
 	}
 }

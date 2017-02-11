@@ -50,4 +50,44 @@ Glib::RefPtr<Gdk::Pixbuf> StickerEngine::createPixbufForSticker(
 	}
 	return Glib::RefPtr<Gdk::Pixbuf>();
 }
+
+Glib::RefPtr<Gdk::Pixbuf> StickerEngine::createPixbufForSticker(
+	const std::string &stickerName, int width, int height)
+{
+	Glib::RefPtr<Gdk::Pixbuf> pixbuf{createPixbufForSticker(stickerName)};
+	return (pixbuf) ? pixbuf->scale_simple(width, height, Gdk::INTERP_HYPER)
+		: pixbuf;
+}
+
+Glib::RefPtr<Gdk::Pixbuf> StickerEngine::createPixbufDefaultSize(
+	const std::string &stickerName)
+{
+	return createPixbufWithWidth(stickerName, DEFAULT_STICKER_WIDTH);
+}
+
+Glib::RefPtr<Gdk::Pixbuf> StickerEngine::createPixbufWithWidth(
+	const std::string &stickerName, int width)
+{
+	Glib::RefPtr<Gdk::Pixbuf> pixbuf{createPixbufForSticker(stickerName)};
+	if (!pixbuf)
+		return pixbuf;
+
+	int srcWidth{pixbuf->get_width()};
+	int srcHeight{pixbuf->get_height()};
+	return pixbuf->scale_simple(width, srcHeight * width / srcWidth,
+		Gdk::INTERP_HYPER);
+}
+
+Glib::RefPtr<Gdk::Pixbuf> StickerEngine::createPixbufWithHeight(
+	const std::string &stickerName, int height)
+{
+	Glib::RefPtr<Gdk::Pixbuf> pixbuf{createPixbufForSticker(stickerName)};
+	if (!pixbuf)
+		return pixbuf;
+
+	int srcWidth{pixbuf->get_width()};
+	int srcHeight{pixbuf->get_height()};
+	return pixbuf->scale_simple(srcWidth * height / srcHeight, height,
+		Gdk::INTERP_HYPER);
+}
 } // namespace typingtest
