@@ -8,7 +8,7 @@ to improve it. It was created to have an open-source and native alternative to
 10FastFingers by adding customization and features.
 
 English language files taken from
-https://github.com/first20hours/google-10000-english
+https://gist.github.com/deekayen/4148741
 
 ## Insallation
 ### Dependencies
