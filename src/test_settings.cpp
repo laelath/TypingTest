@@ -105,21 +105,21 @@ void TestSettings::setType(TestType type)
 	case BASIC:
 		topWords = 200;
 		minLength = 2;
-		maxLength = 100;
+		maxLength = 25;
 		seconds = std::chrono::seconds(60);
 		capitalFrequency = 0;
 		break;
 	case ADVANCED:
-		topWords = 10000;
+		topWords = 1000;
 		minLength = 3;
-		maxLength = 100;
+		maxLength = 25;
 		seconds = std::chrono::seconds(60);
 		capitalFrequency = 0.1;
 		break;
 	case ENDURANCE:
 		topWords = 500;
 		minLength = 2;
-		maxLength = 100;
+		maxLength = 25;
 		seconds = std::chrono::seconds(300);
 		capitalFrequency = 0.05;
 		break;

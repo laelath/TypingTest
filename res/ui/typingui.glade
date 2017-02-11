@@ -40,7 +40,7 @@
   </object>
   <object class="GtkAdjustment" id="maxadj">
     <property name="lower">1</property>
-    <property name="upper">100</property>
+    <property name="upper">25</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
@@ -95,7 +95,7 @@
   </object>
   <object class="GtkAdjustment" id="topadj">
     <property name="lower">1</property>
-    <property name="upper">10000</property>
+    <property name="upper">1000</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
@@ -1022,6 +1022,7 @@ Jason Waataja</property>
               <object class="GtkLabel" id="fastest_time_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">N/A</property>
               </object>
               <packing>
@@ -1033,6 +1034,7 @@ Jason Waataja</property>
               <object class="GtkLabel" id="current_fastest_time_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">N/A</property>
               </object>
               <packing>
@@ -1044,6 +1046,7 @@ Jason Waataja</property>
               <object class="GtkLabel" id="current_slowest_time_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">N/A</property>
               </object>
               <packing>
@@ -1055,6 +1058,7 @@ Jason Waataja</property>
               <object class="GtkLabel" id="current_standard_deviation_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">N/A</property>
               </object>
               <packing>
@@ -1078,6 +1082,7 @@ Jason Waataja</property>
               <object class="GtkLabel" id="average_speed_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">N/A</property>
               </object>
               <packing>
