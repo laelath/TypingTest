@@ -22,6 +22,35 @@ namespace typingtest {
 StickerDialog::StickerDialog(Gtk::Window &parent)
 	: Gtk::Dialog("Insert Sticker", parent, Gtk::DIALOG_MODAL)
 {
+	searchEntry.set_completion(entryCompletion);
+	get_content_area()->pack_start(searchEntry, false, false);
+
+	stallmanRecord.add(stallmanColumn);
+	stallmanStore = Gtk::ListStore::create(stallmanRecord);
+	stallmanView.set_model(stallmanStore);
+	stallmanView.append_column("Name", stallmanColumn);
+	for (const auto &stickerName : STALLMAN_STICKERS) {
+		Gtk::TreeIter iter{stallmanStore->append()};
+		Gtk::TreeRow row{*iter};
+		row[stallmanColumn] = stickerName;
+		/* Gtk::TreeIter allIter{allStickersStore->append()}; */
+		/* Gtk::TreeRow allRow{*allIter}; */
+		/* allRow[allStickersColumn] = stickerName; */
+	}
+	stickerNotebook.append_page(stallmanView, "Stallman");
+
+	otherRecord.add(otherColumn);
+	otherStore = Gtk::ListStore::create(otherRecord);
+	otherView.set_model(otherStore);
+	stickerNotebook.append_page(otherView, "Other");
+
+	get_content_area()->pack_start(stickerNotebook, true, true);
+
+	this->set_default_size(640, 480);
+	show_all_children();
+
+	this->add_button("OK", Gtk::RESPONSE_OK);
+	this->add_button("Cancel", Gtk::RESPONSE_CANCEL);
 
 }
 } // namespace typingtest

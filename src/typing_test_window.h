@@ -244,8 +244,12 @@ private:
 	// For the history dialog close button to give the dialog response signal.
 	void onHistoryCloseButtonClicked();
 	void onEraseHistoryButtonClicked();
+
 	void onDialogSaveNoteButtonClicked();
 	void onDialogInsertStickerButtonClicked();
+
+	void onInsertStickerButtonClicked();
+
 	// Opens the history dialog.
 	void onActionShowHistory();
 	// Opens the notes dialog.

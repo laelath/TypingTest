@@ -27,6 +27,7 @@
 #include <numeric>
 
 #include "files.h"
+#include "sticker_dialog.h"
 
 namespace typingtest {
 
@@ -228,6 +229,9 @@ void TypingTestWindow::connectSignals()
 				&Gtk::Dialog::response), Gtk::RESPONSE_CANCEL));
 	restoreDefaultAdv->signal_clicked().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::applyDefaultSettings));
+
+	insertStickerButton->signal_clicked().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onInsertStickerButtonClicked));
 
 	troubleClose->signal_clicked().connect(sigc::bind<int>(sigc::mem_fun(
 				troubleDialog, &Gtk::Dialog::response), Gtk::RESPONSE_CLOSE));
@@ -888,5 +892,11 @@ void TypingTestWindow::onDialogSaveNoteButtonClicked()
 
 void TypingTestWindow::onDialogInsertStickerButtonClicked()
 {
+}
+
+void TypingTestWindow::onInsertStickerButtonClicked()
+{
+	StickerDialog dialog{*this};
+	dialog.run();
 }
 } // namespace typingtest

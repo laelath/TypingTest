@@ -22,7 +22,7 @@
 
 namespace typingtest {
 
-const char *STALLMAN_STICKERS = {
+const std::string STALLMAN_STICKERS[] = {
 	"stallman1",
 };
 
@@ -32,11 +32,21 @@ public:
 	StickerDialog(Gtk::Window &parent);
 
 private:
-	Gtk::SearchEntry searchEnty;
+	Gtk::SearchEntry searchEntry;
+	Glib::RefPtr<Gtk::EntryCompletion> entryCompletion;
 	Gtk::Notebook stickerNotebook;
 	Gtk::ScrolledWindow stickerScrolledWindow;
-	Gtk::TreeView stickerView;
-	Glib::RefPtr<Gtk::ListStore> stickersStore;
+	Gtk::TreeView stallmanView;
+	Gtk::TreeModelColumnRecord stallmanRecord;
+	Gtk::TreeModelColumn<Glib::ustring> stallmanColumn;
+	Glib::RefPtr<Gtk::ListStore> stallmanStore;
+	Gtk::TreeView otherView;
+	Gtk::TreeModelColumnRecord otherRecord;
+	Gtk::TreeModelColumn<Glib::ustring> otherColumn;
+	Glib::RefPtr<Gtk::ListStore> otherStore;
+
+	Glib::RefPtr<Gtk::ListStore> allStickersStore;
+	Gtk::TreeModelColumn<Glib::ustring> allStickersColumn;
 };
 } // namespace typingtest
 
