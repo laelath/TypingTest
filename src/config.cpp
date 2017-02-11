@@ -19,8 +19,6 @@
 
 #include <sys/stat.h>
 
-#include <err.h>
-
 #include <iostream>
 #include <cstdlib>
 #include <glibmm.h>
@@ -92,7 +90,12 @@ void Config::setPaths()
 	configDir = Glib::get_user_config_dir() + "/typingtest/";
 	dataDir = Glib::get_user_data_dir() + "/typingtest/";
 
+#ifdef __linux__
 	mkdir(configDir.c_str(), 0755);
 	mkdir(dataDir.c_str(), 0755);
+#elif _WIN32
+	mkdir(configDir.c_str());
+	mkdir(dataDir.c_str());
+#endif
 }
 } // namespace typingtest

@@ -45,7 +45,7 @@
   </object>
   <object class="GtkAdjustment" id="maxadj">
     <property name="lower">1</property>
-    <property name="upper">100</property>
+    <property name="upper">25</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
@@ -239,7 +239,7 @@
   </object>
   <object class="GtkAdjustment" id="topadj">
     <property name="lower">1</property>
-    <property name="upper">10000</property>
+    <property name="upper">1000</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
@@ -440,12 +440,11 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="orientation">vertical</property>
-                <property name="spacing">3</property>
                 <child>
                   <object class="GtkGrid">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="row_spacing">3</property>
+                    <property name="row_spacing">5</property>
                     <child>
                       <object class="GtkLabel" id="wpmlabel">
                         <property name="visible">True</property>
@@ -808,7 +807,7 @@
     <property name="type_hint">dialog</property>
     <property name="transient_for">typingtest</property>
     <property name="program_name">TypingTest</property>
-    <property name="version">v1.1.2</property>
+    <property name="version">v1.2.0</property>
     <property name="website">https://github.com/laelath/TypingTest</property>
     <property name="website_label" translatable="yes">Github Page</property>
     <property name="authors">Justin Frank
@@ -900,171 +899,250 @@ Jason Waataja</property>
           </packing>
         </child>
         <child>
-          <object class="GtkGrid">
+          <object class="GtkNotebook">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="row_spacing">10</property>
-            <property name="column_spacing">5</property>
+            <property name="can_focus">True</property>
             <child>
+              <object class="GtkGrid">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="row_spacing">5</property>
+                <property name="column_spacing">11</property>
+                <child>
+                  <object class="GtkSpinButton" id="startwords">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="hexpand">True</property>
+                    <property name="text" translatable="yes">1</property>
+                    <property name="adjustment">startwordsadj</property>
+                    <property name="value">1</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">Start words:</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+            <child type="tab">
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Start words:</property>
+                <property name="label" translatable="yes">Test Generation</property>
               </object>
               <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">0</property>
+                <property name="tab_fill">False</property>
               </packing>
             </child>
             <child>
+              <object class="GtkGrid">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="row_spacing">5</property>
+                <property name="column_spacing">11</property>
+                <child>
+                  <object class="GtkSpinButton" id="minzscore">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="hexpand">True</property>
+                    <property name="text" translatable="yes">0.00</property>
+                    <property name="adjustment">minzadj</property>
+                    <property name="digits">2</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">Min zscore:</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">Max zscore:</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSpinButton" id="maxzscore">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="text" translatable="yes">0.00</property>
+                    <property name="adjustment">maxzadj</property>
+                    <property name="digits">2</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">Start trouble score:</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSpinButton" id="starttrouble">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="text" translatable="yes">1</property>
+                    <property name="adjustment">starttroubleadj</property>
+                    <property name="value">1</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">Trouble score dec:</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSpinButton" id="troubledec">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="text" translatable="yes">1</property>
+                    <property name="adjustment">troubledecadj</property>
+                    <property name="value">1</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">Trouble score inc:</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">4</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSpinButton" id="troubleinc">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="text" translatable="yes">1</property>
+                    <property name="adjustment">troubleincadj</property>
+                    <property name="value">1</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">4</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child type="tab">
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Min zscore:</property>
+                <property name="label" translatable="yes">Word Scoring</property>
               </object>
               <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">1</property>
+                <property name="position">1</property>
+                <property name="tab_fill">False</property>
               </packing>
             </child>
             <child>
+              <object class="GtkGrid">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="row_spacing">5</property>
+                <property name="column_spacing">11</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="label" translatable="yes">Highlight Mode:</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkComboBoxText" id="highlight_mode_box">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="hexpand">True</property>
+                    <property name="active">0</property>
+                    <items>
+                      <item translatable="yes">All</item>
+                      <item translatable="yes">Some</item>
+                      <item translatable="yes">None</item>
+                    </items>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child type="tab">
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Max zscore:</property>
+                <property name="label" translatable="yes">Text Highlighting</property>
               </object>
               <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Start trouble score:</property>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">3</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Trouble score dec:</property>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">4</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Trouble score inc:</property>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">5</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSpinButton" id="startwords">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="hexpand">True</property>
-                <property name="adjustment">startwordsadj</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSpinButton" id="minzscore">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="adjustment">minzadj</property>
-                <property name="digits">2</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSpinButton" id="maxzscore">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="adjustment">maxzadj</property>
-                <property name="digits">2</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSpinButton" id="starttrouble">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="adjustment">starttroubleadj</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">3</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSpinButton" id="troubledec">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="adjustment">troubledecadj</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">4</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSpinButton" id="troubleinc">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="adjustment">troubleincadj</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">5</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Highlight Mode:</property>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">6</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkComboBoxText" id="highlight_mode_box">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="active">0</property>
-                <items>
-                  <item translatable="yes">All</item>
-                  <item translatable="yes">Some</item>
-                  <item translatable="yes">None</item>
-                </items>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">6</property>
+                <property name="position">2</property>
+                <property name="tab_fill">False</property>
               </packing>
             </child>
           </object>
@@ -1137,6 +1215,7 @@ Jason Waataja</property>
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">Fastest time:</property>
               </object>
               <packing>
@@ -1148,6 +1227,7 @@ Jason Waataja</property>
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">Current fastest time:</property>
               </object>
               <packing>
@@ -1159,6 +1239,7 @@ Jason Waataja</property>
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">Current slowest time</property>
               </object>
               <packing>
@@ -1170,6 +1251,7 @@ Jason Waataja</property>
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">Current standard deviation:</property>
               </object>
               <packing>
@@ -1181,6 +1263,7 @@ Jason Waataja</property>
               <object class="GtkLabel" id="fastest_time_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">N/A</property>
               </object>
               <packing>
@@ -1192,6 +1275,7 @@ Jason Waataja</property>
               <object class="GtkLabel" id="current_fastest_time_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">N/A</property>
               </object>
               <packing>
@@ -1203,6 +1287,7 @@ Jason Waataja</property>
               <object class="GtkLabel" id="current_slowest_time_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">N/A</property>
               </object>
               <packing>
@@ -1214,6 +1299,7 @@ Jason Waataja</property>
               <object class="GtkLabel" id="current_standard_deviation_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">N/A</property>
               </object>
               <packing>
@@ -1225,6 +1311,7 @@ Jason Waataja</property>
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">Average speed:</property>
               </object>
               <packing>
@@ -1236,6 +1323,7 @@ Jason Waataja</property>
               <object class="GtkLabel" id="average_speed_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">N/A</property>
               </object>
               <packing>
@@ -1330,12 +1418,13 @@ Jason Waataja</property>
           <object class="GtkGrid">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="row_spacing">10</property>
-            <property name="column_spacing">5</property>
+            <property name="row_spacing">5</property>
+            <property name="column_spacing">11</property>
             <child>
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">Top words:</property>
               </object>
               <packing>
@@ -1347,6 +1436,7 @@ Jason Waataja</property>
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">Word lengths:</property>
               </object>
               <packing>
@@ -1358,6 +1448,7 @@ Jason Waataja</property>
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">Test length:</property>
               </object>
               <packing>
@@ -1369,6 +1460,7 @@ Jason Waataja</property>
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">Seed:</property>
               </object>
               <packing>
@@ -1408,6 +1500,7 @@ Jason Waataja</property>
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">Test Type:</property>
               </object>
               <packing>
@@ -1518,6 +1611,7 @@ Jason Waataja</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Personalized word frequency</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">Personal Frequency:</property>
               </object>
               <packing>
@@ -1543,6 +1637,7 @@ Jason Waataja</property>
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">Capital Frequency:</property>
               </object>
               <packing>
