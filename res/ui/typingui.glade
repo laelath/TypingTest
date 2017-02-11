@@ -272,12 +272,11 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="orientation">vertical</property>
-                <property name="spacing">3</property>
                 <child>
                   <object class="GtkGrid">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="row_spacing">3</property>
+                    <property name="row_spacing">5</property>
                     <child>
                       <object class="GtkLabel" id="wpmlabel">
                         <property name="visible">True</property>
@@ -663,8 +662,8 @@ Jason Waataja</property>
               <object class="GtkGrid">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="row_spacing">3</property>
-                <property name="column_spacing">3</property>
+                <property name="row_spacing">5</property>
+                <property name="column_spacing">11</property>
                 <child>
                   <object class="GtkSpinButton" id="startwords">
                     <property name="visible">True</property>
@@ -707,8 +706,8 @@ Jason Waataja</property>
               <object class="GtkGrid">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="row_spacing">3</property>
-                <property name="column_spacing">3</property>
+                <property name="row_spacing">5</property>
+                <property name="column_spacing">11</property>
                 <child>
                   <object class="GtkSpinButton" id="minzscore">
                     <property name="visible">True</property>
@@ -855,8 +854,8 @@ Jason Waataja</property>
               <object class="GtkGrid">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="row_spacing">3</property>
-                <property name="column_spacing">3</property>
+                <property name="row_spacing">5</property>
+                <property name="column_spacing">11</property>
                 <child>
                   <object class="GtkLabel">
                     <property name="visible">True</property>
@@ -1176,8 +1175,8 @@ Jason Waataja</property>
           <object class="GtkGrid">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="row_spacing">10</property>
-            <property name="column_spacing">5</property>
+            <property name="row_spacing">5</property>
+            <property name="column_spacing">11</property>
             <child>
               <object class="GtkLabel">
                 <property name="visible">True</property>
