@@ -22,11 +22,22 @@
 
 namespace typingtest {
 
+const char *STALLMAN_STICKERS = {
+	"stallman1",
+};
+
 class StickerDialog : public Gtk::Dialog {
 public:
 	StickerDialog();
-	StickerDialog(Gtk::Window& parent);
-};
-}
+	StickerDialog(Gtk::Window &parent);
 
-#endif //STICKER_DIALOG_H
+private:
+	Gtk::SearchEntry searchEnty;
+	Gtk::Notebook stickerNotebook;
+	Gtk::ScrolledWindow stickerScrolledWindow;
+	Gtk::TreeView stickerView;
+	Glib::RefPtr<Gtk::ListStore> stickersStore;
+};
+} // namespace typingtest
+
+#endif // STICKER_DIALOG_H

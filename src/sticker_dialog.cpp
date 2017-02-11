@@ -14,3 +14,14 @@
 //
 // You should have received a copy of the GNU General Public License along with
 // TypingTest.  If not, see <http://www.gnu.org/licenses/>.
+
+#include "sticker_dialog.h"
+
+namespace typingtest {
+
+StickerDialog::StickerDialog(Gtk::Window &parent)
+	: Gtk::Dialog("Insert Sticker", parent, Gtk::DIALOG_MODAL)
+{
+
+}
+} // namespace typingtest
