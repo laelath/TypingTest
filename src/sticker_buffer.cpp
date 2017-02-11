@@ -17,6 +17,7 @@
 
 #include "sticker_buffer.h"
 
+#include <iostream>
 #include <regex>
 
 namespace typingtest {
@@ -44,8 +45,8 @@ void StickerBuffer::onInsertText(const Gtk::TextIter &pos,
 			Glib::RefPtr<Gdk::Pixbuf> sticker =
 				engine.createPixbufForSticker(match.str(1));
 			if (sticker) {
-				Gtk::TextIter pixbufIter = get_iter_at_offset(match.position());
-				insert_pixbuf(pixbufIter, sticker);
+				/* Gtk::TextIter pixbufIter = get_iter_at_offset(match.position()); */
+				/* insert_pixbuf(pixbufIter, sticker); */
 			}
 		}
 	}

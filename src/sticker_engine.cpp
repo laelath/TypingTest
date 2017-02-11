@@ -43,7 +43,7 @@ Glib::RefPtr<Gdk::Pixbuf> StickerEngine::createPixbufForSticker(
 {
 	try {
 		return Gdk::Pixbuf::create_from_resource(getStickerPath(stickerName));
-	} catch (Gio::ResolverError) {
+	} catch (Gio::ResourceError) {
 		return Glib::RefPtr<Gdk::Pixbuf>();
 	} catch (Gdk::PixbufError) {
 		return Glib::RefPtr<Gdk::Pixbuf>();;
