@@ -1,9 +1,14 @@
 # Change Log
 This project adheres to Semantic Versioning
 
-## [Unreleased]
+## [1.2.0] - 2017-02-10
 ### Added
 - Add change log. Incomplete because it wasn't done earlier.
+
+### Changed
+- Switched to a different dictionary with more sensible words.
+- Missed words are now scored based on their Levenshtein distance.
+- Some UI elements have been changed to reduce clutter.
 
 ## [1.1.2] - 2017-02-08
 ### Added
