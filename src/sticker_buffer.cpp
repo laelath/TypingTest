@@ -43,7 +43,7 @@ void StickerBuffer::onInsertText(const Gtk::TextIter &,
 void StickerBuffer::replaceWords(std::vector<std::pair<int, int>> words)
 {
 	for (std::vector<std::pair<int, int>>::size_type i = 0;
-		i < words.size(); i++) {
+		i < words.size(); ++i) {
 		int offset = words[i].first;
 		int endOffset = words[i].second;
 		Gtk::TextIter startIter{get_iter_at_offset(offset)};
@@ -70,7 +70,7 @@ void StickerBuffer::replaceWords(std::vector<std::pair<int, int>> words)
 			text = get_text(startIter, endIter);
 		}
 		for (std::vector<std::pair<int, int>>::size_type j = i + 1;
-			j < words.size(); j++) {
+			j < words.size(); ++j) {
 			words[i].first -= totalShortened;
 			words[i].second -= totalShortened;
 		}
@@ -90,7 +90,7 @@ std::vector<std::pair<int, int>> StickerBuffer::splitChars(
 	int endPos;
 	std::vector<std::pair<int, int>> words;
 	std::vector<gunichar>::size_type i;
-	for (i = 0; i < elements.size(); i++) {
+	for (i = 0; i < elements.size(); ++i) {
 		if (inWord && elements[i] == UNKNOWN_CHAR) {
 			endPos = i;
 			inWord = false;
