@@ -92,9 +92,9 @@ std::vector<std::pair<int, int>> StickerBuffer::splitChars(
 	std::vector<gunichar>::size_type i;
 	for (i = 0; i < elements.size(); i++) {
 		if (inWord && elements[i] == UNKNOWN_CHAR) {
-				endPos = i;
-				inWord = false;
-				words.push_back({startPos, endPos});
+			endPos = i;
+			inWord = false;
+			words.push_back({startPos, endPos});
 		} else if (!inWord && elements[i] != UNKNOWN_CHAR) {
 			inWord = true;
 			startPos = i;
