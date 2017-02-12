@@ -18,11 +18,17 @@
 #ifndef STICKER_BUFFER_H
 #define STICKER_BUFFER_H
 
+#include <utility>
+
 #include <gtkmm.h>
 
 #include "sticker_engine.h"
 
 namespace typingtest {
+
+// From the gtkmm documentation. This character is returned from the
+// TextIter::get_char() function when it's on a pixbuf.
+const gunichar UNKNOWN_CHAR = 0xFFFC;
 
 class StickerBuffer : public Gtk::TextBuffer {
 public:
@@ -35,6 +41,12 @@ private:
 		int bytes);
 
 	StickerEngine engine;
+
+	std::vector<std::pair<int, int>> splitChars(
+		const std::vector<gunichar> &elements);
+	// Pass by copy because the list is adjusted as we go. Shouldn't incur that
+	// much overhead.
+	void replaceWords(std::vector<std::pair<int, int>> words);
 };
 } // namespace typingtest
 

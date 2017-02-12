@@ -28,28 +28,51 @@ StickerBuffer::StickerBuffer() : TextBuffer()
 			&StickerBuffer::onInsertText));
 }
 
-void StickerBuffer::onInsertText(const Gtk::TextIter &pos,
-	const Glib::ustring &text, int bytes)
+void StickerBuffer::onInsertText(const Gtk::TextIter &,
+	const Glib::ustring &text, int)
 {
-	int posOffset = pos.get_offset();
 	if (text.find(":") != Glib::ustring::npos) {
-		std::string fullText{get_text()};
+		std::vector<gunichar> elements;
+		for (Gtk::TextIter iter = begin(); iter != end(); ++iter)
+			elements.push_back(iter.get_char());
+		std::vector<std::pair<int, int>> words = splitChars(elements);
+		replaceWords(words);
+	}
+}
+
+void StickerBuffer::replaceWords(std::vector<std::pair<int, int>> words)
+{
+	for (std::vector<std::pair<int, int>>::size_type i = 0;
+		i < words.size(); i++) {
+		int offset = words[i].first;
+		int endOffset = words[i].second;
+		Gtk::TextIter startIter{get_iter_at_offset(offset)};
+		Gtk::TextIter endIter{get_iter_at_offset(endOffset)};
+		std::string text{get_text(startIter, endIter)};
 		std::regex re{R"(:(\w*):)"};
 		std::smatch match;
-
-		while (std::regex_search(fullText, match, re)) {
-			Gtk::TextIter startIter{get_iter_at_offset(match.position())};
-			Gtk::TextIter endIter{get_iter_at_offset(match.position()
-				+ match.length())};
-			erase(startIter, endIter);
-			Glib::RefPtr<Gdk::Pixbuf> sticker =
-				engine.createPixbufDefaultSize(match.str(1));
-			if (sticker) {
-				Gtk::TextIter pixbufIter = get_iter_at_offset(match.position());
-				insert_pixbuf(pixbufIter, sticker);
-			}
-
-			fullText = get_text();
+		int totalShortened{0};
+		while (std::regex_search(text, match, re)) {
+			Gtk::TextIter startWordIter{get_iter_at_offset(
+				match.position() + offset)};
+			Gtk::TextIter endWordIter{get_iter_at_offset(match.position()
+				+ match.length() + offset)};
+			erase(startWordIter, endWordIter);
+			auto pixbuf = engine.createPixbufDefaultSize(match.str(1));
+			if (pixbuf)
+				insert_pixbuf(get_iter_at_offset(match.position()
+						+ offset), pixbuf);
+			totalShortened += match.length() - 1;
+			offset -= match.length() - 1;
+			endOffset -= match.length() - 1;
+			Gtk::TextIter startIter{get_iter_at_offset(offset)};
+			Gtk::TextIter endIter{get_iter_at_offset(endOffset)};
+			text = get_text(startIter, endIter);
+		}
+		for (std::vector<std::pair<int, int>>::size_type j = i + 1;
+			j < words.size(); j++) {
+			words[i].first -= totalShortened;
+			words[i].second -= totalShortened;
 		}
 	}
 }
@@ -57,5 +80,30 @@ void StickerBuffer::onInsertText(const Gtk::TextIter &pos,
 Glib::RefPtr<StickerBuffer> StickerBuffer::create()
 {
 	return Glib::RefPtr<StickerBuffer>(new StickerBuffer());
+}
+
+std::vector<std::pair<int, int>> StickerBuffer::splitChars(
+	const std::vector<gunichar> &elements)
+{
+	bool inWord{false};
+	int startPos;
+	int endPos;
+	std::vector<std::pair<int, int>> words;
+	std::vector<gunichar>::size_type i;
+	for (i = 0; i < elements.size(); i++) {
+		if (inWord && elements[i] == UNKNOWN_CHAR) {
+				endPos = i;
+				inWord = false;
+				words.push_back({startPos, endPos});
+		} else if (!inWord && elements[i] != UNKNOWN_CHAR) {
+			inWord = true;
+			startPos = i;
+		}
+	}
+	if (inWord) {
+		endPos = i;
+		words.push_back({startPos, endPos});
+	}
+	return words;
 }
 } // typingtest
