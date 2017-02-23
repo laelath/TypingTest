@@ -899,4 +899,14 @@ void TypingTestWindow::onInsertStickerButtonClicked()
 	StickerDialog dialog{*this};
 	dialog.run();
 }
+
+std::shared_ptr<TypingTestWindow>
+TypingTestWindow::create()
+{
+    auto builder = Gtk::Builder::create_from_resource(
+        "/us/laelath/typingtest/ui/typingui.glade");
+    typingtest::TypingTestWindow *window = nullptr;
+    builder->get_widget_derived("typingtest", window);
+    return std::shared_ptr<TypingTestWindow>{window};
+}
 } // namespace typingtest

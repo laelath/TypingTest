@@ -16,37 +16,29 @@
 // TypingTest.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <cstdlib>
-
-#include <chrono>
-#include <fstream>
 #include <iostream>
 
-#include <pangomm/fontdescription.h>
+#include <err.h>
 
 #include <gtkmm.h>
 
-#include "config.h"
 #include "typing_test_window.h"
 
 int main(int argc, char *argv[])
 {
 	auto app = Gtk::Application::create(argc, argv, "us.laelath.typingtest");
-	// Create test
 	try {
-		auto builder = Gtk::Builder::create_from_resource(
-			"/us/laelath/typingtest/ui/typingui.glade");
-		typingtest::TypingTestWindow *window = nullptr;
-		builder->get_widget_derived("typingtest", window);
+        auto window = typingtest::TypingTestWindow::create();
 		int status = app->run(*window);
-		delete window;
 		return status;
-    } catch (const Glib::FileError e) {
-        std::cerr << e.what() << std::endl;
-    } catch (const Gio::ResourceError& e) {
-        std::cerr << e.what() << std::endl;
-    } catch (const Gtk::BuilderError& e) {
-        std::cerr << e.what() << std::endl;
+    } catch (const Glib::FileError &e) {
+        warnx("%s", e.what().c_str());
+    } catch (const Gio::ResourceError &e) {
+        warnx("%s", e.what().c_str());
+    } catch (const Gtk::BuilderError &e) {
+        warnx("%s", e.what().c_str());
+    } catch (...) {
+        warnx("Unknown exception");
     }
-
 	return EXIT_FAILURE;
 }
