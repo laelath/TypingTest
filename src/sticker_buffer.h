@@ -18,7 +18,9 @@
 #ifndef STICKER_BUFFER_H
 #define STICKER_BUFFER_H
 
+#include <string>
 #include <utility>
+#include <vector>
 
 #include <gtkmm.h>
 
@@ -34,6 +36,15 @@ class StickerBuffer : public Gtk::TextBuffer {
 public:
 	StickerBuffer();
 
+	// Returns the text just as get_text would. However, a string of the form
+	// :sticker_name:. Carelessly manipulating and reinserting this text may
+	// result in unexpected results, as if there is an added colon then the
+	// stickers will not display correctly. Because of the way text insertion
+	// works, though, reinserting text retreived with this method will display
+	// correctly because as of now there is now way create colons that would
+	// mess this up.
+	std::string getTextWithStickers() const;
+
 	static Glib::RefPtr<StickerBuffer> create();
 
 private:
@@ -41,6 +52,11 @@ private:
 		int bytes);
 
 	StickerEngine engine;
+	// List of marks at stickers. Not all marks will be valid, and they will
+	// theoretically accumulate over time if one creates and destorys enough
+	// stickers, but that is a fringe use case and someone is welcome to fix
+	// it.
+	std::vector<Glib::RefPtr<Gtk::TextMark>> stickerMarks;
 
 	std::vector<std::pair<int, int>> splitChars(
 		const std::vector<gunichar> &elements);

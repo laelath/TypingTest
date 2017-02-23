@@ -59,12 +59,18 @@ void StickerBuffer::replaceWords(std::vector<std::pair<int, int>> words)
 			erase(startWordIter, endWordIter);
 			std::string stickerName{match.str(1)};
 			auto pixbuf = engine.createPixbufDefaultSize(stickerName);
-			if (pixbuf)
-				insert_pixbuf(get_iter_at_offset(match.position()
-						+ offset), pixbuf);
-			totalShortened += match.length() - 1;
-			offset -= match.length() - 1;
-			endOffset -= match.length() - 1;
+			int stickerPos = match.position() + offset;
+			insert(get_iter_at_offset(stickerPos), "\n\n");
+			// For two newline characters.
+			int lengthChange = match.length() - 2;
+			if (pixbuf) {
+				insert_pixbuf(get_iter_at_offset(stickerPos + 1), pixbuf);
+				create_mark("stallman1", get_iter_at_offset(stickerPos + 1));
+				--lengthChange;
+			}
+			totalShortened += lengthChange;
+			offset -= lengthChange;
+			endOffset -= lengthChange;
 			Gtk::TextIter startIter{get_iter_at_offset(offset)};
 			Gtk::TextIter endIter{get_iter_at_offset(endOffset)};
 			text = get_text(startIter, endIter);
@@ -105,5 +111,11 @@ std::vector<std::pair<int, int>> StickerBuffer::splitChars(
 		words.push_back({startPos, endPos});
 	}
 	return words;
+}
+
+std::string
+StickerBuffer::getTextWithStickers() const
+{
+	return "";
 }
 } // typingtest
