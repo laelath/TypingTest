@@ -42,10 +42,9 @@ void StickerBuffer::onInsertText(const Gtk::TextIter &,
 
 void StickerBuffer::replaceWords(std::vector<std::pair<int, int>> words)
 {
-	for (std::vector<std::pair<int, int>>::size_type i = 0;
-		i < words.size(); ++i) {
-		int offset = words[i].first;
-		int endOffset = words[i].second;
+	for (size_t i = 0; i < words.size(); ++i) {
+		int offset{words[i].first};
+		int endOffset{words[i].second};
 		Gtk::TextIter startIter{get_iter_at_offset(offset)};
 		Gtk::TextIter endIter{get_iter_at_offset(endOffset)};
 		std::string text{get_text(startIter, endIter)};
@@ -58,7 +57,8 @@ void StickerBuffer::replaceWords(std::vector<std::pair<int, int>> words)
 			Gtk::TextIter endWordIter{get_iter_at_offset(match.position()
 				+ match.length() + offset)};
 			erase(startWordIter, endWordIter);
-			auto pixbuf = engine.createPixbufDefaultSize(match.str(1));
+			std::string stickerName{match.str(1)};
+			auto pixbuf = engine.createPixbufDefaultSize(stickerName);
 			if (pixbuf)
 				insert_pixbuf(get_iter_at_offset(match.position()
 						+ offset), pixbuf);

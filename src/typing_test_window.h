@@ -42,14 +42,14 @@ public:
 	// Constructor for use with Gtk::Builder.
 	TypingTestWindow(BaseObjectType *cobject,
 		const Glib::RefPtr<Gtk::Builder> &builder);
-    // Creates a new TypingTestWindow. Can throw a Glib::FileError,
-    // Gio::ResourceError, or Gtk::BuilderError.
-    //
-    // This uses a standard library smart pointer so that it can be
-    // dereferenced which Glib smart pointers don't support. Dereferencing is
-    // required for easily calling GApplication::run with a window. If someone
-    // knows a better way to do this with RAII then that would be great.
-    static std::shared_ptr<TypingTestWindow> create();
+	// Creates a new TypingTestWindow. Can throw a Glib::FileError,
+	// Gio::ResourceError, or Gtk::BuilderError.
+	//
+	// This uses a standard library smart pointer so that it can be
+	// dereferenced which Glib smart pointers don't support. Dereferencing is
+	// required for easily calling GApplication::run with a window. If someone
+	// knows a better way to do this with RAII then that would be great.
+	static std::shared_ptr<TypingTestWindow> create();
 
 private:
 	// The builder used to construct the window's children.

@@ -28,17 +28,17 @@ int main(int argc, char *argv[])
 {
 	auto app = Gtk::Application::create(argc, argv, "us.laelath.typingtest");
 	try {
-        auto window = typingtest::TypingTestWindow::create();
+		auto window = typingtest::TypingTestWindow::create();
 		int status = app->run(*window);
 		return status;
-    } catch (const Glib::FileError &e) {
-        warnx("%s", e.what().c_str());
-    } catch (const Gio::ResourceError &e) {
-        warnx("%s", e.what().c_str());
-    } catch (const Gtk::BuilderError &e) {
-        warnx("%s", e.what().c_str());
-    } catch (...) {
-        warnx("Unknown exception");
-    }
+	} catch (const Glib::FileError &e) {
+		warnx("%s", e.what().c_str());
+	} catch (const Gio::ResourceError &e) {
+		warnx("%s", e.what().c_str());
+	} catch (const Gtk::BuilderError &e) {
+		warnx("%s", e.what().c_str());
+	} catch (...) {
+		warnx("Unknown exception");
+	}
 	return EXIT_FAILURE;
 }
