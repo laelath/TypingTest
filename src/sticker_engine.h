@@ -27,7 +27,7 @@ namespace typingtest {
 // The default path to find stickers with in the resources.
 const char STICKER_PREFIX[] = "/us/laelath/typingtest/stickers/";
 // The default width for stickers to be used in text.
-const int DEFAULT_STICKER_WIDTH = 64;
+const int DEFAULT_STICKER_WIDTH = 128;
 
 class StickerEngine {
 public:

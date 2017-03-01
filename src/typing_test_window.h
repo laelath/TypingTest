@@ -257,6 +257,7 @@ private:
 	void onDialogInsertStickerButtonClicked();
 
 	void onInsertStickerButtonClicked();
+	bool onTypingEntryKeyPress(GdkEventKey *keyEvent);
 
 	// Opens the history dialog.
 	void onActionShowHistory();

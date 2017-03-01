@@ -60,12 +60,20 @@ void StickerBuffer::replaceWords(std::vector<std::pair<int, int>> words)
 			std::string stickerName{match.str(1)};
 			auto pixbuf = engine.createPixbufDefaultSize(stickerName);
 			int stickerPos = match.position() + offset;
-			insert(get_iter_at_offset(stickerPos), "\n\n");
+			std::string insertString = "\n";
+			Gtk::TextIter stickerIter = get_iter_at_offset(stickerPos);
+			if (!stickerIter.starts_line()) {
+				stickerPos++;
+				insertString += "\n";
+			}
+			insert(get_iter_at_offset(stickerPos), insertString);
+
 			// For two newline characters.
 			int lengthChange = match.length() - 2;
 			if (pixbuf) {
-				insert_pixbuf(get_iter_at_offset(stickerPos + 1), pixbuf);
-				create_mark("stallman1", get_iter_at_offset(stickerPos + 1));
+				insert_pixbuf(get_iter_at_offset(stickerPos), pixbuf);
+				stickerMarks.push_back(create_mark("stallman1",
+						get_iter_at_offset(stickerPos + 1)));
 				--lengthChange;
 			}
 			totalShortened += lengthChange;

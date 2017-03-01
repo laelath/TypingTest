@@ -26,6 +26,8 @@
 #include <iomanip>
 #include <numeric>
 
+#include <gdk/gdkkeysyms.h>
+
 #include "files.h"
 #include "sticker_dialog.h"
 
@@ -209,6 +211,9 @@ void TypingTestWindow::connectSignals()
 			&TypingTestWindow::openTroubleWords));
 	aboutItem->signal_activate().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::openAbout));
+	/* typingEntry->signal_key_press_event().connect_notify(sigc::mem_fun(*this, */
+	typingEntry->signal_key_press_event().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onTypingEntryKeyPress));
 
 	testTypeBox->signal_changed().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::updateSettings));
@@ -908,5 +913,15 @@ TypingTestWindow::create()
 	typingtest::TypingTestWindow *window = nullptr;
 	builder->get_widget_derived("typingtest", window);
 	return std::shared_ptr<TypingTestWindow>{window};
+}
+
+bool
+TypingTestWindow::onTypingEntryKeyPress(GdkEventKey *keyEvent)
+{
+	if (keyEvent->keyval == GDK_KEY_Tab) {
+		newTest->grab_focus();
+		return true;
+	}
+	return false;;
 }
 } // namespace typingtest
