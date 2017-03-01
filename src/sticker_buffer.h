@@ -43,7 +43,7 @@ public:
 	// works, though, reinserting text retreived with this method will display
 	// correctly because as of now there is now way create colons that would
 	// mess this up.
-	std::string getTextWithStickers() const;
+	std::string getTextWithStickers();
 
 	static Glib::RefPtr<StickerBuffer> create();
 
@@ -51,12 +51,9 @@ private:
 	void onInsertText(const Gtk::TextIter &iter, const Glib::ustring &text,
 		int bytes);
 
+	std::vector<Glib::RefPtr<Gtk::TextTag>> stickerTags;
+
 	StickerEngine engine;
-	// List of marks at stickers. Not all marks will be valid, and they will
-	// theoretically accumulate over time if one creates and destorys enough
-	// stickers, but that is a fringe use case and someone is welcome to fix
-	// it.
-	std::vector<Glib::RefPtr<Gtk::TextMark>> stickerMarks;
 
 	std::vector<std::pair<int, int>> splitChars(
 		const std::vector<gunichar> &elements);

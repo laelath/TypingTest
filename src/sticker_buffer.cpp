@@ -38,6 +38,7 @@ void StickerBuffer::onInsertText(const Gtk::TextIter &,
 		std::vector<std::pair<int, int>> words = splitChars(elements);
 		replaceWords(words);
 	}
+	std::cout << getTextWithStickers() << std::endl;
 }
 
 void StickerBuffer::replaceWords(std::vector<std::pair<int, int>> words)
@@ -69,11 +70,9 @@ void StickerBuffer::replaceWords(std::vector<std::pair<int, int>> words)
 			insert(get_iter_at_offset(stickerPos), insertString);
 
 			// For two newline characters.
-			int lengthChange = match.length() - 2;
+			int lengthChange = match.length() - insertString.length();
 			if (pixbuf) {
 				insert_pixbuf(get_iter_at_offset(stickerPos), pixbuf);
-				stickerMarks.push_back(create_mark("stallman1",
-						get_iter_at_offset(stickerPos + 1)));
 				--lengthChange;
 			}
 			totalShortened += lengthChange;
@@ -122,7 +121,7 @@ std::vector<std::pair<int, int>> StickerBuffer::splitChars(
 }
 
 std::string
-StickerBuffer::getTextWithStickers() const
+StickerBuffer::getTextWithStickers()
 {
 	return "";
 }
