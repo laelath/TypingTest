@@ -21,7 +21,7 @@
 #include <string>
 #include <utility>
 #include <map>
-#include <unordered_map>
+#include <unordered_set>
 
 #include <gtkmm.h>
 
@@ -29,10 +29,16 @@
 
 namespace typingtest {
 
+class TagHasher {
+public:
+	size_t operator()(Glib::RefPtr<Gtk::TextTag> tag) const;
+};
+
 // From the gtkmm documentation. This character is returned from the
 // TextIter::get_char() function when it's on a pixbuf.
 const gunichar UNKNOWN_CHAR = 0xFFFC;
 
+size_t stickerHash(Glib::RefPtr<Gtk::TextTag> tag);
 
 class StickerBuffer : public Gtk::TextBuffer {
 public:
@@ -49,14 +55,18 @@ public:
 
 	static Glib::RefPtr<StickerBuffer> create();
 
+	using TextTagSet = std::unordered_set<Glib::RefPtr<Gtk::TextTag>,
+		  TagHasher>;
+
 private:
 	void onInsertText(const Gtk::TextIter &iter, const Glib::ustring &text,
 		int bytes);
 
-	static size_t stickerPairHash(const Glib::RefPtr<Gtk::TextTag>& tag);
-	/* std::unordered_map<Glib::RefPtr<Gtk::TextTag>, int, */
-	/* 	decltype(&stickerPairHash)> stickerTags; */
-	/* std::map<Glib::RefPtr<Gtk::TextTag>, int> stickerTags; */
+	TextTagSet stickerTags;
+	/* std::unordered_set<Glib::RefPtr<Gtk::TextTag>, decltype(&stickerHash)> */
+	/* 	stickerTags; */
+	/* std::unordered_set<Glib::RefPtr<Gtk::TextTag>, TagHasher> */
+	/* 	stickerTags; */
 
 	StickerEngine engine;
 
@@ -64,7 +74,12 @@ private:
 		const std::vector<gunichar> &elements);
 	// Pass by copy because the list is adjusted as we go. Shouldn't incur that
 	// much overhead.
-	void replaceWords(std::vector<std::pair<int, int>> words);
+	void replaceWords(std::vector<std::pair<int, int>> words,
+		bool addNewlines = true);
+
+	// Goes over every character, testing for if it matches a sticker, removes
+	// the sticker if it doesn not occur anywhere.
+	void cleanStickers();
 };
 } // namespace typingtest
 
