@@ -21,6 +21,7 @@
 #include <string>
 #include <utility>
 #include <map>
+#include <unordered_map>
 
 #include <gtkmm.h>
 
@@ -31,6 +32,7 @@ namespace typingtest {
 // From the gtkmm documentation. This character is returned from the
 // TextIter::get_char() function when it's on a pixbuf.
 const gunichar UNKNOWN_CHAR = 0xFFFC;
+
 
 class StickerBuffer : public Gtk::TextBuffer {
 public:
@@ -48,11 +50,13 @@ public:
 	static Glib::RefPtr<StickerBuffer> create();
 
 private:
-	Glib::RefPtr<Gtk::TextTag> tag;
 	void onInsertText(const Gtk::TextIter &iter, const Glib::ustring &text,
 		int bytes);
 
-	std::map<Glib::RefPtr<Gtk::TextTag>, int> stickerTags;
+	static size_t stickerPairHash(const Glib::RefPtr<Gtk::TextTag>& tag);
+	/* std::unordered_map<Glib::RefPtr<Gtk::TextTag>, int, */
+	/* 	decltype(&stickerPairHash)> stickerTags; */
+	/* std::map<Glib::RefPtr<Gtk::TextTag>, int> stickerTags; */
 
 	StickerEngine engine;
 
