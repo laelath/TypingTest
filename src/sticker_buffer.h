@@ -20,7 +20,7 @@
 
 #include <string>
 #include <utility>
-#include <vector>
+#include <map>
 
 #include <gtkmm.h>
 
@@ -48,10 +48,11 @@ public:
 	static Glib::RefPtr<StickerBuffer> create();
 
 private:
+	Glib::RefPtr<Gtk::TextTag> tag;
 	void onInsertText(const Gtk::TextIter &iter, const Glib::ustring &text,
 		int bytes);
 
-	std::vector<Glib::RefPtr<Gtk::TextTag>> stickerTags;
+	std::map<Glib::RefPtr<Gtk::TextTag>, int> stickerTags;
 
 	StickerEngine engine;
 
