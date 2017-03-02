@@ -38,8 +38,6 @@ public:
 // TextIter::get_char() function when it's on a pixbuf.
 const gunichar UNKNOWN_CHAR = 0xFFFC;
 
-size_t stickerHash(Glib::RefPtr<Gtk::TextTag> tag);
-
 class StickerBuffer : public Gtk::TextBuffer {
 public:
 	StickerBuffer();

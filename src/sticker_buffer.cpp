@@ -166,20 +166,10 @@ std::string StickerBuffer::getTextWithStickers()
 	return text;
 }
 
-/* size_t StickerBuffer::stickerHash(Glib::RefPtr<Gtk::TextTag> tag) */
-size_t stickerHash(Glib::RefPtr<Gtk::TextTag> tag)
-{
-	std::cout << "In has" << std::endl;
-	/* std::string name{Glib::ustring{tag->property_name()}}; */
-	/* return std::hash<std::string>{}(name); */
-	return 0;
-}
-
 void StickerBuffer::cleanStickers()
 {
 	TextTagSet includedStickers;
 	for (auto iter = begin(); iter != end(); ++iter) {
-		std::cout << iter.get_char() << std::endl;
 		auto stickerIter = std::find_if(stickerTags.begin(), stickerTags.end(),
 			[&iter](const Glib::RefPtr<Gtk::TextTag>& tag) {
 				return iter.begins_tag(tag);
