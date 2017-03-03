@@ -42,8 +42,6 @@ void StickerBuffer::onInsertText(const Gtk::TextIter &,
 		std::vector<std::pair<int, int>> words = splitChars(elements);
 		replaceWords(words);
 	}
-	/* std::cout << getTextWithStickers() << std::endl; */
-	std::cout << stickerTags.size() << std::endl;
 }
 
 void StickerBuffer::replaceWords(std::vector<std::pair<int, int>> words,
@@ -84,14 +82,15 @@ void StickerBuffer::replaceWords(std::vector<std::pair<int, int>> words,
 
 			auto nameIter = std::find_if(stickerTags.begin(), stickerTags.end(),
 				[&stickerName](const Glib::RefPtr<Gtk::TextTag>& tag) {
-				std::cout << "In compare" << std::endl;
 					return tag->property_name() == stickerName;
 				});
 			Glib::RefPtr<Gtk::TextTag> stickerTag;
 			if (nameIter != stickerTags.end())
 				stickerTag = *nameIter;
 			else {
-				stickerTag = create_tag(stickerName);
+				stickerTag = get_tag_table()->lookup(stickerName);
+				if (!stickerTag)
+					stickerTag = create_tag(stickerName);
 				stickerTags.insert(stickerTag);
 			}
 			auto pixbuf = engine.createPixbufDefaultSize(stickerName);

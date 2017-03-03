@@ -48,7 +48,8 @@ public:
 	// stickers will not display correctly. Because of the way text insertion
 	// works, though, reinserting text retreived with this method will display
 	// correctly because as of now there is now way create colons that would
-	// mess this up.
+	// mess this up. However, this only works if you insert it again with the
+	// addNewlines parameter set to false.
 	std::string getTextWithStickers();
 
 	static Glib::RefPtr<StickerBuffer> create();
@@ -61,10 +62,6 @@ private:
 		int bytes);
 
 	TextTagSet stickerTags;
-	/* std::unordered_set<Glib::RefPtr<Gtk::TextTag>, decltype(&stickerHash)> */
-	/* 	stickerTags; */
-	/* std::unordered_set<Glib::RefPtr<Gtk::TextTag>, TagHasher> */
-	/* 	stickerTags; */
 
 	StickerEngine engine;
 
