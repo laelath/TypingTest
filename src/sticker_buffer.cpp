@@ -25,7 +25,6 @@ namespace typingtest {
 
 StickerBuffer::StickerBuffer()
 	: TextBuffer{},
-	  /* stickerTags{100, &stickerHash} */
 	  stickerTags{100, TagHasher{}}
 {
 	signal_insert().connect(sigc::mem_fun(*this,
