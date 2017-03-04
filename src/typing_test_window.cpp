@@ -903,6 +903,8 @@ void TypingTestWindow::onInsertStickerButtonClicked()
 {
 	StickerDialog dialog{*this};
 	dialog.run();
+	if (dialog.hasSticker())
+		noteBuffer->insertSticker(dialog.getStickerName());
 }
 
 std::shared_ptr<TypingTestWindow>

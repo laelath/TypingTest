@@ -54,6 +54,10 @@ public:
 
 	static Glib::RefPtr<StickerBuffer> create();
 
+	// For inserting stickers from outside, not for internal use. Inserts a
+	// sticker with the given name at the cursor.
+	void insertSticker(const std::string &stickerName);
+
 	using TextTagSet = std::unordered_set<Glib::RefPtr<Gtk::TextTag>,
 		  TagHasher>;
 

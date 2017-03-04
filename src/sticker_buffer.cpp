@@ -211,4 +211,18 @@ bool StickerBuffer::insertPixbuf(const std::string &stickerName, int position)
 	}
 	return false;
 }
+
+void StickerBuffer::insertSticker(const std::string &stickerName)
+{
+	auto pixbuf = engine.createPixbufDefaultSize(stickerName);
+	if (!pixbuf)
+		return;
+	// Get the insert mark which is in every TextBuffer. Should probably check
+	// this for nullptr.
+	auto insertMark = get_mark("insert");
+	Gtk::TextIter insertIter{get_iter_at_mark(insertMark)};
+	int stickerPos = insertIter.get_offset();
+	insertNewlines(stickerPos);
+	insertPixbuf(stickerName, stickerPos);
+}
 } // typingtest
