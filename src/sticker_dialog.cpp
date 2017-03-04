@@ -45,7 +45,6 @@ StickerDialog::StickerDialog(Gtk::Window &parent)
 	this->set_default_size(640, 480);
 	show_all_children();
 
-	this->add_button("OK", Gtk::RESPONSE_OK);
 	this->add_button("Cancel", Gtk::RESPONSE_CANCEL);
 }
 
@@ -57,6 +56,9 @@ void StickerDialog::onRowActivated(const Gtk::TreePath &path,
 	auto nameColumn = modelNameColumns[model];
 
 	Gtk::TreeRow row = *model->get_iter(path);
+	sticker = true;
+	stickerName = Glib::ustring{row[*nameColumn]}.c_str();
+	response(Gtk::RESPONSE_OK);
 }
 
 void StickerDialog::addCategory(const std::string &name,
@@ -69,6 +71,16 @@ void StickerDialog::addCategory(const std::string &name,
 	category->view.signal_row_activated().connect(sigc::mem_fun(*this,
 			&StickerDialog::onRowActivated));
 	modelNameColumns[category->model] = &category->nameColumn;
+}
+
+bool StickerDialog::hasSticker() const
+{
+	return sticker;
+}
+
+std::string StickerDialog::getStickerName() const
+{
+	return stickerName;
 }
 
 StickerCategory::StickerCategory(const std::string &name,

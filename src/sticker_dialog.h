@@ -56,9 +56,15 @@ public:
 	StickerDialog();
 	StickerDialog(Gtk::Window &parent);
 
+	bool hasSticker() const;
+	std::string getStickerName() const;
+
 private:
 	Gtk::Notebook stickerNotebook;
 	std::vector<std::shared_ptr<StickerCategory>> categories;
+
+	bool sticker = false;
+	std::string stickerName;
 
 	Glib::RefPtr<Gtk::ListStore> allStickersStore;
 	Gtk::TreeModelColumn<Glib::ustring> allStickersColumn;
