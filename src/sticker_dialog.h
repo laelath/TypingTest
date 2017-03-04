@@ -18,12 +18,37 @@
 #ifndef STICKER_DIALOG_H
 #define STICKER_DIALOG_H
 
+#include <unordered_map>
+#include <memory>
+
 #include <gtkmm.h>
+
+#include "sticker_engine.h"
 
 namespace typingtest {
 
-const std::string STALLMAN_STICKERS[] = {
-	"stallman1",
+extern const char *STALLMAN_STICKERS[];
+extern const char *OTHER_STICKERS[];
+
+template<typename T>
+class RefPtrHasher {
+public:
+	size_t operator()(const Glib::RefPtr<T> &) const;
+};
+
+struct StickerCategory {
+	StickerCategory(const std::string &name,
+		const std::vector<std::string> &stickerNames);
+
+	std::string name;
+	Gtk::ScrolledWindow viewScrolledWindow;
+	Gtk::TreeView view;
+	Glib::RefPtr<Gtk::ListStore> model;
+	Gtk::TreeModelColumnRecord record;
+	Gtk::TreeModelColumn<Glib::ustring> nameColumn;
+	Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf>> previewColumn;
+
+	StickerEngine engine;
 };
 
 class StickerDialog : public Gtk::Dialog {
@@ -32,21 +57,29 @@ public:
 	StickerDialog(Gtk::Window &parent);
 
 private:
-	Gtk::SearchEntry searchEntry;
-	Glib::RefPtr<Gtk::EntryCompletion> entryCompletion;
 	Gtk::Notebook stickerNotebook;
-	Gtk::ScrolledWindow stickerScrolledWindow;
-	Gtk::TreeView stallmanView;
-	Gtk::TreeModelColumnRecord stallmanRecord;
-	Gtk::TreeModelColumn<Glib::ustring> stallmanColumn;
-	Glib::RefPtr<Gtk::ListStore> stallmanStore;
-	Gtk::TreeView otherView;
-	Gtk::TreeModelColumnRecord otherRecord;
-	Gtk::TreeModelColumn<Glib::ustring> otherColumn;
-	Glib::RefPtr<Gtk::ListStore> otherStore;
+	std::vector<std::shared_ptr<StickerCategory>> categories;
 
 	Glib::RefPtr<Gtk::ListStore> allStickersStore;
 	Gtk::TreeModelColumn<Glib::ustring> allStickersColumn;
+
+	void addCategory(const std::string &name,
+		std::vector<std::string> &stickerNames);
+
+	std::unordered_map<Glib::RefPtr<Gtk::TreeModel>,
+		Gtk::TreeModelColumn<Glib::ustring> *, RefPtrHasher<Gtk::TreeModel>>
+			modelNameColumns;
+
+	void onRowActivated(const Gtk::TreePath &path, Gtk::TreeViewColumn *column);
+
+	StickerEngine engine;
+};
+
+template<typename T>
+size_t
+RefPtrHasher<T>::operator()(const Glib::RefPtr<T> &) const
+{
+	return 0;
 };
 } // namespace typingtest
 

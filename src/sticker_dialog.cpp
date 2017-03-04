@@ -19,30 +19,26 @@
 
 namespace typingtest {
 
+const char *STALLMAN_STICKERS[] = {
+	"stallman1",
+	"stallman2"
+};
+
+const char *OTHER_STICKERS[] = {
+};
+
 StickerDialog::StickerDialog(Gtk::Window &parent)
-	: Gtk::Dialog("Insert Sticker", parent, Gtk::DIALOG_MODAL)
+	: Gtk::Dialog("Insert Sticker", parent, Gtk::DIALOG_MODAL),
+	  modelNameColumns{100, RefPtrHasher<Gtk::TreeModel>{}}
 {
-	searchEntry.set_completion(entryCompletion);
-	get_content_area()->pack_start(searchEntry, false, false);
-
-	stallmanRecord.add(stallmanColumn);
-	stallmanStore = Gtk::ListStore::create(stallmanRecord);
-	stallmanView.set_model(stallmanStore);
-	stallmanView.append_column("Name", stallmanColumn);
-	for (const auto &stickerName : STALLMAN_STICKERS) {
-		Gtk::TreeIter iter{stallmanStore->append()};
-		Gtk::TreeRow row{*iter};
-		row[stallmanColumn] = stickerName;
-		/* Gtk::TreeIter allIter{allStickersStore->append()}; */
-		/* Gtk::TreeRow allRow{*allIter}; */
-		/* allRow[allStickersColumn] = stickerName; */
-	}
-	stickerNotebook.append_page(stallmanView, "Stallman");
-
-	otherRecord.add(otherColumn);
-	otherStore = Gtk::ListStore::create(otherRecord);
-	otherView.set_model(otherStore);
-	stickerNotebook.append_page(otherView, "Other");
+	std::vector<std::string> stallmanStickers;
+	for (const auto &name : STALLMAN_STICKERS)
+		stallmanStickers.push_back(name);
+	addCategory("Stallman", stallmanStickers);
+	std::vector<std::string> otherStickers;
+	for (const auto &name : OTHER_STICKERS)
+		stallmanStickers.push_back(name);
+	addCategory("Other", otherStickers);
 
 	get_content_area()->pack_start(stickerNotebook, true, true);
 
@@ -51,6 +47,45 @@ StickerDialog::StickerDialog(Gtk::Window &parent)
 
 	this->add_button("OK", Gtk::RESPONSE_OK);
 	this->add_button("Cancel", Gtk::RESPONSE_CANCEL);
+}
 
+void StickerDialog::onRowActivated(const Gtk::TreePath &path,
+	Gtk::TreeViewColumn *column)
+{
+	Gtk::TreeView *view = column->get_tree_view();
+	auto model = view->get_model();
+	auto nameColumn = modelNameColumns[model];
+
+	Gtk::TreeRow row = *model->get_iter(path);
+}
+
+void StickerDialog::addCategory(const std::string &name,
+	std::vector<std::string> &stickerNames)
+{
+	std::shared_ptr<StickerCategory> category{new StickerCategory(name,
+		stickerNames)};
+	categories.push_back(category);
+	stickerNotebook.append_page(category->viewScrolledWindow, category->name);
+	category->view.signal_row_activated().connect(sigc::mem_fun(*this,
+			&StickerDialog::onRowActivated));
+	modelNameColumns[category->model] = &category->nameColumn;
+}
+
+StickerCategory::StickerCategory(const std::string &name,
+	const std::vector<std::string> &stickerNames) : name{name}
+{
+	record.add(nameColumn);
+	record.add(previewColumn);
+	model = Gtk::ListStore::create(record);
+	view.set_model(model);
+	view.append_column("Name", nameColumn);
+	view.append_column("Preview", previewColumn);
+	viewScrolledWindow.add(view);
+
+	for (const auto &name : stickerNames) {
+		Gtk::TreeRow row{*model->append()};
+		row[nameColumn] = name;
+		row[previewColumn] = engine.createPixbufDefaultSize(name);
+	}
 }
 } // namespace typingtest
