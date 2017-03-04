@@ -75,6 +75,28 @@ private:
 	// Goes over every character, testing for if it matches a sticker, removes
 	// the sticker if it doesn not occur anywhere.
 	void cleanStickers();
+
+	// Functions to shorten replaceWords().
+	void eraseWord(int position, int length);
+	// Inserts necessary newlines and for later inserting a pixbuf and returns
+	// the amount that the buffer was shortened. This function may modify
+	// stickerPosition if a newline is inserted before it.
+	int insertNewlines(int &stickerPos);
+	// Modifies words by shortening the values in it by amount. Only shortens
+	// words from startIndex.
+	void shortenWords(std::vector<std::pair<int, int>> &words, int amount,
+		int startIndex);
+	// If the tag represented by stickerName is already in stickerTags, then it
+	// adds it to that and creates it in the buffer if it is not already in the
+	// tag table.
+	//
+	// Returns the tag which could have been created or found.
+	Glib::RefPtr<Gtk::TextTag> insertTag(const std::string &stickerName);
+	// Inserts a pixbuf of a sticker with the given name if it can be found at
+	// the given position.
+	//
+	// Returns whether or not a sticker was inserted;
+	bool insertPixbuf(const std::string &stickerName, int position);
 };
 } // namespace typingtest
 

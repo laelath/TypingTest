@@ -59,59 +59,25 @@ void StickerBuffer::replaceWords(std::vector<std::pair<int, int>> words,
 		std::smatch match;
 		int totalShortened{0};
 		while (std::regex_search(text, match, re)) {
-			Gtk::TextIter startWordIter{get_iter_at_offset(
-				match.position() + offset)};
-			Gtk::TextIter endWordIter{get_iter_at_offset(match.position()
-				+ match.length() + offset)};
-			erase(startWordIter, endWordIter);
-			std::string stickerName{match.str(1)};
 			int stickerPos = match.position() + offset;
+			eraseWord(stickerPos, match.length());
+			std::string stickerName{match.str(1)};
 			std::string insertString;
-			if (addNewlines) {
-				insertString += "\n";
-				Gtk::TextIter stickerIter = get_iter_at_offset(stickerPos);
-				if (!stickerIter.starts_line()) {
-					stickerPos++;
-					insertString += "\n";
-				}
-			}
-			insert(get_iter_at_offset(stickerPos), insertString);
-
-			// For two newline characters.
-			int lengthChange = match.length() - insertString.length();
-
-			auto nameIter = std::find_if(stickerTags.begin(), stickerTags.end(),
-				[&stickerName](const Glib::RefPtr<Gtk::TextTag>& tag) {
-					return tag->property_name() == stickerName;
-				});
-			Glib::RefPtr<Gtk::TextTag> stickerTag;
-			if (nameIter != stickerTags.end())
-				stickerTag = *nameIter;
-			else {
-				stickerTag = get_tag_table()->lookup(stickerName);
-				if (!stickerTag)
-					stickerTag = create_tag(stickerName);
-				stickerTags.insert(stickerTag);
-			}
-			auto pixbuf = engine.createPixbufDefaultSize(stickerName);
-			if (pixbuf) {
-				insert_pixbuf(get_iter_at_offset(stickerPos), pixbuf);
+			int lengthChange = match.length();
+			if (addNewlines)
+				lengthChange -= insertNewlines(stickerPos);
+			if (insertPixbuf(stickerName, stickerPos)) {
 				--lengthChange;
-				apply_tag(stickerTag, get_iter_at_offset(stickerPos),
-					get_iter_at_offset(stickerPos + 1));
+				stickerInserted = true;
 			}
 			totalShortened += lengthChange;
 			offset -= lengthChange;
 			endOffset -= lengthChange;
-			Gtk::TextIter startIter{get_iter_at_offset(offset)};
-			Gtk::TextIter endIter{get_iter_at_offset(endOffset)};
+			startIter = get_iter_at_offset(offset);
+			endIter = get_iter_at_offset(endOffset);
 			text = get_text(startIter, endIter);
 		}
-		for (std::vector<std::pair<int, int>>::size_type j = i + 1;
-			j < words.size(); ++j) {
-			words[i].first -= totalShortened;
-			words[i].second -= totalShortened;
-		}
+		shortenWords(words, totalShortened, i + 1);
 	}
 	if (stickerInserted)
 		cleanStickers();
@@ -185,5 +151,65 @@ size_t TagHasher::operator()(Glib::RefPtr<Gtk::TextTag> tag) const
 {
 	return std::hash<std::string>{}(std::string{Glib::ustring{
 		tag->property_name()}});
+}
+
+void StickerBuffer::eraseWord(int position, int length)
+{
+	Gtk::TextIter startWordIter{get_iter_at_offset(position)};
+	Gtk::TextIter endWordIter{get_iter_at_offset(position + length)};
+	erase(startWordIter, endWordIter);
+}
+
+int StickerBuffer::insertNewlines(int &stickerPos)
+{
+	std::string insertString = "\n";
+	Gtk::TextIter stickerIter = get_iter_at_offset(stickerPos);
+	if (!stickerIter.starts_line()) {
+		stickerPos++;
+		insertString += "\n";
+	}
+	insert(get_iter_at_offset(stickerPos), insertString);
+	return insertString.length();
+}
+
+void StickerBuffer::shortenWords(std::vector<std::pair<int, int>> &words,
+	int amount, int startIndex)
+{
+	for (size_t i = startIndex; i < words.size(); ++i) {
+		words[i].first -= amount;
+		words[i].second -= amount;
+	}
+}
+
+Glib::RefPtr<Gtk::TextTag> StickerBuffer::insertTag(
+	const std::string &stickerName)
+{
+	auto nameIter = std::find_if(stickerTags.begin(), stickerTags.end(),
+		[&stickerName](const Glib::RefPtr<Gtk::TextTag>& tag) {
+			return tag->property_name() == stickerName;
+		});
+	Glib::RefPtr<Gtk::TextTag> stickerTag;
+	if (nameIter != stickerTags.end())
+		stickerTag = *nameIter;
+	else {
+		stickerTag = get_tag_table()->lookup(stickerName);
+		if (!stickerTag)
+			stickerTag = create_tag(stickerName);
+		stickerTags.insert(stickerTag);
+	}
+	return stickerTag;
+}
+
+bool StickerBuffer::insertPixbuf(const std::string &stickerName, int position)
+{
+	Glib::RefPtr<Gtk::TextTag> stickerTag{insertTag(stickerName)};
+	auto pixbuf = engine.createPixbufDefaultSize(stickerName);
+	if (pixbuf) {
+		insert_pixbuf(get_iter_at_offset(position), pixbuf);
+		apply_tag(stickerTag, get_iter_at_offset(position),
+			get_iter_at_offset(position + 1));
+		return true;
+	}
+	return false;
 }
 } // typingtest
