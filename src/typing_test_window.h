@@ -265,7 +265,7 @@ private:
 	// Opens the notes dialog.
 	void onActionOpenNotes();
 
-	
+
 	std::string noteDir() const;
 	void addNoteToDialog(const Note &note);
 	void loadNotes();
