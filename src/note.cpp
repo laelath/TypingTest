@@ -21,7 +21,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include <iostream>
+#include <gtkmm.h>
 
 namespace typingtest {
 
@@ -93,7 +93,6 @@ Note Note::readNote(const std::string &filePath)
 	std::string dateString;
 	std::getline(reader, dateString);
 	std::istringstream dateStream{dateString};
-	std::cout << dateString << std::endl;
 	dateStream >> std::get_time(&time, TIME_FORMAT);
 	Note note{name, time};
 	std::string contents{std::istreambuf_iterator<char>(reader),
@@ -106,5 +105,21 @@ std::tm currentTime()
 {
 	time_t now = time(NULL);
 	return *std::localtime(&now);
+}
+
+std::string Note::uniqueNoteName(const std::string &noteName,
+	const std::string &noteDir)
+{
+	std::string tmpName{noteName};
+	std::string path = noteDir + "/" + tmpName;
+	int tries = 0;
+	while (Glib::file_test(path, Glib::FILE_TEST_EXISTS)) {
+		++tries;
+		if (tries >= MAX_SCORE_WITH_SAME_NAME)
+			throw std::runtime_error{"Failed to find unique note name."};
+		tmpName = noteName + "(" + std::to_string(tries) + ")";
+		path = noteDir + "/" + tmpName;
+	}
+	return tmpName;
 }
 } // namespace typingtest

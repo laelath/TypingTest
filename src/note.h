@@ -47,6 +47,14 @@ public:
 	// Returns true on success, false on failure.
 	bool save(const std::string &dirPath) const;
 
+	static const int MAX_SCORE_WITH_SAME_NAME = 99999;
+	// Searches noteDir for existing files. Looks for paths that are not yet
+	// taken that start with noteName. If a file already exists, appends (num)
+	// to the end. If MAX_SCORE_WITH_SAME_NAME is reached, then a
+	// runtime_error is thrown.
+	static std::string uniqueNoteName(const std::string &noteName,
+		const std::string &noteDir);
+
 private:
 	std::string name;
 	std::tm time;

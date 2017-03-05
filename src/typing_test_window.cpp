@@ -236,6 +236,8 @@ void TypingTestWindow::connectSignals()
 	restoreDefaultAdv->signal_clicked().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::applyDefaultSettings));
 
+	saveNoteButton->signal_clicked().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onSaveNoteButtonClicked));
 	insertStickerButton->signal_clicked().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::onInsertStickerButtonClicked));
 
@@ -654,6 +656,9 @@ void TypingTestWindow::calculateScore()
 			- charsCorrect));
 	troubleWordsLabel->set_text(troubleWordsStr);
 
+	lastScore = wpm;
+	hasLastScore = true;
+
 	updateHistoryFile(wpm);
 }
 
@@ -916,6 +921,25 @@ void TypingTestWindow::onInsertStickerButtonClicked()
 	dialog.run();
 	if (dialog.hasSticker())
 		noteBuffer->insertSticker(dialog.getStickerName());
+}
+
+void TypingTestWindow::onSaveNoteButtonClicked()
+{
+	std::string noteName{"Anonymous Note"};
+	if (hasLastScore) {
+		noteName = "Note for test with " + std::to_string(lastScore);
+	}
+	noteName = Note::uniqueNoteName(noteName, noteDir());
+	Note note{noteName};
+	std::string contents{noteBuffer->getTextWithStickers()};
+	note.setContents(contents);
+	if (note.save(noteDir()))
+		noteBuffer->set_text("");
+	else {
+		Gtk::MessageDialog dialog{*this, "Failed to save note.", false,
+			Gtk::MESSAGE_ERROR,Gtk::BUTTONS_OK, true};
+		dialog.run();
+	}
 }
 
 std::shared_ptr<TypingTestWindow> TypingTestWindow::create()

@@ -258,6 +258,7 @@ private:
 	void onDialogInsertStickerButtonClicked();
 
 	void onInsertStickerButtonClicked();
+	void onSaveNoteButtonClicked();
 	bool onTypingEntryKeyPress(GdkEventKey *keyEvent);
 
 	// Opens the history dialog.
@@ -269,6 +270,8 @@ private:
 	std::string noteDir() const;
 	void addNoteToDialog(const Note &note);
 	void loadNotes();
+	bool hasLastScore = false;
+	int lastScore = 0;
 
 	// Assuming a score of wpm was just achieved, updates the history file to
 	// reflect the new score.
@@ -310,7 +313,8 @@ private:
 	// Returns the path to use for the file storing history data.
 	std::string getTroubleWordsPath() const;
 	// Lock to ensure there is not simultaneous access to the trouble words
-	// file.
+	// file. There is still unsynchronized access from another class, but I
+	// forget which one.
 	std::mutex troubleWordsFileLock;
 };
 } // namespace typingtest
