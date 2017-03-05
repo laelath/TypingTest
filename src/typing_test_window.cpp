@@ -171,7 +171,8 @@ void TypingTestWindow::initWidgets()
 	notesView->set_model(notesStore);
 	notesView->append_column("Name", noteNameColumn);
 	notesView->append_column("Date", noteDateColumn);
-	dialogNoteBuffer = dialogNoteView->get_buffer();
+	dialogNoteBuffer = StickerBuffer::create();
+	dialogNoteView->set_buffer(dialogNoteBuffer);
 
 	// Trouble words viewer
 	builder->get_widget("troubledialog", troubleDialog);
@@ -704,6 +705,9 @@ void TypingTestWindow::onActionShowHistory()
 
 void TypingTestWindow::onActionOpenNotes()
 {
+	notesStore->clear();
+	loadNotes();
+
 	notesDialog->run();
 	notesDialog->close();
 }
@@ -878,25 +882,32 @@ void TypingTestWindow::resetHistoryDisplay()
 
 void TypingTestWindow::onDialogSaveNoteButtonClicked()
 {
-	Glib::ustring noteName = noteNameEntry->get_text();
+	Glib::ustring noteName{noteNameEntry->get_text()};
+	if (noteName.length() == 0)
+		return;
+	if (Glib::file_test(noteDir() + "/" + noteName, Glib::FILE_TEST_EXISTS)) {
+		Gtk::MessageDialog dialog{*notesDialog,
+			"Note with that name already exists.", false, Gtk::MESSAGE_WARNING,
+			Gtk::BUTTONS_OK, true};
+		dialog.run();
+		return;
+	}
 	noteNameEntry->set_text("");
-	Glib::ustring noteText = dialogNoteBuffer->get_text();
+	Glib::ustring noteText{dialogNoteBuffer->getTextWithStickers()};
 	dialogNoteBuffer->set_text("");
-	Gtk::TreeIter iter = notesStore->append();
-	Gtk::TreeRow row = *iter;
+	Note note{noteName};
+	note.setContents(noteText);
 
-	time_t now = std::time(nullptr);
-	std::tm currentDate = *std::localtime(&now);
-
-	std::string dateString(std::asctime(&currentDate));
-
-	row[noteNameColumn] = noteName;
-	row[noteContentsColumn] = noteText;
-	row[noteDateColumn] = dateString;
+	note.save(noteDir());
+	addNoteToDialog(note);
 }
 
 void TypingTestWindow::onDialogInsertStickerButtonClicked()
 {
+	StickerDialog dialog{*this};
+	dialog.run();
+	if (dialog.hasSticker())
+		dialogNoteBuffer->insertSticker(dialog.getStickerName());
 }
 
 void TypingTestWindow::onInsertStickerButtonClicked()
@@ -907,8 +918,7 @@ void TypingTestWindow::onInsertStickerButtonClicked()
 		noteBuffer->insertSticker(dialog.getStickerName());
 }
 
-std::shared_ptr<TypingTestWindow>
-TypingTestWindow::create()
+std::shared_ptr<TypingTestWindow> TypingTestWindow::create()
 {
 	auto builder = Gtk::Builder::create_from_resource(
 		"/us/laelath/typingtest/ui/typingui.glade");
@@ -917,13 +927,40 @@ TypingTestWindow::create()
 	return std::shared_ptr<TypingTestWindow>{window};
 }
 
-bool
-TypingTestWindow::onTypingEntryKeyPress(GdkEventKey *keyEvent)
+bool TypingTestWindow::onTypingEntryKeyPress(GdkEventKey *keyEvent)
 {
 	if (keyEvent->keyval == GDK_KEY_Tab) {
 		newTest->grab_focus();
 		return true;
 	}
 	return false;;
+}
+
+void TypingTestWindow::addNoteToDialog(const Note &note)
+{
+	Gtk::TreeRow row = *notesStore->append();
+
+	row[noteNameColumn] = note.getName();
+	row[noteContentsColumn] = note.getContents();
+	row[noteDateColumn] = note.getTimeString();
+}
+
+std::string TypingTestWindow::noteDir() const
+{
+	return config.dataDir + "notes";
+}
+
+void TypingTestWindow::loadNotes()
+{
+	if (!Glib::file_test(noteDir(), Glib::FILE_TEST_EXISTS)) {
+		auto dirFile = Gio::File::create_for_path(noteDir());
+		dirFile->make_directory();
+	}
+	Glib::Dir notesDirectory{noteDir()};
+	for (const auto &dirent : notesDirectory) {
+		std::string notePath{noteDir() + "/" + dirent};
+		if (Glib::file_test(notePath, Glib::FILE_TEST_IS_REGULAR))
+			addNoteToDialog(Note::readNote(notePath));
+	}
 }
 } // namespace typingtest

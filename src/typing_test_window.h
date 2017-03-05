@@ -22,6 +22,7 @@
 #include <gtkmm.h>
 
 #include "config.h"
+#include "note.h"
 #include "sticker_buffer.h"
 #include "test_info.h"
 #include "test_settings.h"
@@ -159,7 +160,7 @@ private:
 	Gtk::TreeModelColumn<Glib::ustring> noteNameColumn;
 	Gtk::TreeModelColumn<Glib::ustring> noteDateColumn;
 	Gtk::TreeModelColumn<Glib::ustring> noteContentsColumn;
-	Glib::RefPtr<Gtk::TextBuffer> dialogNoteBuffer;
+	Glib::RefPtr<StickerBuffer> dialogNoteBuffer;
 
 	// List of trouble words to be used with the trouble words display.
 	Glib::RefPtr<Gtk::ListStore> troubleListStore;
@@ -264,6 +265,10 @@ private:
 	// Opens the notes dialog.
 	void onActionOpenNotes();
 
+	
+	std::string noteDir() const;
+	void addNoteToDialog(const Note &note);
+	void loadNotes();
 
 	// Assuming a score of wpm was just achieved, updates the history file to
 	// reflect the new score.
