@@ -937,7 +937,7 @@ void TypingTestWindow::onSaveNoteButtonClicked()
 		noteBuffer->set_text("");
 	else {
 		Gtk::MessageDialog dialog{*this, "Failed to save note.", false,
-			Gtk::MESSAGE_ERROR,Gtk::BUTTONS_OK, true};
+			Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true};
 		dialog.run();
 	}
 }
