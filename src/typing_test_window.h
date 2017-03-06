@@ -258,6 +258,9 @@ private:
 	void onDialogInsertStickerButtonClicked();
     void onDialogNotesViewButtonPressEvent(GdkEventButton* button);
 	void onDialogDeleteNote(Gtk::TreeRowReference selectedRef);
+	void onNotesViewRowActivated(const Gtk::TreePath &path,
+		Gtk::TreeViewColumn *column);
+	void onLoadNoteItemActivated(Gtk::TreeRowReference selectedRef);
 
 	void onInsertStickerButtonClicked();
 	void onSaveNoteButtonClicked();
@@ -271,6 +274,10 @@ private:
 
 	std::string noteDir() const;
 	void addNoteToDialog(const Note &note);
+	// Looks for a note with the given name, loads it into the dialog. This
+	// only matters if the dialog is opened. Doesn't make a visual change if
+	// the dialog isn't open.
+	void loadNote(const std::string &name);
 	void loadNotes();
 	bool hasLastScore = false;
 	int lastScore = 0;

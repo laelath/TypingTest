@@ -257,6 +257,8 @@ void TypingTestWindow::connectSignals()
 			&TypingTestWindow::onDialogInsertStickerButtonClicked));
 	notesView->signal_button_press_event().connect_notify(sigc::mem_fun(*this,
 			&TypingTestWindow::onDialogNotesViewButtonPressEvent));
+	notesView->signal_row_activated().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onNotesViewRowActivated));
 	closeNotesButton->signal_clicked().connect(sigc::mem_fun(*notesDialog,
 			&Gtk::Dialog::close));
 }
@@ -1009,6 +1011,8 @@ void TypingTestWindow::onDialogNotesViewButtonPressEvent(GdkEventButton *button)
 
 	menu->addItem("Delete", sigc::mem_fun(*this,
 			&TypingTestWindow::onDialogDeleteNote));
+	menu->addItem("Load", sigc::mem_fun(*this,
+			&TypingTestWindow::onLoadNoteItemActivated));
 
 	menu->run(selectedRef, button->button, button->time);
 }
@@ -1030,5 +1034,36 @@ void TypingTestWindow::onDialogDeleteNote(Gtk::TreeRowReference selectedRef)
 			return;
 		}
 	}
+}
+
+void TypingTestWindow::loadNote(const std::string &name)
+{
+	std::string path{noteDir() + "/" + name};
+	try {
+		Note note{Note::readNote(path)};
+		dialogNoteBuffer->set_text(note.getContents());
+		// dialogNoteBuffer->replaceWords();
+		noteNameEntry->set_text(note.getName());
+	} catch (std::runtime_error) {
+	}
+}
+
+void TypingTestWindow::onNotesViewRowActivated(const Gtk::TreePath &path,
+	Gtk::TreeViewColumn *)
+{
+	Gtk::TreeRow selectedRow{*notesStore->get_iter(path)};
+	Glib::ustring name{selectedRow[noteNameColumn]};
+	loadNote(name);
+}
+
+void TypingTestWindow::onLoadNoteItemActivated(
+	Gtk::TreeRowReference selectedRef)
+{
+	if (!selectedRef)
+		return;
+
+	Gtk::TreeRow selectedRow{*notesStore->get_iter(selectedRef.get_path())};
+	Glib::ustring noteName{selectedRow[noteNameColumn]};
+	loadNote(noteName);
 }
 } // namespace typingtest
