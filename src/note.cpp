@@ -17,6 +17,7 @@
 
 #include "note.h"
 
+#include <cstio>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
@@ -121,5 +122,11 @@ std::string Note::uniqueNoteName(const std::string &noteName,
 		path = noteDir + "/" + tmpName;
 	}
 	return tmpName;
+}
+
+bool Note::deleteNote(const std::string &name, const std::string &noteDir)
+{
+	std::string path = noteDir + "/" + name;
+	return std::remove(path.c_str()) == 0;
 }
 } // namespace typingtest

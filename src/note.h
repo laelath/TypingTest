@@ -46,6 +46,8 @@ public:
 	//
 	// Returns true on success, false on failure.
 	bool save(const std::string &dirPath) const;
+	// Returns true on success, false on failure.
+	static bool deleteNote(const std::string &name, const std::string &noteDir);
 
 	static const int MAX_SCORE_WITH_SAME_NAME = 99999;
 	// Searches noteDir for existing files. Looks for paths that are not yet
