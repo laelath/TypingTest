@@ -29,6 +29,7 @@
 #include <gdk/gdkkeysyms.h>
 
 #include "files.h"
+#include "popup_menu.h"
 #include "sticker_dialog.h"
 
 namespace typingtest {
@@ -254,6 +255,8 @@ void TypingTestWindow::connectSignals()
 			&TypingTestWindow::onDialogSaveNoteButtonClicked));
 	dialogInsertStickerButton->signal_clicked().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::onDialogInsertStickerButtonClicked));
+	notesView->signal_button_press_event().connect_notify(sigc::mem_fun(*this,
+			&TypingTestWindow::onDialogNotesViewButtonPressEvent));
 	closeNotesButton->signal_clicked().connect(sigc::mem_fun(*notesDialog,
 			&Gtk::Dialog::close));
 }
@@ -986,5 +989,24 @@ void TypingTestWindow::loadNotes()
 		if (Glib::file_test(notePath, Glib::FILE_TEST_IS_REGULAR))
 			addNoteToDialog(Note::readNote(notePath));
 	}
+}
+
+void TypingTestWindow::onDialogNotesViewButtonPressEvent(GdkEventButton *button)
+{
+    if (button->type != GDK_BUTTON_PRESS
+        || button->button != GDK_BUTTON_SECONDARY)
+        return;
+
+    Gtk::TreePath selectedPath;
+
+    bool isOnRow = notesView->get_path_at_pos(button->x, button->y,
+		selectedPath);
+	if (!isOnRow)
+		return;
+	Gtk::TreeRowReference selectedRow{notesStore, selectedPath};
+
+	PopupMenu *menu{PopupMenu::create(*this)};
+	menu->addItem("Delete", [](Gtk::TreeRowReference) {});
+	menu->run(selectedRow, button->button, button->time);
 }
 } // namespace typingtest

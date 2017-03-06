@@ -31,6 +31,7 @@ set (
 	src/sticker_buffer.cpp
 	src/sticker_dialog.cpp
 	src/note.cpp
+	src/popup_menu.cpp
 	${CMAKE_CURRENT_BINARY_DIR}/resources.c)
 
 add_executable (typingtest ${SOURCES})

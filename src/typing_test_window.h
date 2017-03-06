@@ -256,6 +256,7 @@ private:
 
 	void onDialogSaveNoteButtonClicked();
 	void onDialogInsertStickerButtonClicked();
+    void onDialogNotesViewButtonPressEvent(GdkEventButton* button);
 
 	void onInsertStickerButtonClicked();
 	void onSaveNoteButtonClicked();
