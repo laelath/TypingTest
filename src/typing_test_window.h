@@ -257,6 +257,7 @@ private:
 	void onDialogSaveNoteButtonClicked();
 	void onDialogInsertStickerButtonClicked();
     void onDialogNotesViewButtonPressEvent(GdkEventButton* button);
+	void onDialogDeleteNote(Gtk::TreeRowReference selectedRef);
 
 	void onInsertStickerButtonClicked();
 	void onSaveNoteButtonClicked();

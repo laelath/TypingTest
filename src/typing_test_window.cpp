@@ -998,15 +998,37 @@ void TypingTestWindow::onDialogNotesViewButtonPressEvent(GdkEventButton *button)
         return;
 
     Gtk::TreePath selectedPath;
-
     bool isOnRow = notesView->get_path_at_pos(button->x, button->y,
 		selectedPath);
 	if (!isOnRow)
 		return;
-	Gtk::TreeRowReference selectedRow{notesStore, selectedPath};
+	Gtk::TreeRowReference selectedRef{notesStore, selectedPath};
+	Gtk::TreeRow selectedRow{*notesStore->get_iter(selectedPath)};
 
 	PopupMenu *menu{PopupMenu::create(*this)};
-	menu->addItem("Delete", [](Gtk::TreeRowReference) {});
-	menu->run(selectedRow, button->button, button->time);
+
+	menu->addItem("Delete", sigc::mem_fun(*this,
+			&TypingTestWindow::onDialogDeleteNote));
+
+	menu->run(selectedRef, button->button, button->time);
+}
+
+void TypingTestWindow::onDialogDeleteNote(Gtk::TreeRowReference selectedRef)
+{
+	if (!selectedRef)
+		return;
+
+	Gtk::TreeRow selectedRow{*notesStore->get_iter(selectedRef.get_path())};
+	Glib::ustring name = selectedRow[noteNameColumn];
+	Note::deleteNote(name, noteDir());
+	// I'm only searching for this once without checking for repeats because
+	// there shouldn't be able to be repeats.
+	for (auto &iter : notesStore->children()) {
+		Gtk::TreeRow row = *iter;
+		if (row[noteNameColumn] == name) {
+			notesStore->erase(iter);
+			return;
+		}
+	}
 }
 } // namespace typingtest
