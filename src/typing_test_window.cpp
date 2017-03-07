@@ -443,95 +443,19 @@ void TypingTestWindow::textInsert(std::string text, int *)
 {
 	if (!testStarted && text.length() > 0) {
 		testStarted = true;
-		timerConnection =
-			Glib::signal_timeout().connect(sigc::mem_fun(*this,
+		timerConnection = Glib::signal_timeout().connect(sigc::mem_fun(*this,
 					&TypingTestWindow::updateTimer), 1000);
 		words[0]->startTime();
 	}
+	if (testEnded)
+		return;
+	if (text[0] == ' ')
+		checkWord();
+	else if (!words[wordIndex]->getStarted())
+		words[wordIndex]->startTime();
 
-	if (!testEnded) {
-		if (text[0] == ' ') {
-			std::string word = typingEntry->get_text();
-			word.erase(std::remove(word.begin(), word.end(), ' '), word.end());
-			typingEntry->set_text("");
-
-			textBuffer->remove_tag_by_name("current",
-				textBuffer->get_iter_at_offset(wordCharIndex),
-				textBuffer->get_iter_at_offset(wordCharIndex
-					+ words[wordIndex]->getWord().length()));
-			textBuffer->remove_tag_by_name("currenterror",
-				textBuffer->get_iter_at_offset(wordCharIndex),
-				textBuffer->get_iter_at_offset(wordCharIndex
-					+ words[wordIndex]->getWord().length()));
-
-			bool correct = words[wordIndex]->enterWord(word);
-			if (config.hlMode != HighlightMode::NONE) {
-				if (correct)
-					textBuffer->apply_tag_by_name("good",
-						textBuffer->get_iter_at_offset(wordCharIndex),
-						textBuffer->get_iter_at_offset(wordCharIndex +
-							words[wordIndex]->getWord().length()));
-				else
-					textBuffer->apply_tag_by_name("error",
-						textBuffer->get_iter_at_offset(wordCharIndex),
-						textBuffer->get_iter_at_offset(wordCharIndex
-							+ words[wordIndex]->getWord().length()));
-			}
-
-			wordCharIndex += words[wordIndex]->getWord().length() + 1;
-			wordIndex++;
-
-			if (config.hlMode != HighlightMode::ALL)
-				textBuffer->apply_tag_by_name("current",
-						textBuffer->get_iter_at_offset(wordCharIndex),
-						textBuffer->get_iter_at_offset(wordCharIndex
-							+ words[wordIndex]->getWord().length()));
-
-			textBuffer->remove_tag_by_name("uglyhack",
-				textBuffer->get_iter_at_offset(0), textBuffer->end());
-
-			std::string newWord = currentTest.genWord();
-			words.push_back(std::shared_ptr<Word>(new Word(newWord)));
-			textBuffer->insert(textBuffer->end(), " " + newWord);
-
-			textBuffer->apply_tag_by_name("uglyhack",
-				textBuffer->get_iter_at_offset(wordCharIndex
-					+ words[wordIndex]->getWord().length() + 1),
-				textBuffer->end());
-
-			Gtk::TextBuffer::iterator itr =
-				textBuffer->get_iter_at_offset(wordCharIndex);
-			textView->scroll_to(itr, 0.2);
-		} else {
-			if (!words[wordIndex]->getStarted()) {
-				words[wordIndex]->startTime();
-			}
-		}
-
-		if (config.hlMode == HighlightMode::ALL) {
-			std::string text = typingEntry->get_text();
-			std::string word = words[wordIndex]->getWord();
-			if (text.length() <= word.length()
-					&& text == word.substr(0, text.length())) {
-				textBuffer->remove_tag_by_name("currenterror",
-					textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex
-						+ words[wordIndex]->getWord().length()));
-				textBuffer->apply_tag_by_name("current",
-					textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex
-						+ words[wordIndex]->getWord().length()));
-			} else {
-				textBuffer->remove_tag_by_name("current",
-					textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex +
-						words[wordIndex]->getWord().length()));
-				textBuffer->apply_tag_by_name("currenterror",
-					textBuffer->get_iter_at_offset(wordCharIndex),
-					textBuffer->get_iter_at_offset(wordCharIndex +
-						words[wordIndex]->getWord().length()));
-			}
-		}
+	if (config.hlMode == HighlightMode::ALL) {
+		applyHighlight();
 	}
 }
 
@@ -1084,5 +1008,79 @@ void TypingTestWindow::clearNotesDialog()
 	dialogNoteBuffer->set_text("");
 	isEditingNote = false;
 	editedNoteName = "";
+}
+
+void TypingTestWindow::checkWord()
+{
+	std::string word = typingEntry->get_text();
+	word.erase(std::remove(word.begin(), word.end(), ' '), word.end());
+	typingEntry->set_text("");
+	textBuffer->remove_tag_by_name("current",
+		textBuffer->get_iter_at_offset(wordCharIndex),
+		textBuffer->get_iter_at_offset(wordCharIndex
+			+ words[wordIndex]->getWord().length()));
+	textBuffer->remove_tag_by_name("currenterror",
+		textBuffer->get_iter_at_offset(wordCharIndex),
+		textBuffer->get_iter_at_offset(wordCharIndex +
+			words[wordIndex]->getWord().length()));
+
+	bool correct = words[wordIndex]->enterWord(word);
+	if (config.hlMode != HighlightMode::NONE) {
+		if (correct)
+			textBuffer->apply_tag_by_name("good",
+				textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex +
+					words[wordIndex]->getWord().length()));
+		else
+			textBuffer->apply_tag_by_name("error",
+				textBuffer->get_iter_at_offset(wordCharIndex),
+				textBuffer->get_iter_at_offset(wordCharIndex
+					+ words[wordIndex]->getWord().length()));
+	}
+	wordCharIndex += words[wordIndex]->getWord().length() + 1;
+	++wordIndex;
+	if (config.hlMode != HighlightMode::ALL)
+		textBuffer->apply_tag_by_name("current",
+			textBuffer->get_iter_at_offset(wordCharIndex),
+			textBuffer->get_iter_at_offset(wordCharIndex
+				+ words[wordIndex]->getWord().length()));
+	textBuffer->remove_tag_by_name("uglyhack",
+		textBuffer->get_iter_at_offset(0), textBuffer->end());
+	std::string newWord = currentTest.genWord();
+	words.push_back(std::shared_ptr<Word>(new Word(newWord)));
+	textBuffer->insert(textBuffer->end(), " " + newWord);
+	textBuffer->apply_tag_by_name("uglyhack",
+		textBuffer->get_iter_at_offset(wordCharIndex
+			+ words[wordIndex]->getWord().length() + 1),
+		textBuffer->end());
+	Gtk::TextBuffer::iterator itr =
+		textBuffer->get_iter_at_offset(wordCharIndex);
+	textView->scroll_to(itr, 0.2);
+}
+
+void TypingTestWindow::applyHighlight()
+{
+	std::string text = typingEntry->get_text();
+	std::string word = words[wordIndex]->getWord();
+	if (text.length() <= word.length()
+		&& text == word.substr(0, text.length())) {
+		textBuffer->remove_tag_by_name("currenterror",
+			textBuffer->get_iter_at_offset(wordCharIndex),
+			textBuffer->get_iter_at_offset(wordCharIndex
+				+ words[wordIndex]->getWord().length()));
+		textBuffer->apply_tag_by_name("current",
+			textBuffer->get_iter_at_offset(wordCharIndex),
+			textBuffer->get_iter_at_offset(wordCharIndex
+				+ words[wordIndex]->getWord().length()));
+	} else {
+		textBuffer->remove_tag_by_name("current",
+			textBuffer->get_iter_at_offset(wordCharIndex),
+			textBuffer->get_iter_at_offset(wordCharIndex +
+				words[wordIndex]->getWord().length()));
+		textBuffer->apply_tag_by_name("currenterror",
+			textBuffer->get_iter_at_offset(wordCharIndex),
+			textBuffer->get_iter_at_offset(wordCharIndex +
+				words[wordIndex]->getWord().length()));
+	}
 }
 } // namespace typingtest

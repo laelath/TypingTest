@@ -248,6 +248,9 @@ private:
 	// Initialize actions so that action names from glade activate correctly.
 	void initActions();
 
+	void checkWord();
+	void applyHighlight();
+
 	// Signal handlers.
 	// For the history dialog close button to give the dialog response signal.
 	void onHistoryCloseButtonClicked();
