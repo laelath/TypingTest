@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License along with
 // TypingTest.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef STICKER_DIALOG_H
-#define STICKER_DIALOG_H
+#ifndef TYPING_TEST_STICKER_DIALOG_H
+#define TYPING_TEST_STICKER_DIALOG_H
 
 #include <unordered_map>
 #include <memory>
@@ -100,4 +100,4 @@ RefPtrHasher<T>::operator()(const Glib::RefPtr<T> &) const
 };
 } // namespace typingtest
 
-#endif // STICKER_DIALOG_H
+#endif // TYPING_TEST_STICKER_DIALOG_H

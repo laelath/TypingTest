@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License along with
 // TypingTest.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef STICKER_ENGINE_H
-#define STICKER_ENGINE_H
+#ifndef TYPING_TEST_STICKER_ENGINE_H
+#define TYPING_TEST_STICKER_ENGINE_H
 
 #include <string>
 
@@ -67,4 +67,4 @@ public:
 };
 } // namespace typingtest
 
-#endif // STICKER_ENGINE_H
+#endif // TYPING_TEST_STICKER_ENGINE_H

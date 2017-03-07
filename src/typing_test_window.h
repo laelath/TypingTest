@@ -29,8 +29,8 @@
 #include "typing_test.h"
 #include "word.h"
 
-#ifndef TYPING_TEST_WINDOW_H
-#define TYPING_TEST_WINDOW_H
+#ifndef TYPING_TEST_TYPING_TEST_WINDOW_H
+#define TYPING_TEST_TYPING_TEST_WINDOW_H
 
 namespace typingtest {
 
@@ -352,4 +352,4 @@ private:
 };
 } // namespace typingtest
 
-#endif // TYPING_TEST_WINDOW_H
+#endif // TYPING_TEST_TYPING_TEST_WINDOW_H

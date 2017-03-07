@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License along with
 // TypingTest.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef TYPING_TEST_H
-#define TYPING_TEST_H
+#ifndef TYPING_TEST_TYPING_TEST_H
+#define TYPING_TEST_TYPING_TEST_H
 
 #include <chrono>
 #include <memory>
@@ -84,4 +84,4 @@ private:
 };
 } // namespace typingtest
 
-#endif // TYPING_TEST_H
+#endif // TYPING_TEST_TYPING_TEST_H

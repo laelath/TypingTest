@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License along with
 // TypingTest.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef TEST_SETTINGS_H
-#define TEST_SETTINGS_H
+#ifndef TYPING_TEST_TEST_SETTINGS_H
+#define TYPING_TEST_TEST_SETTINGS_H
 
 #include <chrono>
 #include <cstdlib>
@@ -61,4 +61,4 @@ std::istream& operator>>(std::istream& is, TestSettings::TestType& type);
 
 } // namespace typingtest
 
-#endif // TEST_SETTINGS_H
+#endif // TYPING_TEST_TEST_SETTINGS_H

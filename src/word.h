@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License along with
 // TypingTest.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef WORD_H
-#define WORD_H
+#ifndef TYPING_TEST_WORD_H
+#define TYPING_TEST_WORD_H
 
 #include <chrono>
 #include <string>
@@ -51,4 +51,4 @@ private:
 };
 } // namespace typingtest
 
-#endif // WORD_H
+#endif // TYPING_TEST_WORD_H

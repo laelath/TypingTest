@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License along with
 // TypingTest.  If not, see <http:// www.gnu.org/licenses/>.
 
-#ifndef STICKER_BUFFER_H
-#define STICKER_BUFFER_H
+#ifndef TYPING_TEST_STICKER_BUFFER_H
+#define TYPING_TEST_STICKER_BUFFER_H
 
 #include <string>
 #include <utility>
@@ -115,4 +115,4 @@ private:
 };
 } // namespace typingtest
 
-#endif // STICKER_BUFFER_H
+#endif // TYPING_TEST_STICKER_BUFFER_H

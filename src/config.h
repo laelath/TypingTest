@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License along with
 // TypingTest.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef TYPING_TEST_CONFIG_H
+#define TYPING_TEST_CONFIG_H
 
 #include <string>
 
@@ -51,4 +51,4 @@ public:
 };
 } // namespace typingtest
 
-#endif // CONFIG_H
+#endif // TYPING_TEST_CONFIG_H

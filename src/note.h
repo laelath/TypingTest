@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License along with
 // TypingTest.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef NOTE_H
-#define NOTE_H
+#ifndef TYPING_TEST_NOTE_H
+#define TYPING_TEST_NOTE_H
 
 #include <ctime>
 #include <string>
@@ -71,4 +71,4 @@ private:
 };
 } // namespace typingtest
 
-#endif // NOTE_H
+#endif // TYPING_TEST_NOTE_H

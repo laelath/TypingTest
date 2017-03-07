@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License along with
 // TypingTest.  If not, see <http:// www.gnu.org/licenses/>.
 
-#ifndef FILES_H
-#define FILES_H
+#ifndef TYPING_TEST_FILES_H
+#define TYPING_TEST_FILES_H
 
 #include <iostream>
 #include <fstream>
@@ -37,4 +37,4 @@ std::string getSwapPath(const std::string &path);
 void save(const std::string &path, const std::string &swapPath);
 } // namespace typingtest
 
-#endif // FILES_H
+#endif // TYPING_TEST_FILES_H

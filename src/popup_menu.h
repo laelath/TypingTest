@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License along with
 // TypingTest.  If not, see <http:// www.gnu.org/licenses/>.
 
-#ifndef POPUP_MENU_H
-#define POPUP_MENU_H
+#ifndef TYPING_TEST_POPUP_MENU_H
+#define TYPING_TEST_POPUP_MENU_H
 
 #include <gtkmm.h>
 
@@ -48,4 +48,4 @@ private:
 };
 } // namespace typingtest
 
-#endif // POPUP_MENU_H
+#endif // TYPING_TEST_POPUP_MENU_H

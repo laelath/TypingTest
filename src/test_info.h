@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License along with
 // TypingTest.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef TEST_INFO_H
-#define TEST_INFO_H
+#ifndef TYPING_TEST_TEST_INFO_H
+#define TYPING_TEST_TEST_INFO_H
 
 #include <chrono>
 #include <iostream>
@@ -60,4 +60,4 @@ std::istream& operator>>(std::istream& is, TestInfo& info);
 
 } // namespace typingtest
 
-#endif // TEST_INFO_H
+#endif // TYPING_TEST_TEST_INFO_H
