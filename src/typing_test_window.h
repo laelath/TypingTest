@@ -278,7 +278,18 @@ private:
 	// only matters if the dialog is opened. Doesn't make a visual change if
 	// the dialog isn't open.
 	void loadNote(const std::string &name);
+	// Represents whether or not the user is editing a note that was made
+	// earlier and is now being opened.
+	bool isEditingNote = false;
+	std::string editedNoteName;
+	// Searches notesStore for a note with the given name and removes if it
+	// finds one. Only removes the first insance of a note with that name.
+	// Note, this doesn't delete the note, that can be done independently.
+	//
+	// Returns true if a note with that name was found, false otherwise.
+	bool eraseNoteWithName(const std::string &name);
 	void loadNotes();
+	void clearNotesDialog();
 	bool hasLastScore = false;
 	int lastScore = 0;
 

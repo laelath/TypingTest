@@ -720,6 +720,7 @@ void TypingTestWindow::onActionOpenNotes()
 
 	notesDialog->run();
 	notesDialog->close();
+	clearNotesDialog();
 }
 
 void TypingTestWindow::updateHistoryFile(int wpm)
@@ -895,21 +896,24 @@ void TypingTestWindow::onDialogSaveNoteButtonClicked()
 	Glib::ustring noteName{noteNameEntry->get_text()};
 	if (noteName.length() == 0)
 		return;
-	if (Glib::file_test(noteDir() + "/" + noteName, Glib::FILE_TEST_EXISTS)) {
+	if (isEditingNote)
+		Note::deleteNote(editedNoteName, noteDir());
+	else if (Glib::file_test(noteDir() + "/" + noteName, Glib::FILE_TEST_EXISTS)) {
 		Gtk::MessageDialog dialog{*notesDialog,
 			"Note with that name already exists.", false, Gtk::MESSAGE_WARNING,
 			Gtk::BUTTONS_OK, true};
 		dialog.run();
 		return;
 	}
-	noteNameEntry->set_text("");
-	Glib::ustring noteText{dialogNoteBuffer->getTextWithStickers()};
-	dialogNoteBuffer->set_text("");
 	Note note{noteName};
-	note.setContents(noteText);
-
-	note.save(noteDir());
-	addNoteToDialog(note);
+	note.setContents(dialogNoteBuffer->getTextWithStickers());
+	if (note.save(noteDir())) {
+		noteNameEntry->set_text("");
+		dialogNoteBuffer->set_text("");
+		if (isEditingNote)
+			eraseNoteWithName(editedNoteName);
+		addNoteToDialog(note);
+	}
 }
 
 void TypingTestWindow::onDialogInsertStickerButtonClicked()
@@ -1025,15 +1029,7 @@ void TypingTestWindow::onDialogDeleteNote(Gtk::TreeRowReference selectedRef)
 	Gtk::TreeRow selectedRow{*notesStore->get_iter(selectedRef.get_path())};
 	Glib::ustring name = selectedRow[noteNameColumn];
 	Note::deleteNote(name, noteDir());
-	// I'm only searching for this once without checking for repeats because
-	// there shouldn't be able to be repeats.
-	for (auto &iter : notesStore->children()) {
-		Gtk::TreeRow row = *iter;
-		if (row[noteNameColumn] == name) {
-			notesStore->erase(iter);
-			return;
-		}
-	}
+	eraseNoteWithName(name);
 }
 
 void TypingTestWindow::loadNote(const std::string &name)
@@ -1044,6 +1040,8 @@ void TypingTestWindow::loadNote(const std::string &name)
 		dialogNoteBuffer->set_text(note.getContents());
 		// dialogNoteBuffer->replaceWords();
 		noteNameEntry->set_text(note.getName());
+		isEditingNote = true;
+		editedNoteName = note.getName();
 	} catch (std::runtime_error) {
 	}
 }
@@ -1065,5 +1063,25 @@ void TypingTestWindow::onLoadNoteItemActivated(
 	Gtk::TreeRow selectedRow{*notesStore->get_iter(selectedRef.get_path())};
 	Glib::ustring noteName{selectedRow[noteNameColumn]};
 	loadNote(noteName);
+}
+
+bool TypingTestWindow::eraseNoteWithName(const std::string &name)
+{
+	for (auto &iter : notesStore->children()) {
+		Gtk::TreeRow row = *iter;
+		if (row[noteNameColumn] == name) {
+			notesStore->erase(iter);
+			return true;
+		}
+	}
+	return false;
+}
+
+void TypingTestWindow::clearNotesDialog()
+{
+	noteNameEntry->set_text("");
+	dialogNoteBuffer->set_text("");
+	isEditingNote = false;
+	editedNoteName = "";
 }
 } // namespace typingtest
