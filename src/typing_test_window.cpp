@@ -898,7 +898,8 @@ void TypingTestWindow::onDialogSaveNoteButtonClicked()
 		return;
 	if (isEditingNote)
 		Note::deleteNote(editedNoteName, noteDir());
-	else if (Glib::file_test(noteDir() + "/" + noteName, Glib::FILE_TEST_EXISTS)) {
+	else if (Glib::file_test(noteDir() + "/" + noteName,
+			Glib::FILE_TEST_EXISTS)) {
 		Gtk::MessageDialog dialog{*notesDialog,
 			"Note with that name already exists.", false, Gtk::MESSAGE_WARNING,
 			Gtk::BUTTONS_OK, true};
