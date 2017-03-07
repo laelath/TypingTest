@@ -25,8 +25,15 @@ namespace typingtest {
 
 std::tm currentTime();
 
+// The string to be used with std::get_time and std::put_time. Uses ISO 8601
+// year and time formats. I tried using "%F %T" before but that didn't work
+// since I don't think you're supposed to use those two together. Doing this
+// manually works just as well.
 const char TIME_FORMAT[] = "%Y-%m-%d %H:%M:%S";
 
+// A class that represents a note taken by a user, storing its contents as well
+// as some simple data. Supports simple saving, loading, and deleting. Also
+// stores a time, defaults to the current time.
 class Note {
 public:
 	Note(const std::string &name = {}, const std::tm &time = currentTime());

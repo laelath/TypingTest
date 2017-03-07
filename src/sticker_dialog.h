@@ -36,6 +36,9 @@ public:
 	size_t operator()(const Glib::RefPtr<T> &) const;
 };
 
+// A set of widgets and information that are meant to be stored in a notebook
+// for a StickerDialog. They contain the necessary information for creating a
+// page and filling it with stickers.
 struct StickerCategory {
 	StickerCategory(const std::string &name,
 		const std::vector<std::string> &stickerNames);
@@ -51,6 +54,11 @@ struct StickerCategory {
 	StickerEngine engine;
 };
 
+// A dialog that is means for selecting a sticker and inserting it. Has a
+// Notebook of sticker categories and a sticker can be selected by double
+// clicking on one of them. This class is meant to be used by running the
+// dialog, checking the hasSticker() function, and then getting the sticker
+// name with getStickerName();
 class StickerDialog : public Gtk::Dialog {
 public:
 	StickerDialog();
@@ -72,6 +80,9 @@ private:
 	void addCategory(const std::string &name,
 		std::vector<std::string> &stickerNames);
 
+	// Map for associating models with the first column in that model. This is
+	// required because in one of the signal handlers, the model can be
+	// obtained but the corresponding name columns are necessary.
 	std::unordered_map<Glib::RefPtr<Gtk::TreeModel>,
 		Gtk::TreeModelColumn<Glib::ustring> *, RefPtrHasher<Gtk::TreeModel>>
 			modelNameColumns;

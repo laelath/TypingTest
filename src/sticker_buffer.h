@@ -29,6 +29,7 @@
 
 namespace typingtest {
 
+// Hasher class to create a hash value specifically for a RefPtr to a text tag.
 class TagHasher {
 public:
 	size_t operator()(Glib::RefPtr<Gtk::TextTag> tag) const;
@@ -38,6 +39,16 @@ public:
 // TextIter::get_char() function when it's on a pixbuf.
 const gunichar UNKNOWN_CHAR = 0xFFFC;
 
+// A text buffer that is meant to be a dropin replacement for the Gtkmm
+// TextBuffer class. Almost none of the default behavior is overridden except
+// for the fact that when text is inserted, it replaces strings of the form
+// ":sticker-name:" with an appropriate sticker. It also stores tags over that
+// sticker with the name of the sticker inserted. The most important thing is
+// the new function, getTextWithStickers(), that acts just like get_text,
+// except places where stickers have been inserted are replaced by the original
+// string they could have been inserted with. The normal get_text function is
+// not affected and will return the text without any inditcation that stickers
+// were there.
 class StickerBuffer : public Gtk::TextBuffer {
 public:
 	StickerBuffer();

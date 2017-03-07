@@ -29,6 +29,11 @@ const char STICKER_PREFIX[] = "/us/laelath/typingtest/stickers/";
 // The default width for stickers to be used in text.
 const int DEFAULT_STICKER_WIDTH = 128;
 
+// An object that can create stickers. If you're wondering why this is a class
+// and not a set of functions, you would be thinking correctly but it should be
+// that way. However, I thought that this might involve some RAII so I made it
+// into a class and was too far in to change it back. Should be pretty easy if
+// someone else wants to do it, though.
 class StickerEngine {
 public:
 	StickerEngine();

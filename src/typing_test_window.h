@@ -249,7 +249,6 @@ private:
 	void initActions();
 
 	// Signal handlers.
-
 	// For the history dialog close button to give the dialog response signal.
 	void onHistoryCloseButtonClicked();
 	void onEraseHistoryButtonClicked();
@@ -272,6 +271,9 @@ private:
 	void onActionOpenNotes();
 
 
+	// The directory to save notes in. Defaults to the config data dir with the
+	// notes directory appended. This variable does not end in a slash, unlike
+	// the dataDir component itself.
 	std::string noteDir() const;
 	void addNoteToDialog(const Note &note);
 	// Looks for a note with the given name, loads it into the dialog. This
@@ -281,6 +283,7 @@ private:
 	// Represents whether or not the user is editing a note that was made
 	// earlier and is now being opened.
 	bool isEditingNote = false;
+	// The name of the note that was loaded into the notesDialog.
 	std::string editedNoteName;
 	// Searches notesStore for a note with the given name and removes if it
 	// finds one. Only removes the first insance of a note with that name.
@@ -288,9 +291,19 @@ private:
 	//
 	// Returns true if a note with that name was found, false otherwise.
 	bool eraseNoteWithName(const std::string &name);
+	// Reads notes from storage into the notesDialog.
 	void loadNotes();
+	// Clears the note name and note contents from notesDialog and sets the
+	// editing notse variables to their default states.
 	void clearNotesDialog();
+
+	// Represents if the user has taken a test since the program was first
+	// openend. This is so that the notes know if they should use the last
+	// score in their note name or use the name "Anonymous Note".
 	bool hasLastScore = false;
+	// The last typing test score completed in the program. For use with the
+	// notes system. This variable is used to name a note taken with the note
+	// buffer in the main window.
 	int lastScore = 0;
 
 	// Assuming a score of wpm was just achieved, updates the history file to
