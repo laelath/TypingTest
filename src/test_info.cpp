@@ -66,6 +66,26 @@ void TestInfo::setType(TestSettings::TestType type)
 	this->type = type;
 }
 
+bool TestInfo::getHasNote() const
+{
+	return hasNote;
+}
+
+void TestInfo::setHasNote(bool hasNote)
+{
+	this->hasNote = hasNote;
+}
+
+const std::string &TestInfo::getNote() const
+{
+	return note;
+}
+
+void TestInfo::setNote(const std::string &note)
+{
+	this->note = note;
+}
+
 void TestInfo::setFromSettings(const TestSettings& settings)
 {
 	this->length = settings.seconds;
@@ -75,7 +95,11 @@ void TestInfo::setFromSettings(const TestSettings& settings)
 std::ostream& operator<<(std::ostream& os, const TestInfo& info)
 {
 	os << info.getWpm() << " " << info.getLength().count() << " "
-		<< info.getType();
+		<< info.getType() << std::endl;
+	if (info.getHasNote()) {
+		os << "note" << std::endl;
+		std::vector<std::string> lines;
+	}
 	return os;
 }
 

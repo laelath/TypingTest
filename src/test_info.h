@@ -42,7 +42,15 @@ public:
 	TestSettings::TestType getType() const;
 	void setType(TestSettings::TestType type);
 
+	bool getHasNote() const;
+	void setHasNote(bool hasNote);
+	const std::string &getNote() const;
+	void setNote(const std::string &note);
+
 	void setFromSettings(const TestSettings& settings);
+
+	void saveToFile(const std::string &name);
+	TestInfo readFromFile(const std::string &name);
 
 private:
 	// Average WPM for test.
@@ -51,6 +59,9 @@ private:
 	std::chrono::seconds length;
 	// Type of test taken.
 	TestSettings::TestType type;
+	// Whether or not the note variable matters
+	bool hasNote = false;
+	std::string note;
 };
 
 // Output operator for writing to files.
