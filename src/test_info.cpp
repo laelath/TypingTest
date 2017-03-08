@@ -18,6 +18,9 @@
 #include "test_info.h"
 
 #include <stdexcept>
+#include <vector>
+#include <string>
+#include <sstream>
 
 namespace typingtest {
 
@@ -99,7 +102,14 @@ std::ostream& operator<<(std::ostream& os, const TestInfo& info)
 	if (info.getHasNote()) {
 		os << "note" << std::endl;
 		std::vector<std::string> lines;
-	}
+		std::string line;
+		while (std::getline(std::istringstream{info.getNote()}, line))
+			lines.push_back(line);
+		os << lines.size() << std::endl;
+		for (const auto &line : lines)
+			os << line << std::endl;
+	} else
+		os << "no_note" << std::endl;
 	return os;
 }
 
@@ -120,10 +130,29 @@ std::istream& operator>>(std::istream& is, TestInfo& info)
 		is.setstate(std::ios_base::failbit);
 		return is;
 	}
+	std::string hasNote;
+	std::string note;
+	is >> hasNote;
+	if (hasNote == "note") {
+		size_t lineCount;
+		is >> lineCount;
+		std::ostringstream contents;
+		for (size_t i = 0; i < lineCount; ++i) {
+			std::string line;
+			std::getline(is, line);
+			contents << line;
+			if (i > 0)
+				contents << std::endl;
+		}
+		note = contents.str();
+	}
 
 	info.setWpm(wpm);
 	info.setLength(std::chrono::seconds(length));
 	info.setType(type);
+	info.setHasNote(hasNote == "note");
+	info.setNote(note);
+
 	return is;
 }
 } // namespace typingtest
