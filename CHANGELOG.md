@@ -8,6 +8,7 @@ This project adheres to Semantic Versioning
   them.
 - Add a notes dialog that displays your saved notes and has a place to type new
   ones.
+- Add note saving feature to store notes for future use.
 
 ### Fixed
 - Fix various bugs.
