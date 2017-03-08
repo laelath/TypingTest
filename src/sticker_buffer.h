@@ -68,6 +68,12 @@ public:
 	// For inserting stickers from outside, not for internal use. Inserts a
 	// sticker with the given name at the cursor.
 	void insertSticker(const std::string &stickerName);
+	// Usable for both internal and external use. Looks for all instances where
+	// stickers should be inserted and performs the proper insertions.
+	void substituteStickers();
+
+	bool shouldAddNewlines() const;
+	void setAddNewlines(bool addNewlines);
 
 	using TextTagSet = std::unordered_set<Glib::RefPtr<Gtk::TextTag>,
 		  TagHasher>;
@@ -80,12 +86,13 @@ private:
 
 	StickerEngine engine;
 
+	// Whether or not to insert newlines on the signal_insert() signal.
+	bool addNewlines = true;
 	std::vector<std::pair<int, int>> splitChars(
 		const std::vector<gunichar> &elements);
 	// Pass by copy because the list is adjusted as we go. Shouldn't incur that
 	// much overhead.
-	void replaceWords(std::vector<std::pair<int, int>> words,
-		bool addNewlines = true);
+	void replaceWords(std::vector<std::pair<int, int>> words);
 
 	// Goes over every character, testing for if it matches a sticker, removes
 	// the sticker if it doesn not occur anywhere.

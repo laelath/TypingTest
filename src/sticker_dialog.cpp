@@ -28,8 +28,7 @@ const char *OTHER_STICKERS[] = {
 };
 
 StickerDialog::StickerDialog(Gtk::Window &parent)
-	: Gtk::Dialog("Insert Sticker", parent, Gtk::DIALOG_MODAL),
-	  modelNameColumns{100, RefPtrHasher<Gtk::TreeModel>{}}
+	: Gtk::Dialog("Insert Sticker", parent, Gtk::DIALOG_MODAL)
 {
 	std::vector<std::string> stallmanStickers;
 	for (const auto &name : STALLMAN_STICKERS)

@@ -962,7 +962,10 @@ void TypingTestWindow::loadNote(const std::string &name)
 	std::string path{noteDir() + "/" + name};
 	try {
 		Note note{Note::readNote(path)};
+		dialogNoteBuffer->setAddNewlines(false);
 		dialogNoteBuffer->set_text(note.getContents());
+		dialogNoteBuffer->setAddNewlines(true);
+		/* dialogNoteBuffer->substituteStickers(); */
 		// dialogNoteBuffer->replaceWords();
 		noteNameEntry->set_text(note.getName());
 		isEditingNote = true;

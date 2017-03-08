@@ -24,8 +24,6 @@
 namespace typingtest {
 
 StickerBuffer::StickerBuffer()
-	: TextBuffer{},
-	  stickerTags{100, TagHasher{}}
 {
 	signal_insert().connect(sigc::mem_fun(*this,
 			&StickerBuffer::onInsertText));
@@ -34,17 +32,11 @@ StickerBuffer::StickerBuffer()
 void StickerBuffer::onInsertText(const Gtk::TextIter &,
 	const Glib::ustring &text, int)
 {
-	if (text.find(":") != Glib::ustring::npos) {
-		std::vector<gunichar> elements;
-		for (Gtk::TextIter iter = begin(); iter != end(); ++iter)
-			elements.push_back(iter.get_char());
-		std::vector<std::pair<int, int>> words = splitChars(elements);
-		replaceWords(words);
-	}
+	if (text.find(":") != Glib::ustring::npos)
+		substituteStickers();
 }
 
-void StickerBuffer::replaceWords(std::vector<std::pair<int, int>> words,
-	bool addNewlines)
+void StickerBuffer::replaceWords(std::vector<std::pair<int, int>> words)
 {
 	bool stickerInserted = false;
 	for (size_t i = 0; i < words.size(); ++i) {
@@ -63,6 +55,7 @@ void StickerBuffer::replaceWords(std::vector<std::pair<int, int>> words,
 			std::string stickerName{match.str(1)};
 			std::string insertString;
 			int lengthChange = match.length();
+			offset = stickerPos + match.length();
 			if (addNewlines)
 				lengthChange -= insertNewlines(stickerPos);
 			if (insertPixbuf(stickerName, stickerPos)) {
@@ -224,5 +217,24 @@ void StickerBuffer::insertSticker(const std::string &stickerName)
 	int stickerPos = insertIter.get_offset();
 	insertNewlines(stickerPos);
 	insertPixbuf(stickerName, stickerPos);
+}
+
+void StickerBuffer::substituteStickers()
+{
+	std::vector<gunichar> elements;
+	for (Gtk::TextIter iter = begin(); iter != end(); ++iter)
+		elements.push_back(iter.get_char());
+	std::vector<std::pair<int, int>> words = splitChars(elements);
+	replaceWords(words);
+}
+
+bool StickerBuffer::shouldAddNewlines() const
+{
+	return addNewlines;
+}
+
+void StickerBuffer::setAddNewlines(bool addNewlines)
+{
+	this->addNewlines = addNewlines;
 }
 } // typingtest
