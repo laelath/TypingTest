@@ -1,6 +1,17 @@
 # Change Log
 This project adheres to Semantic Versioning
 
+## [Unreleased]
+### Added
+- Add a sticker system.
+- Add a buffer in the main window for typing notes that may have stickers in
+  them.
+- Add a notes dialog that displays your saved notes and has a place to type new
+  ones.
+
+### Fixed
+- Fix various bugs.
+
 ## [1.2.0] - 2017-02-10
 ### Added
 - Add change log. Incomplete because it wasn't done earlier.
