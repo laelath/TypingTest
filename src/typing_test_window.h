@@ -99,6 +99,7 @@ private:
 	Gtk::Label *charsWrongLabel;
 	Gtk::Label *troubleWordsLabel;
 
+	Gtk::Button *createNoteButton;
 	Gtk::TextView *noteView;
 	Gtk::Button *saveNoteButton;
 	Gtk::Button *insertStickerButton;
@@ -146,13 +147,11 @@ private:
 	Gtk::TreeModelColumn<Glib::ustring> typeColumn;
 
 	// Notes dialog widgets
-	/* Gtk::Dialog *notesDialog; */
-	/* Gtk::Button *dialogSaveNoteButton; */
-	/* Gtk::Button *dialogInsertStickerButton; */
-	/* Gtk::Button *closeNotesButton; */
-	/* Gtk::TreeView *notesView; */
-	/* Gtk::Entry *noteNameEntry; */
-	/* Gtk::TextView *dialogNoteView; */
+	Gtk::Dialog *noteDialog;
+	Gtk::Button *dialogSaveNoteButton;
+	Gtk::Button *dialogInsertStickerButton;
+	Gtk::Button *closeNotesButton;
+	Gtk::TextView *dialogNoteView;
 
 	// Helper object for notes dialog.
 	Glib::RefPtr<StickerBuffer> dialogNoteBuffer;
@@ -270,6 +269,9 @@ private:
 	void updateTroubleWordsFile(std::set<std::string> troubleWords,
 		std::set<std::string> goodWords);
 
+	bool hasNote = false;
+	std::string note;
+
 	// Reads the file given by path and returns the list of tests it
 	// represents. If there was an error then an empty vector is returned and
 	// recordWpm is changed to 0.
@@ -290,7 +292,6 @@ private:
 
 	// Implements comparator for the WPM of TestInfo objects.
 	static bool compareWpm(const TestInfo &t1, const TestInfo &t2);
-
 
 	// Returns the path to use for the file storing history data.
 	std::string getHistoryPath() const;
