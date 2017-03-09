@@ -34,7 +34,8 @@
 
 namespace typingtest {
 
-const int HISTORY_SIZE = 100;
+// The maximum amount of tests to store in history.
+constexpr int HISTORY_SIZE = 100;
 
 // A window that is the main driver for the TypingTest program. An application
 // window that the user interacts with to take typing tests.
@@ -262,6 +263,8 @@ private:
 	// Assuming a score of wpm was just achieved, updates the history file to
 	// reflect the new score.
 	void updateHistoryFile(int wpm);
+	// Reads the history file, adds a note to the last one and resaves it.
+	void addNoteToLastTestHistory(const std::string &note);
 	// Assuming a test with troubleWords and goodWords was achieved, then
 	// updates the trouble words file accordingly. Passed by value because it
 	// shouldn't affect the variables used but also needs to modify a copy.

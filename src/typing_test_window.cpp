@@ -629,10 +629,6 @@ void TypingTestWindow::updateHistoryFile(int wpm)
 	std::string historyPath{getHistoryPath()};
 	std::string historySwapPath{getSwapPath(historyPath)};
 	std::vector<TestInfo> history = readHistory(historyPath, recordWpm);
-	TestInfo newInfo{wpm, settings};
-	newInfo.setHasNote(hasNote);
-	if (hasNote)
-		newInfo.setNote(note);
 	history.push_back(TestInfo{wpm, settings});
 	if (history.size() > HISTORY_SIZE) {
 		std::vector<TestInfo>newHistory{history.end() - HISTORY_SIZE,
@@ -641,6 +637,30 @@ void TypingTestWindow::updateHistoryFile(int wpm)
 	}
 
 	recordWpm = (wpm > recordWpm) ? wpm : recordWpm;
+	std::ofstream writer{historySwapPath};
+	if (writer.is_open()) {
+		writer << recordWpm << std::endl;
+		for (const auto &info : history)
+			writer << info << std::endl;
+		writer.close();
+		save(historyPath, historySwapPath);
+	}
+}
+
+void TypingTestWindow::addNoteToLastTestHistory(const std::string &note)
+{
+	std::unique_lock<std::mutex> lock{historyFileLock};
+	int recordWpm{0};
+	std::string historyPath{getHistoryPath()};
+	std::string historySwapPath{getSwapPath(historyPath)};
+	std::vector<TestInfo> history = readHistory(historyPath, recordWpm);
+	// Not checking if it's greater than HISTORY_SIZE because not adding
+	// anything here.
+	if (history.size() > 0) {
+		history.back().setHasNote(true);
+		history.back().setNote(note);
+	}
+
 	std::ofstream writer{historySwapPath};
 	if (writer.is_open()) {
 		writer << recordWpm << std::endl;
