@@ -540,11 +540,9 @@ void TypingTestWindow::calculateScore()
 			sum += std::pow(word->getScore() - mean, 2);
 	}
 	double stdDev = std::sqrt(sum / wordsCorrect);
-
 	// Sort scores
 	std::sort(enteredWords.begin(), enteredWords.end(),
-		[](std::shared_ptr<Word> i, std::shared_ptr<Word> j) -> bool
-		{
+		[](std::shared_ptr<Word> i, std::shared_ptr<Word> j) -> bool {
 			return i->getScore() < j->getScore();
 		});
 
