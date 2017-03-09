@@ -146,20 +146,15 @@ private:
 	Gtk::TreeModelColumn<Glib::ustring> typeColumn;
 
 	// Notes dialog widgets
-	Gtk::Dialog *notesDialog;
-	Gtk::Button *dialogSaveNoteButton;
-	Gtk::Button *dialogInsertStickerButton;
-	Gtk::Button *closeNotesButton;
-	Gtk::TreeView *notesView;
-	Gtk::Entry *noteNameEntry;
-	Gtk::TextView *dialogNoteView;
+	/* Gtk::Dialog *notesDialog; */
+	/* Gtk::Button *dialogSaveNoteButton; */
+	/* Gtk::Button *dialogInsertStickerButton; */
+	/* Gtk::Button *closeNotesButton; */
+	/* Gtk::TreeView *notesView; */
+	/* Gtk::Entry *noteNameEntry; */
+	/* Gtk::TextView *dialogNoteView; */
 
 	// Helper object for notes dialog.
-	Glib::RefPtr<Gtk::ListStore> notesStore;
-	Gtk::TreeModelColumnRecord notesColumnRecord;
-	Gtk::TreeModelColumn<Glib::ustring> noteNameColumn;
-	Gtk::TreeModelColumn<Glib::ustring> noteDateColumn;
-	Gtk::TreeModelColumn<Glib::ustring> noteContentsColumn;
 	Glib::RefPtr<StickerBuffer> dialogNoteBuffer;
 
 	// List of trouble words to be used with the trouble words display.
@@ -258,56 +253,12 @@ private:
 
 	void onDialogSaveNoteButtonClicked();
 	void onDialogInsertStickerButtonClicked();
-    void onDialogNotesViewButtonPressEvent(GdkEventButton* button);
-	void onDialogDeleteNote(Gtk::TreeRowReference selectedRef);
-	void onNotesViewRowActivated(const Gtk::TreePath &path,
-		Gtk::TreeViewColumn *column);
-	void onLoadNoteItemActivated(Gtk::TreeRowReference selectedRef);
 
-	void onInsertStickerButtonClicked();
-	void onSaveNoteButtonClicked();
+	void onCreateNoteButtonClicked();
 	bool onTypingEntryKeyPress(GdkEventKey *keyEvent);
 
 	// Opens the history dialog.
 	void onActionShowHistory();
-	// Opens the notes dialog.
-	void onActionOpenNotes();
-
-
-	// The directory to save notes in. Defaults to the config data dir with the
-	// notes directory appended. This variable does not end in a slash, unlike
-	// the dataDir component itself.
-	std::string noteDir() const;
-	void addNoteToDialog(const Note &note);
-	// Looks for a note with the given name, loads it into the dialog. This
-	// only matters if the dialog is opened. Doesn't make a visual change if
-	// the dialog isn't open.
-	void loadNote(const std::string &name);
-	// Represents whether or not the user is editing a note that was made
-	// earlier and is now being opened.
-	bool isEditingNote = false;
-	// The name of the note that was loaded into the notesDialog.
-	std::string editedNoteName;
-	// Searches notesStore for a note with the given name and removes if it
-	// finds one. Only removes the first insance of a note with that name.
-	// Note, this doesn't delete the note, that can be done independently.
-	//
-	// Returns true if a note with that name was found, false otherwise.
-	bool eraseNoteWithName(const std::string &name);
-	// Reads notes from storage into the notesDialog.
-	void loadNotes();
-	// Clears the note name and note contents from notesDialog and sets the
-	// editing notse variables to their default states.
-	void clearNotesDialog();
-
-	// Represents if the user has taken a test since the program was first
-	// openend. This is so that the notes know if they should use the last
-	// score in their note name or use the name "Anonymous Note".
-	bool hasLastScore = false;
-	// The last typing test score completed in the program. For use with the
-	// notes system. This variable is used to name a note taken with the note
-	// buffer in the main window.
-	int lastScore = 0;
 
 	// Assuming a score of wpm was just achieved, updates the history file to
 	// reflect the new score.
