@@ -239,14 +239,16 @@ void TypingTestWindow::connectSignals()
 			&TypingTestWindow::onEraseHistoryButtonClicked));
 
 
+	noteDialog->signal_response().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onNoteDialogResponse));
 	createNoteButton->signal_clicked().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::onCreateNoteButtonClicked));
 	dialogSaveNoteButton->signal_clicked().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::onDialogSaveNoteButtonClicked));
 	dialogInsertStickerButton->signal_clicked().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::onDialogInsertStickerButtonClicked));
-	closeNotesButton->signal_clicked().connect(sigc::mem_fun(*noteDialog,
-			&Gtk::Dialog::close));
+	closeNotesButton->signal_clicked().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onDialogCancelClicked));
 }
 
 void TypingTestWindow::genNewTest()
@@ -486,8 +488,6 @@ bool TypingTestWindow::updateTimer()
 				+ words[wordIndex]->getWord().length()), textBuffer->end());
 		calculateScore();
 		testEnded = true;
-		hasNote = false;
-		note = "";
 		createNoteButton->set_sensitive(true);
 		return false;
 	}
@@ -637,6 +637,30 @@ void TypingTestWindow::updateHistoryFile(int wpm)
 	}
 
 	recordWpm = (wpm > recordWpm) ? wpm : recordWpm;
+	std::ofstream writer{historySwapPath};
+	if (writer.is_open()) {
+		writer << recordWpm << std::endl;
+		for (const auto &info : history)
+			writer << info << std::endl;
+		writer.close();
+		save(historyPath, historySwapPath);
+	}
+}
+
+void TypingTestWindow::addNoteToHistory(int index, const std::string &note)
+{
+	std::unique_lock<std::mutex> lock{historyFileLock};
+	int recordWpm{0};
+	std::string historyPath{getHistoryPath()};
+	std::string historySwapPath{getSwapPath(historyPath)};
+	std::vector<TestInfo> history = readHistory(historyPath, recordWpm);
+	// Not checking if it's greater than HISTORY_SIZE because not adding
+	// anything here.
+	if (index < 0 && index >= history.size())
+		throw std::out_of_range{"Invalid history index."};
+	history[index].setHasNote(true);
+	history[index].setNote(note);
+
 	std::ofstream writer{historySwapPath};
 	if (writer.is_open()) {
 		writer << recordWpm << std::endl;
@@ -816,12 +840,9 @@ void TypingTestWindow::resetHistoryDisplay()
 
 void TypingTestWindow::onDialogSaveNoteButtonClicked()
 {
-	std::string noteText = dialogNoteBuffer->getTextWithStickers();
-	if (noteText.length() == 0)
-		return;
-	hasNote = true;
-	note = noteText;
-	noteDialog->response(Gtk::RESPONSE_OK);
+	std::string noteText{dialogNoteBuffer->getTextWithStickers()};
+	if (dialogNoteBuffer->getTextWithStickers().length() > 0)
+		noteDialog->response(Gtk::RESPONSE_OK);
 }
 
 void TypingTestWindow::onDialogInsertStickerButtonClicked()
@@ -928,5 +949,18 @@ void TypingTestWindow::onCreateNoteButtonClicked()
 {
 	noteDialog->run();
 	noteDialog->close();
+	if (hasNote)
+		addNoteToLastTestHistory(note);
+}
+
+void TypingTestWindow::onDialogCancelClicked()
+{
+	noteDialog->close();
+}
+
+void TypingTestWindow::onNoteDialogResponse(int responseId)
+{
+	hasNote = (responseId == Gtk::RESPONSE_OK);
+	note = (hasNote) ? dialogNoteBuffer->getTextWithStickers() : "";
 }
 } // namespace typingtest

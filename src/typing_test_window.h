@@ -253,9 +253,12 @@ private:
 
 	void onDialogSaveNoteButtonClicked();
 	void onDialogInsertStickerButtonClicked();
+	void onDialogCancelClicked();
 
 	void onCreateNoteButtonClicked();
 	bool onTypingEntryKeyPress(GdkEventKey *keyEvent);
+
+	void onNoteDialogResponse(int responseId);
 
 	// Opens the history dialog.
 	void onActionShowHistory();
@@ -263,6 +266,9 @@ private:
 	// Assuming a score of wpm was just achieved, updates the history file to
 	// reflect the new score.
 	void updateHistoryFile(int wpm);
+	// Adds a note to the test at the given index in the history file. Throws
+	// std::out_of_range if it encounters an error.
+	void addNoteToHistory(int index, const std::string &note);
 	// Reads the history file, adds a note to the last one and resaves it.
 	void addNoteToLastTestHistory(const std::string &note);
 	// Assuming a test with troubleWords and goodWords was achieved, then

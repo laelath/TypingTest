@@ -103,7 +103,8 @@ std::ostream& operator<<(std::ostream& os, const TestInfo& info)
 		os << "note" << std::endl;
 		std::vector<std::string> lines;
 		std::string line;
-		while (std::getline(std::istringstream{info.getNote()}, line))
+		std::istringstream noteStream{info.getNote()};
+		while (std::getline(noteStream, line))
 			lines.push_back(line);
 		os << lines.size() << std::endl;
 		for (const auto &line : lines)
