@@ -36,6 +36,10 @@ namespace typingtest {
 
 // The maximum amount of tests to store in history.
 constexpr int HISTORY_SIZE = 100;
+// The string to put in the history view if there is a note.
+constexpr char HAS_NOTE_STRING[] = "Note";
+// Display nothing in the history view if there is no note in that column.
+constexpr char NO_NOTE_STRING[] = "No";
 
 // A window that is the main driver for the TypingTest program. An application
 // window that the user interacts with to take typing tests.
@@ -140,12 +144,16 @@ private:
 	Gtk::Label *currentStandardDeviationLabel;
 	Gtk::TreeView *testHistoryView;
 
+	static Glib::ustring hasNoteString(bool hasNote);
+
 	// Helper objects for history dialog.
 	Glib::RefPtr<Gtk::ListStore> historyStore;
 	Gtk::TreeModelColumnRecord historyColumnRecord;
 	Gtk::TreeModelColumn<int> wpmColumn;
 	Gtk::TreeModelColumn<Glib::ustring> lengthColumn;
 	Gtk::TreeModelColumn<Glib::ustring> typeColumn;
+	Gtk::TreeModelColumn<Glib::ustring> hasNoteColumn;
+	Gtk::TreeModelColumn<std::shared_ptr<TestInfo>> testInfoColumn;
 
 	// Notes dialog widgets
 	Gtk::Dialog *noteDialog;
@@ -250,6 +258,7 @@ private:
 	// For the history dialog close button to give the dialog response signal.
 	void onHistoryCloseButtonClicked();
 	void onEraseHistoryButtonClicked();
+	void onHistoryDialogButtonPress(GdkEventButton *button);
 
 	void onDialogSaveNoteButtonClicked();
 	void onDialogInsertStickerButtonClicked();
@@ -259,6 +268,10 @@ private:
 	bool onTypingEntryKeyPress(GdkEventKey *keyEvent);
 
 	void onNoteDialogResponse(int responseId);
+
+	void onHistoryRowActivated(const Gtk::TreePath &path,
+		Gtk::TreeViewColumn *);
+	void onHistoryOpenNote(Gtk::TreeRowReference selectedRef);
 
 	// Opens the history dialog.
 	void onActionShowHistory();

@@ -48,9 +48,9 @@ TypingTestWindow::TypingTestWindow(BaseObjectType *cobject,
 	genNewTest();
 
 	insertConnection = typingEntry->signal_insert_text().connect(sigc::mem_fun(
-			this, &TypingTestWindow::textInsert));
+			*this, &TypingTestWindow::textInsert));
 	backspConnection = typingEntry->signal_delete_text().connect(sigc::mem_fun(
-			this, &TypingTestWindow::textDelete));
+			*this, &TypingTestWindow::textDelete));
 }
 
 void TypingTestWindow::initWidgets()
@@ -100,15 +100,6 @@ void TypingTestWindow::initWidgets()
 	textTags->add(goodTag);
 	textTags->add(uglyHackTag);
 
-	// Notes
-	/* builder->get_widget("note_view", noteView); */
-	/* builder->get_widget("save_note_button", saveNoteButton); */
-	/* builder->get_widget("insert_sticker_button", insertStickerButton); */
-
-	/* noteView->set_wrap_mode(Gtk::WRAP_WORD); */
-	/* noteBuffer = StickerBuffer::create(); */
-	/* noteView->set_buffer(noteBuffer); */
-
 	// Prepare settings window
 	builder->get_widget("settingsdialog", settingsDialog);
 	builder->get_widget("cancelbutton", cancel);
@@ -150,11 +141,14 @@ void TypingTestWindow::initWidgets()
 	historyColumnRecord.add(wpmColumn);
 	historyColumnRecord.add(lengthColumn);
 	historyColumnRecord.add(typeColumn);
+	historyColumnRecord.add(hasNoteColumn);
+	historyColumnRecord.add(testInfoColumn);
 	historyStore = Gtk::ListStore::create(historyColumnRecord);
 	testHistoryView->set_model(historyStore);
 	testHistoryView->append_column("WPM", wpmColumn);
 	testHistoryView->append_column("Length", lengthColumn);
 	testHistoryView->append_column("Type", typeColumn);
+	testHistoryView->append_column("Has note", hasNoteColumn);
 
 	builder->get_widget("create_note_button", createNoteButton);
 	createNoteButton->set_sensitive(false);
@@ -237,7 +231,10 @@ void TypingTestWindow::connectSignals()
 			&TypingTestWindow::onHistoryCloseButtonClicked));
 	eraseHistoryButton->signal_clicked().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::onEraseHistoryButtonClicked));
-
+	testHistoryView->signal_button_press_event().connect_notify(sigc::mem_fun(
+			*this, &TypingTestWindow::onHistoryDialogButtonPress));
+	testHistoryView->signal_row_activated().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onHistoryRowActivated));
 
 	noteDialog->signal_response().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::onNoteDialogResponse));
@@ -613,9 +610,12 @@ void TypingTestWindow::onActionShowHistory()
 	for (const auto &info : historyInfo) {
 		Gtk::TreeIter iter{historyStore->append()};
 		Gtk::TreeRow row{*iter};
+		std::shared_ptr<TestInfo> my_info{new TestInfo{info}};
+		row[testInfoColumn] = std::shared_ptr<TestInfo>{new TestInfo{info}};
 		row[wpmColumn] = info.getWpm();
 		row[lengthColumn] = std::to_string(info.getLength().count());
 		row[typeColumn] = toString(info.getType());
+		row[hasNoteColumn] = hasNoteString(info.getHasNote());
 	}
 
 	historyDialog->run();
@@ -962,5 +962,60 @@ void TypingTestWindow::onNoteDialogResponse(int responseId)
 {
 	hasNote = (responseId == Gtk::RESPONSE_OK);
 	note = (hasNote) ? dialogNoteBuffer->getTextWithStickers() : "";
+}
+
+void TypingTestWindow::onHistoryDialogButtonPress(GdkEventButton *button)
+{
+    if (button->type != GDK_BUTTON_PRESS
+        || button->button != GDK_BUTTON_SECONDARY)
+        return;
+
+    Gtk::TreePath selectedPath;
+    bool isOnRow = testHistoryView->get_path_at_pos(button->x, button->y,
+		selectedPath);
+	if (!isOnRow)
+		return;
+	Gtk::TreeRowReference selectedRef{historyStore, selectedPath};
+	Gtk::TreeRow selectedRow{*historyStore->get_iter(selectedPath)};
+
+	// TODO: Check if *this is the correct thing to pass here.
+	PopupMenu *menu{PopupMenu::create(*this)};
+	menu->addItem("Open Note", sigc::mem_fun(*this,
+			&TypingTestWindow::onHistoryOpenNote));
+
+	menu->run(selectedRef, button->button, button->time);
+}
+
+void TypingTestWindow::onHistoryOpenNote(Gtk::TreeRowReference selectedRef)
+{
+	if (!selectedRef)
+		return;
+
+	Gtk::TreePath selectedPath{selectedRef.get_path()};
+	Gtk::TreeRow selectedRow{*historyStore->get_iter(selectedPath)};
+	std::shared_ptr<TestInfo> info{selectedRow[testInfoColumn]};
+	std::string noteContents = (info->getHasNote()) ? info->getNote() : "";
+	std::cout << info->getHasNote() << std::endl;
+	std::cout << noteContents << std::endl;
+	dialogNoteBuffer->set_text(noteContents);
+	noteDialog->run();
+	noteDialog->hide();
+	if (hasNote) {
+		// This should point to the same note as in the model.
+		info->setNote(note);
+		info->setHasNote(true);
+		/* selectedRow[hasNoteColumn] = hasNoteString(true); */
+		addNoteToHistory(selectedPath[0], note);
+	}
+}
+
+void TypingTestWindow::onHistoryRowActivated(const Gtk::TreePath &path,
+	Gtk::TreeViewColumn *)
+{
+}
+
+Glib::ustring TypingTestWindow::hasNoteString(bool hasNote)
+{
+	return (hasNote) ? HAS_NOTE_STRING : NO_NOTE_STRING;
 }
 } // namespace typingtest

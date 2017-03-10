@@ -137,13 +137,15 @@ std::istream& operator>>(std::istream& is, TestInfo& info)
 	if (hasNote == "note") {
 		size_t lineCount;
 		is >> lineCount;
+		is.ignore(1, '\n');
 		std::ostringstream contents;
 		for (size_t i = 0; i < lineCount; ++i) {
+			if (i > 0)
+				contents << std::endl;
 			std::string line;
 			std::getline(is, line);
 			contents << line;
-			if (i > 0)
-				contents << std::endl;
+			std::cout << line << std::endl;
 		}
 		note = contents.str();
 	}
