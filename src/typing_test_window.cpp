@@ -911,6 +911,8 @@ void TypingTestWindow::applyHighlight()
 
 void TypingTestWindow::onCreateNoteButtonClicked()
 {
+	// TODO: Add clearDialogNoteBuffer() and insert it where necessary.
+	dialogNoteBuffer->set_text("");
 	noteDialog->run();
 	noteDialog->close();
 	if (hasNote)

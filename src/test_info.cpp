@@ -142,9 +142,11 @@ std::istream& operator>>(std::istream& is, TestInfo& info)
 		is.ignore(1, '\n');
 		std::ostringstream contents;
 		for (size_t i = 0; i < lineCount; ++i) {
+			if (i > 0)
+				contents << std::endl;
 			std::string line;
 			std::getline(is, line);
-			contents << line << std::endl;
+			contents << line;
 		}
 		note = contents.str();
 	}
