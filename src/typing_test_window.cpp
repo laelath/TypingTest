@@ -589,7 +589,7 @@ void TypingTestWindow::onHistoryCloseButtonClicked()
 void TypingTestWindow::onActionShowHistory()
 {
 	int recordWpm{0};
-	std::vector<TestInfo> historyInfo{readHistory(getHistoryPath(), recordWpm)};
+	std::vector<TestInfo> historyInfo{readHistory(recordWpm)};
 
 	int averageWpm{static_cast<int>(getAverageWpm(historyInfo))};
 	double standardDeviation{getStandardDeviation(historyInfo)};
@@ -621,9 +621,7 @@ void TypingTestWindow::onActionShowHistory()
 void TypingTestWindow::updateHistoryFile(int wpm)
 {
 	int recordWpm{0};
-	std::string historyPath{getHistoryPath()};
-	std::string historySwapPath{getSwapPath(historyPath)};
-	std::vector<TestInfo> history = readHistory(historyPath, recordWpm);
+	std::vector<TestInfo> history = readHistory(recordWpm);
 	history.push_back(TestInfo{wpm, settings});
 	if (history.size() > HISTORY_SIZE) {
 		std::vector<TestInfo>newHistory{history.end() - HISTORY_SIZE,
@@ -632,63 +630,33 @@ void TypingTestWindow::updateHistoryFile(int wpm)
 	}
 
 	recordWpm = (wpm > recordWpm) ? wpm : recordWpm;
-	std::unique_lock<std::mutex> lock{historyFileLock};
-	std::ofstream writer{historySwapPath};
-	if (writer.is_open()) {
-		writer << recordWpm << std::endl;
-		for (const auto &info : history)
-			writer << info << std::endl;
-		writer.close();
-		save(historyPath, historySwapPath);
-	}
+	writeHistory(history, recordWpm);
 }
 
 void TypingTestWindow::addNoteToHistory(int index, const std::string &note)
 {
 	int recordWpm{0};
-	std::string historyPath{getHistoryPath()};
-	std::string historySwapPath{getSwapPath(historyPath)};
-	std::vector<TestInfo> history = readHistory(historyPath, recordWpm);
+	std::vector<TestInfo> history = readHistory(recordWpm);
 	// Not checking if it's greater than HISTORY_SIZE because not adding
 	// anything here.
 	if (index < 0 && index >= history.size())
 		throw std::out_of_range{"Invalid history index."};
 	history[index].setHasNote(true);
 	history[index].setNote(note);
-
-	std::unique_lock<std::mutex> lock{historyFileLock};
-	std::ofstream writer{historySwapPath};
-	if (writer.is_open()) {
-		writer << recordWpm << std::endl;
-		for (const auto &info : history)
-			writer << info << std::endl;
-		writer.close();
-		save(historyPath, historySwapPath);
-	}
+	writeHistory(history, recordWpm);
 }
 
 void TypingTestWindow::addNoteToLastTestHistory(const std::string &note)
 {
-	std::unique_lock<std::mutex> lock{historyFileLock};
 	int recordWpm{0};
-	std::string historyPath{getHistoryPath()};
-	std::string historySwapPath{getSwapPath(historyPath)};
-	std::vector<TestInfo> history = readHistory(historyPath, recordWpm);
+	std::vector<TestInfo> history = readHistory(recordWpm);
 	// Not checking if it's greater than HISTORY_SIZE because not adding
 	// anything here.
 	if (history.size() > 0) {
 		history.back().setHasNote(true);
 		history.back().setNote(note);
 	}
-
-	std::ofstream writer{historySwapPath};
-	if (writer.is_open()) {
-		writer << recordWpm << std::endl;
-		for (const auto &info : history)
-			writer << info << std::endl;
-		writer.close();
-		save(historyPath, historySwapPath);
-	}
+	writeHistory(history, recordWpm);
 }
 
 void TypingTestWindow::updateTroubleWordsFile(
@@ -791,11 +759,10 @@ std::string TypingTestWindow::getTroubleWordsPath() const
 	return config.dataDir + "troublewords.txt";
 }
 
-std::vector<TestInfo> TypingTestWindow::readHistory(const std::string &path,
-	int &recordWpm)
+std::vector<TestInfo> TypingTestWindow::readHistory(int &recordWpm)
 {
 	std::unique_lock<std::mutex> lock{historyFileLock};
-	std::ifstream reader{path};
+	std::ifstream reader{getHistoryPath()};
 	std::vector<TestInfo> history;
 	recordWpm = 0;
 
@@ -952,7 +919,6 @@ void TypingTestWindow::onCreateNoteButtonClicked()
 
 void TypingTestWindow::onDialogCancelClicked()
 {
-	/* noteDialog->close(); */
 	noteDialog->response(Gtk::RESPONSE_CANCEL);
 }
 
@@ -978,8 +944,10 @@ void TypingTestWindow::onHistoryDialogButtonPress(GdkEventButton *button)
 
 	// TODO: Check if *this is the correct thing to pass here.
 	PopupMenu *menu{PopupMenu::create(*this)};
-	menu->addItem("Open Note", sigc::mem_fun(*this,
+	menu->addItem("Open note", sigc::mem_fun(*this,
 			&TypingTestWindow::onHistoryOpenNote));
+	menu->addItem("Delete note", sigc::mem_fun(*this,
+			&TypingTestWindow::onHistoryDeleteNote));
 
 	menu->run(selectedRef, button->button, button->time);
 }
@@ -1003,7 +971,7 @@ void TypingTestWindow::onHistoryOpenNote(Gtk::TreeRowReference selectedRef)
 		info->setNote(note);
 		info->setHasNote(true);
 		selectedRow[hasNoteColumn] = hasNoteString(true);
-		addNoteToHistory(selectedPath[0], note);
+		writeHistoryStore();
 	}
 }
 
@@ -1023,12 +991,56 @@ void TypingTestWindow::onHistoryRowActivated(const Gtk::TreePath &path,
 		info->setNote(note);
 		info->setHasNote(true);
 		selectedRow[hasNoteColumn] = hasNoteString(hasNote);
-		addNoteToHistory(path[0], note);
+		writeHistoryStore();
 	}
+}
+
+void TypingTestWindow::onHistoryDeleteNote(Gtk::TreeRowReference selectedRef)
+{
+	if (!selectedRef)
+		return;
+	Gtk::TreeRow selectedRow{*historyStore->get_iter(selectedRef.get_path())};
+	selectedRow[hasNoteColumn] = hasNoteString(false);
+	std::shared_ptr<TestInfo> info{selectedRow[testInfoColumn]};
+	info->setHasNote(false);
+	info->setNote("");
+	writeHistoryStore();
 }
 
 Glib::ustring TypingTestWindow::hasNoteString(bool hasNote)
 {
 	return (hasNote) ? HAS_NOTE_STRING : NO_NOTE_STRING;
+}
+
+void TypingTestWindow::writeHistory(const std::vector<TestInfo> &history,
+	int recordWpm)
+{
+	std::string historyPath{getHistoryPath()};
+	std::string historySwapPath{getSwapPath(historyPath)};
+	std::unique_lock<std::mutex> lock{historyFileLock};
+	std::ofstream writer{historySwapPath};
+	if (writer.is_open()) {
+		writer << recordWpm << std::endl;
+		for (const auto &info : history)
+			writer << info << std::endl;
+		writer.close();
+		save(historyPath, historySwapPath);
+	}
+}
+
+void TypingTestWindow::writeHistoryStore() {
+	auto elements = historyStore->children();
+	Gtk::TreeIter maxIter = std::max_element(elements.begin(), elements.end(),
+		[this](const Gtk::TreeIter &it1, const Gtk::TreeIter &it2) {
+			return (*it1)[wpmColumn] < (*it2)[wpmColumn];
+		});
+	int recordWpm = (*maxIter)[wpmColumn];
+	std::vector<TestInfo> history;
+	std::transform(elements.begin(), elements.end(),
+		std::back_inserter(history), [this](const Gtk::TreeIter &iter) {
+			std::shared_ptr<TestInfo> info{(*iter)[testInfoColumn]};
+			return *info;
+		});
+	writeHistory(history, recordWpm);
 }
 } // namespace typingtest

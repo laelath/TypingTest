@@ -272,6 +272,7 @@ private:
 	void onHistoryRowActivated(const Gtk::TreePath &path,
 		Gtk::TreeViewColumn *);
 	void onHistoryOpenNote(Gtk::TreeRowReference selectedRef);
+	void onHistoryDeleteNote(Gtk::TreeRowReference selectedRef);
 
 	// Opens the history dialog.
 	void onActionShowHistory();
@@ -279,6 +280,9 @@ private:
 	// Assuming a score of wpm was just achieved, updates the history file to
 	// reflect the new score.
 	void updateHistoryFile(int wpm);
+	// Looks in the history store which is loaded when historyDialog is shown
+	// and writes the appropriate data to the history file.
+	void writeHistoryStore();
 	// Adds a note to the test at the given index in the history file. Throws
 	// std::out_of_range if it encounters an error.
 	void addNoteToHistory(int index, const std::string &note);
@@ -297,8 +301,9 @@ private:
 	// Reads the file given by path and returns the list of tests it
 	// represents. If there was an error then an empty vector is returned and
 	// recordWpm is changed to 0.
-	std::vector<TestInfo> readHistory(const std::string &path,
-		int &recordWpm);
+	std::vector<TestInfo> readHistory(int &recordWpm);
+	// Writes the list of TestInfos into the file.
+	void writeHistory(const std::vector<TestInfo> &history, int recordWpm);
 	// Returns the average wpm if size is greater than 0 and 0 otherwise.
 	static double getAverageWpm(const std::vector<TestInfo> &history);
 	// Returns the standard deviation if the size is greater than 0 and 0
