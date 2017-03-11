@@ -137,14 +137,14 @@ std::istream& operator>>(std::istream& is, TestInfo& info)
 	if (hasNote == "note") {
 		size_t lineCount;
 		is >> lineCount;
+		// The line count should be on its own line, so this is required to
+		// make getline work properly.
 		is.ignore(1, '\n');
 		std::ostringstream contents;
 		for (size_t i = 0; i < lineCount; ++i) {
-			if (i > 0)
-				contents << std::endl;
 			std::string line;
 			std::getline(is, line);
-			contents << line;
+			contents << line << std::endl;
 		}
 		note = contents.str();
 	}

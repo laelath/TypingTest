@@ -993,7 +993,9 @@ void TypingTestWindow::onHistoryOpenNote(Gtk::TreeRowReference selectedRef)
 	Gtk::TreeRow selectedRow{*historyStore->get_iter(selectedPath)};
 	std::shared_ptr<TestInfo> info{selectedRow[testInfoColumn]};
 	std::string noteContents = (info->getHasNote()) ? info->getNote() : "";
+	dialogNoteBuffer->setAddNewlines(false);
 	dialogNoteBuffer->set_text(noteContents);
+	dialogNoteBuffer->setAddNewlines(true);
 	noteDialog->run();
 	noteDialog->hide();
 	if (hasNote) {
@@ -1011,7 +1013,9 @@ void TypingTestWindow::onHistoryRowActivated(const Gtk::TreePath &path,
 	Gtk::TreeRow selectedRow{*historyStore->get_iter(path)};
 	std::shared_ptr<TestInfo> info{selectedRow[testInfoColumn]};
 	std::string noteContents = (info->getHasNote()) ? info->getNote() : "";
+	dialogNoteBuffer->setAddNewlines(false);
 	dialogNoteBuffer->set_text(noteContents);
+	dialogNoteBuffer->setAddNewlines(true);
 	noteDialog->run();
 	noteDialog->hide();
 	if (hasNote) {
