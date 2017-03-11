@@ -244,7 +244,7 @@ void TypingTestWindow::connectSignals()
 			&TypingTestWindow::onDialogSaveNoteButtonClicked));
 	dialogInsertStickerButton->signal_clicked().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::onDialogInsertStickerButtonClicked));
-	closeNotesButton->signal_clicked().connect(sigc::mem_fun(*this,
+	closeNotesButton->signal_clicked().connect_notify(sigc::mem_fun(*this,
 			&TypingTestWindow::onDialogCancelClicked));
 }
 
@@ -588,12 +588,8 @@ void TypingTestWindow::onHistoryCloseButtonClicked()
 
 void TypingTestWindow::onActionShowHistory()
 {
-	std::unique_lock<std::mutex> lock{historyFileLock};
-
-	std::string outputPath{getHistoryPath()};
-
 	int recordWpm{0};
-	std::vector<TestInfo> historyInfo{readHistory(outputPath, recordWpm)};
+	std::vector<TestInfo> historyInfo{readHistory(getHistoryPath(), recordWpm)};
 
 	int averageWpm{static_cast<int>(getAverageWpm(historyInfo))};
 	double standardDeviation{getStandardDeviation(historyInfo)};
@@ -624,7 +620,6 @@ void TypingTestWindow::onActionShowHistory()
 
 void TypingTestWindow::updateHistoryFile(int wpm)
 {
-	std::unique_lock<std::mutex> lock{historyFileLock};
 	int recordWpm{0};
 	std::string historyPath{getHistoryPath()};
 	std::string historySwapPath{getSwapPath(historyPath)};
@@ -637,6 +632,7 @@ void TypingTestWindow::updateHistoryFile(int wpm)
 	}
 
 	recordWpm = (wpm > recordWpm) ? wpm : recordWpm;
+	std::unique_lock<std::mutex> lock{historyFileLock};
 	std::ofstream writer{historySwapPath};
 	if (writer.is_open()) {
 		writer << recordWpm << std::endl;
@@ -649,7 +645,6 @@ void TypingTestWindow::updateHistoryFile(int wpm)
 
 void TypingTestWindow::addNoteToHistory(int index, const std::string &note)
 {
-	std::unique_lock<std::mutex> lock{historyFileLock};
 	int recordWpm{0};
 	std::string historyPath{getHistoryPath()};
 	std::string historySwapPath{getSwapPath(historyPath)};
@@ -661,6 +656,7 @@ void TypingTestWindow::addNoteToHistory(int index, const std::string &note)
 	history[index].setHasNote(true);
 	history[index].setNote(note);
 
+	std::unique_lock<std::mutex> lock{historyFileLock};
 	std::ofstream writer{historySwapPath};
 	if (writer.is_open()) {
 		writer << recordWpm << std::endl;
@@ -798,6 +794,7 @@ std::string TypingTestWindow::getTroubleWordsPath() const
 std::vector<TestInfo> TypingTestWindow::readHistory(const std::string &path,
 	int &recordWpm)
 {
+	std::unique_lock<std::mutex> lock{historyFileLock};
 	std::ifstream reader{path};
 	std::vector<TestInfo> history;
 	recordWpm = 0;
@@ -955,7 +952,8 @@ void TypingTestWindow::onCreateNoteButtonClicked()
 
 void TypingTestWindow::onDialogCancelClicked()
 {
-	noteDialog->close();
+	/* noteDialog->close(); */
+	noteDialog->response(Gtk::RESPONSE_CANCEL);
 }
 
 void TypingTestWindow::onNoteDialogResponse(int responseId)
@@ -995,8 +993,6 @@ void TypingTestWindow::onHistoryOpenNote(Gtk::TreeRowReference selectedRef)
 	Gtk::TreeRow selectedRow{*historyStore->get_iter(selectedPath)};
 	std::shared_ptr<TestInfo> info{selectedRow[testInfoColumn]};
 	std::string noteContents = (info->getHasNote()) ? info->getNote() : "";
-	std::cout << info->getHasNote() << std::endl;
-	std::cout << noteContents << std::endl;
 	dialogNoteBuffer->set_text(noteContents);
 	noteDialog->run();
 	noteDialog->hide();
@@ -1004,7 +1000,7 @@ void TypingTestWindow::onHistoryOpenNote(Gtk::TreeRowReference selectedRef)
 		// This should point to the same note as in the model.
 		info->setNote(note);
 		info->setHasNote(true);
-		/* selectedRow[hasNoteColumn] = hasNoteString(true); */
+		selectedRow[hasNoteColumn] = hasNoteString(true);
 		addNoteToHistory(selectedPath[0], note);
 	}
 }
@@ -1012,6 +1008,19 @@ void TypingTestWindow::onHistoryOpenNote(Gtk::TreeRowReference selectedRef)
 void TypingTestWindow::onHistoryRowActivated(const Gtk::TreePath &path,
 	Gtk::TreeViewColumn *)
 {
+	Gtk::TreeRow selectedRow{*historyStore->get_iter(path)};
+	std::shared_ptr<TestInfo> info{selectedRow[testInfoColumn]};
+	std::string noteContents = (info->getHasNote()) ? info->getNote() : "";
+	dialogNoteBuffer->set_text(noteContents);
+	noteDialog->run();
+	noteDialog->hide();
+	if (hasNote) {
+		// This should point to the same note as in the model.
+		info->setNote(note);
+		info->setHasNote(true);
+		selectedRow[hasNoteColumn] = hasNoteString(hasNote);
+		addNoteToHistory(path[0], note);
+	}
 }
 
 Glib::ustring TypingTestWindow::hasNoteString(bool hasNote)

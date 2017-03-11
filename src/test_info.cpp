@@ -145,7 +145,6 @@ std::istream& operator>>(std::istream& is, TestInfo& info)
 			std::string line;
 			std::getline(is, line);
 			contents << line;
-			std::cout << line << std::endl;
 		}
 		note = contents.str();
 	}

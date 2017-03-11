@@ -297,7 +297,7 @@ private:
 	// Reads the file given by path and returns the list of tests it
 	// represents. If there was an error then an empty vector is returned and
 	// recordWpm is changed to 0.
-	static std::vector<TestInfo> readHistory(const std::string &path,
+	std::vector<TestInfo> readHistory(const std::string &path,
 		int &recordWpm);
 	// Returns the average wpm if size is greater than 0 and 0 otherwise.
 	static double getAverageWpm(const std::vector<TestInfo> &history);
