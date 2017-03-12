@@ -911,8 +911,12 @@ void TypingTestWindow::applyHighlight()
 
 void TypingTestWindow::onCreateNoteButtonClicked()
 {
-	// TODO: Add clearDialogNoteBuffer() and insert it where necessary.
-	dialogNoteBuffer->set_text("");
+	int wpm;
+	std::vector<TestInfo> info{readHistory(wpm)};
+	if (info.size() > 0 && info.back().getHasNote())
+		dialogNoteBuffer->set_text(info.back().getNote());
+	else
+		dialogNoteBuffer->set_text("");
 	noteDialog->run();
 	noteDialog->close();
 	if (hasNote)
