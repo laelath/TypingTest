@@ -957,13 +957,14 @@ void TypingTestWindow::onHistoryDialogButtonPress(GdkEventButton *button)
 	Gtk::TreeRowReference selectedRef{historyStore, selectedPath};
 	Gtk::TreeRow selectedRow{*historyStore->get_iter(selectedPath)};
 
+	std::shared_ptr<TestInfo> testInfo{selectedRow[testInfoColumn]};
 	// TODO: Check if *this is the correct thing to pass here.
 	PopupMenu *menu{PopupMenu::create(*this)};
 	menu->addItem("Open note", sigc::mem_fun(*this,
 			&TypingTestWindow::onHistoryOpenNote));
-	menu->addItem("Delete note", sigc::mem_fun(*this,
-			&TypingTestWindow::onHistoryDeleteNote));
-
+	if (testInfo->getHasNote())
+		menu->addItem("Delete note", sigc::mem_fun(*this,
+				&TypingTestWindow::onHistoryDeleteNote));
 	menu->run(selectedRef, button->button, button->time);
 }
 
