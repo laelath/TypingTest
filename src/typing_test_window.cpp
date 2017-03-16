@@ -48,9 +48,9 @@ TypingTestWindow::TypingTestWindow(BaseObjectType *cobject,
 	genNewTest();
 
 	insertConnection = typingEntry->signal_insert_text().connect(sigc::mem_fun(
-			this, &TypingTestWindow::textInsert));
+			*this, &TypingTestWindow::textInsert));
 	backspConnection = typingEntry->signal_delete_text().connect(sigc::mem_fun(
-			this, &TypingTestWindow::textDelete));
+			*this, &TypingTestWindow::textDelete));
 }
 
 void TypingTestWindow::initWidgets()
@@ -100,15 +100,6 @@ void TypingTestWindow::initWidgets()
 	textTags->add(goodTag);
 	textTags->add(uglyHackTag);
 
-	// Notes
-	builder->get_widget("note_view", noteView);
-	builder->get_widget("save_note_button", saveNoteButton);
-	builder->get_widget("insert_sticker_button", insertStickerButton);
-
-	noteView->set_wrap_mode(Gtk::WRAP_WORD);
-	noteBuffer = StickerBuffer::create();
-	noteView->set_buffer(noteBuffer);
-
 	// Prepare settings window
 	builder->get_widget("settingsdialog", settingsDialog);
 	builder->get_widget("cancelbutton", cancel);
@@ -150,28 +141,24 @@ void TypingTestWindow::initWidgets()
 	historyColumnRecord.add(wpmColumn);
 	historyColumnRecord.add(lengthColumn);
 	historyColumnRecord.add(typeColumn);
+	historyColumnRecord.add(hasNoteColumn);
+	historyColumnRecord.add(testInfoColumn);
 	historyStore = Gtk::ListStore::create(historyColumnRecord);
 	testHistoryView->set_model(historyStore);
 	testHistoryView->append_column("WPM", wpmColumn);
 	testHistoryView->append_column("Length", lengthColumn);
 	testHistoryView->append_column("Type", typeColumn);
+	testHistoryView->append_column("Has note", hasNoteColumn);
 
-	builder->get_widget("notes_dialog", notesDialog);
+	builder->get_widget("create_note_button", createNoteButton);
+	createNoteButton->set_sensitive(false);
+	builder->get_widget("note_dialog", noteDialog);
 	builder->get_widget("dialog_save_note_button", dialogSaveNoteButton);
 	builder->get_widget("dialog_insert_sticker_button",
 		dialogInsertStickerButton);
 	builder->get_widget("close_notes_button", closeNotesButton);
-	builder->get_widget("notes_view", notesView);
-	builder->get_widget("note_name_entry", noteNameEntry);
 	builder->get_widget("dialog_note_view", dialogNoteView);
 
-	notesColumnRecord.add(noteNameColumn);
-	notesColumnRecord.add(noteDateColumn);
-	notesColumnRecord.add(noteContentsColumn);
-	notesStore = Gtk::ListStore::create(notesColumnRecord);
-	notesView->set_model(notesStore);
-	notesView->append_column("Name", noteNameColumn);
-	notesView->append_column("Date", noteDateColumn);
 	dialogNoteBuffer = StickerBuffer::create();
 	dialogNoteView->set_buffer(dialogNoteBuffer);
 
@@ -237,11 +224,6 @@ void TypingTestWindow::connectSignals()
 	restoreDefaultAdv->signal_clicked().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::applyDefaultSettings));
 
-	saveNoteButton->signal_clicked().connect(sigc::mem_fun(*this,
-			&TypingTestWindow::onSaveNoteButtonClicked));
-	insertStickerButton->signal_clicked().connect(sigc::mem_fun(*this,
-			&TypingTestWindow::onInsertStickerButtonClicked));
-
 	troubleClose->signal_clicked().connect(sigc::bind<int>(sigc::mem_fun(
 				troubleDialog, &Gtk::Dialog::response), Gtk::RESPONSE_CLOSE));
 
@@ -249,18 +231,21 @@ void TypingTestWindow::connectSignals()
 			&TypingTestWindow::onHistoryCloseButtonClicked));
 	eraseHistoryButton->signal_clicked().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::onEraseHistoryButtonClicked));
+	testHistoryView->signal_button_press_event().connect_notify(sigc::mem_fun(
+			*this, &TypingTestWindow::onHistoryDialogButtonPress));
+	testHistoryView->signal_row_activated().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onHistoryRowActivated));
 
-
+	noteDialog->signal_response().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onNoteDialogResponse));
+	createNoteButton->signal_clicked().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onCreateNoteButtonClicked));
 	dialogSaveNoteButton->signal_clicked().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::onDialogSaveNoteButtonClicked));
 	dialogInsertStickerButton->signal_clicked().connect(sigc::mem_fun(*this,
 			&TypingTestWindow::onDialogInsertStickerButtonClicked));
-	notesView->signal_button_press_event().connect_notify(sigc::mem_fun(*this,
-			&TypingTestWindow::onDialogNotesViewButtonPressEvent));
-	notesView->signal_row_activated().connect(sigc::mem_fun(*this,
-			&TypingTestWindow::onNotesViewRowActivated));
-	closeNotesButton->signal_clicked().connect(sigc::mem_fun(*notesDialog,
-			&Gtk::Dialog::close));
+	closeNotesButton->signal_clicked().connect(sigc::mem_fun(*this,
+			&TypingTestWindow::onDialogCancelClicked));
 }
 
 void TypingTestWindow::genNewTest()
@@ -500,6 +485,7 @@ bool TypingTestWindow::updateTimer()
 				+ words[wordIndex]->getWord().length()), textBuffer->end());
 		calculateScore();
 		testEnded = true;
+		createNoteButton->set_sensitive(true);
 		return false;
 	}
 }
@@ -540,11 +526,9 @@ void TypingTestWindow::calculateScore()
 			sum += std::pow(word->getScore() - mean, 2);
 	}
 	double stdDev = std::sqrt(sum / wordsCorrect);
-
 	// Sort scores
 	std::sort(enteredWords.begin(), enteredWords.end(),
-		[](std::shared_ptr<Word> i, std::shared_ptr<Word> j) -> bool
-		{
+		[](std::shared_ptr<Word> i, std::shared_ptr<Word> j) -> bool {
 			return i->getScore() < j->getScore();
 		});
 
@@ -585,8 +569,8 @@ void TypingTestWindow::calculateScore()
 			- charsCorrect));
 	troubleWordsLabel->set_text(troubleWordsStr);
 
-	lastScore = wpm;
-	hasLastScore = true;
+	/* lastScore = wpm; */
+	/* hasLastScore = true; */
 
 	updateHistoryFile(wpm);
 }
@@ -595,8 +579,6 @@ void TypingTestWindow::initActions()
 {
 	this->add_action("show-history", sigc::mem_fun(*this,
 			&TypingTestWindow::onActionShowHistory));
-	this->add_action("open-notes", sigc::mem_fun(*this,
-			&TypingTestWindow::onActionOpenNotes));
 }
 
 void TypingTestWindow::onHistoryCloseButtonClicked()
@@ -606,12 +588,8 @@ void TypingTestWindow::onHistoryCloseButtonClicked()
 
 void TypingTestWindow::onActionShowHistory()
 {
-	std::unique_lock<std::mutex> lock{historyFileLock};
-
-	std::string outputPath{getHistoryPath()};
-
 	int recordWpm{0};
-	std::vector<TestInfo> historyInfo{readHistory(outputPath, recordWpm)};
+	std::vector<TestInfo> historyInfo{readHistory(recordWpm)};
 
 	int averageWpm{static_cast<int>(getAverageWpm(historyInfo))};
 	double standardDeviation{getStandardDeviation(historyInfo)};
@@ -628,32 +606,22 @@ void TypingTestWindow::onActionShowHistory()
 	for (const auto &info : historyInfo) {
 		Gtk::TreeIter iter{historyStore->append()};
 		Gtk::TreeRow row{*iter};
+		std::shared_ptr<TestInfo> my_info{new TestInfo{info}};
+		row[testInfoColumn] = std::shared_ptr<TestInfo>{new TestInfo{info}};
 		row[wpmColumn] = info.getWpm();
 		row[lengthColumn] = std::to_string(info.getLength().count());
 		row[typeColumn] = toString(info.getType());
+		row[hasNoteColumn] = hasNoteString(info.getHasNote());
 	}
 
 	historyDialog->run();
 	historyDialog->close();
 }
 
-void TypingTestWindow::onActionOpenNotes()
-{
-	notesStore->clear();
-	loadNotes();
-
-	notesDialog->run();
-	notesDialog->close();
-	clearNotesDialog();
-}
-
 void TypingTestWindow::updateHistoryFile(int wpm)
 {
-	std::unique_lock<std::mutex> lock{historyFileLock};
 	int recordWpm{0};
-	std::string historyPath{getHistoryPath()};
-	std::string historySwapPath{getSwapPath(historyPath)};
-	std::vector<TestInfo> history = readHistory(historyPath, recordWpm);
+	std::vector<TestInfo> history = readHistory(recordWpm);
 	history.push_back(TestInfo{wpm, settings});
 	if (history.size() > HISTORY_SIZE) {
 		std::vector<TestInfo>newHistory{history.end() - HISTORY_SIZE,
@@ -662,14 +630,33 @@ void TypingTestWindow::updateHistoryFile(int wpm)
 	}
 
 	recordWpm = (wpm > recordWpm) ? wpm : recordWpm;
-	std::ofstream writer{historySwapPath};
-	if (writer.is_open()) {
-		writer << recordWpm << std::endl;
-		for (const auto &info : history)
-			writer << info << std::endl;
-		writer.close();
-		save(historyPath, historySwapPath);
+	writeHistory(history, recordWpm);
+}
+
+void TypingTestWindow::addNoteToHistory(int index, const std::string &note)
+{
+	int recordWpm{0};
+	std::vector<TestInfo> history = readHistory(recordWpm);
+	// Not checking if it's greater than HISTORY_SIZE because not adding
+	// anything here.
+	if (index < 0 && index >= history.size())
+		throw std::out_of_range{"Invalid history index."};
+	history[index].setHasNote(true);
+	history[index].setNote(note);
+	writeHistory(history, recordWpm);
+}
+
+void TypingTestWindow::addNoteToLastTestHistory(const std::string &note)
+{
+	int recordWpm{0};
+	std::vector<TestInfo> history = readHistory(recordWpm);
+	// Not checking if it's greater than HISTORY_SIZE because not adding
+	// anything here.
+	if (history.size() > 0) {
+		history.back().setHasNote(true);
+		history.back().setNote(note);
 	}
+	writeHistory(history, recordWpm);
 }
 
 void TypingTestWindow::updateTroubleWordsFile(
@@ -772,10 +759,10 @@ std::string TypingTestWindow::getTroubleWordsPath() const
 	return config.dataDir + "troublewords.txt";
 }
 
-std::vector<TestInfo> TypingTestWindow::readHistory(const std::string &path,
-	int &recordWpm)
+std::vector<TestInfo> TypingTestWindow::readHistory(int &recordWpm)
 {
-	std::ifstream reader{path};
+	std::unique_lock<std::mutex> lock{historyFileLock};
+	std::ifstream reader{getHistoryPath()};
 	std::vector<TestInfo> history;
 	recordWpm = 0;
 
@@ -817,28 +804,9 @@ void TypingTestWindow::resetHistoryDisplay()
 
 void TypingTestWindow::onDialogSaveNoteButtonClicked()
 {
-	Glib::ustring noteName{noteNameEntry->get_text()};
-	if (noteName.length() == 0)
-		return;
-	if (isEditingNote)
-		Note::deleteNote(editedNoteName, noteDir());
-	else if (Glib::file_test(noteDir() + "/" + noteName,
-			Glib::FILE_TEST_EXISTS)) {
-		Gtk::MessageDialog dialog{*notesDialog,
-			"Note with that name already exists.", false, Gtk::MESSAGE_WARNING,
-			Gtk::BUTTONS_OK, true};
-		dialog.run();
-		return;
-	}
-	Note note{noteName};
-	note.setContents(dialogNoteBuffer->getTextWithStickers());
-	if (note.save(noteDir())) {
-		noteNameEntry->set_text("");
-		dialogNoteBuffer->set_text("");
-		if (isEditingNote)
-			eraseNoteWithName(editedNoteName);
-		addNoteToDialog(note);
-	}
+	std::string noteText{dialogNoteBuffer->getTextWithStickers()};
+	if (dialogNoteBuffer->getTextWithStickers().length() > 0)
+		noteDialog->response(Gtk::RESPONSE_OK);
 }
 
 void TypingTestWindow::onDialogInsertStickerButtonClicked()
@@ -847,33 +815,6 @@ void TypingTestWindow::onDialogInsertStickerButtonClicked()
 	dialog.run();
 	if (dialog.hasSticker())
 		dialogNoteBuffer->insertSticker(dialog.getStickerName());
-}
-
-void TypingTestWindow::onInsertStickerButtonClicked()
-{
-	StickerDialog dialog{*this};
-	dialog.run();
-	if (dialog.hasSticker())
-		noteBuffer->insertSticker(dialog.getStickerName());
-}
-
-void TypingTestWindow::onSaveNoteButtonClicked()
-{
-	std::string noteName{"Anonymous Note"};
-	if (hasLastScore) {
-		noteName = "Note for test with " + std::to_string(lastScore);
-	}
-	noteName = Note::uniqueNoteName(noteName, noteDir());
-	Note note{noteName};
-	std::string contents{noteBuffer->getTextWithStickers()};
-	note.setContents(contents);
-	if (note.save(noteDir()))
-		noteBuffer->set_text("");
-	else {
-		Gtk::MessageDialog dialog{*this, "Failed to save note.", false,
-			Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true};
-		dialog.run();
-	}
 }
 
 std::shared_ptr<TypingTestWindow> TypingTestWindow::create()
@@ -885,6 +826,15 @@ std::shared_ptr<TypingTestWindow> TypingTestWindow::create()
 	return std::shared_ptr<TypingTestWindow>{window};
 }
 
+TypingTestWindow *TypingTestWindow::create_pointer()
+{
+	auto builder = Gtk::Builder::create_from_resource(
+		"/us/laelath/typingtest/ui/typingui.glade");
+	typingtest::TypingTestWindow *window = nullptr;
+	builder->get_widget_derived("typingtest", window);
+	return window;
+}
+
 bool TypingTestWindow::onTypingEntryKeyPress(GdkEventKey *keyEvent)
 {
 	if (keyEvent->keyval == GDK_KEY_Tab) {
@@ -892,125 +842,6 @@ bool TypingTestWindow::onTypingEntryKeyPress(GdkEventKey *keyEvent)
 		return true;
 	}
 	return false;;
-}
-
-void TypingTestWindow::addNoteToDialog(const Note &note)
-{
-	Gtk::TreeRow row = *notesStore->append();
-
-	row[noteNameColumn] = note.getName();
-	row[noteContentsColumn] = note.getContents();
-	row[noteDateColumn] = note.getTimeString();
-}
-
-std::string TypingTestWindow::noteDir() const
-{
-	return config.dataDir + "notes";
-}
-
-void TypingTestWindow::loadNotes()
-{
-	if (!Glib::file_test(noteDir(), Glib::FILE_TEST_EXISTS)) {
-		auto dirFile = Gio::File::create_for_path(noteDir());
-		dirFile->make_directory();
-	}
-	Glib::Dir notesDirectory{noteDir()};
-	for (const auto &dirent : notesDirectory) {
-		std::string notePath{noteDir() + "/" + dirent};
-		if (Glib::file_test(notePath, Glib::FILE_TEST_IS_REGULAR))
-			addNoteToDialog(Note::readNote(notePath));
-	}
-}
-
-void TypingTestWindow::onDialogNotesViewButtonPressEvent(GdkEventButton *button)
-{
-    if (button->type != GDK_BUTTON_PRESS
-        || button->button != GDK_BUTTON_SECONDARY)
-        return;
-
-    Gtk::TreePath selectedPath;
-    bool isOnRow = notesView->get_path_at_pos(button->x, button->y,
-		selectedPath);
-	if (!isOnRow)
-		return;
-	Gtk::TreeRowReference selectedRef{notesStore, selectedPath};
-	Gtk::TreeRow selectedRow{*notesStore->get_iter(selectedPath)};
-
-	PopupMenu *menu{PopupMenu::create(*this)};
-
-	menu->addItem("Delete", sigc::mem_fun(*this,
-			&TypingTestWindow::onDialogDeleteNote));
-	menu->addItem("Load", sigc::mem_fun(*this,
-			&TypingTestWindow::onLoadNoteItemActivated));
-
-	menu->run(selectedRef, button->button, button->time);
-}
-
-void TypingTestWindow::onDialogDeleteNote(Gtk::TreeRowReference selectedRef)
-{
-	if (!selectedRef)
-		return;
-
-	Gtk::TreeRow selectedRow{*notesStore->get_iter(selectedRef.get_path())};
-	Glib::ustring name = selectedRow[noteNameColumn];
-	Note::deleteNote(name, noteDir());
-	eraseNoteWithName(name);
-}
-
-void TypingTestWindow::loadNote(const std::string &name)
-{
-	std::string path{noteDir() + "/" + name};
-	try {
-		Note note{Note::readNote(path)};
-		dialogNoteBuffer->setAddNewlines(false);
-		dialogNoteBuffer->set_text(note.getContents());
-		dialogNoteBuffer->setAddNewlines(true);
-		/* dialogNoteBuffer->substituteStickers(); */
-		// dialogNoteBuffer->replaceWords();
-		noteNameEntry->set_text(note.getName());
-		isEditingNote = true;
-		editedNoteName = note.getName();
-	} catch (std::runtime_error) {
-	}
-}
-
-void TypingTestWindow::onNotesViewRowActivated(const Gtk::TreePath &path,
-	Gtk::TreeViewColumn *)
-{
-	Gtk::TreeRow selectedRow{*notesStore->get_iter(path)};
-	Glib::ustring name{selectedRow[noteNameColumn]};
-	loadNote(name);
-}
-
-void TypingTestWindow::onLoadNoteItemActivated(
-	Gtk::TreeRowReference selectedRef)
-{
-	if (!selectedRef)
-		return;
-
-	Gtk::TreeRow selectedRow{*notesStore->get_iter(selectedRef.get_path())};
-	Glib::ustring noteName{selectedRow[noteNameColumn]};
-	loadNote(noteName);
-}
-
-bool TypingTestWindow::eraseNoteWithName(const std::string &name)
-{
-	for (auto &iter : notesStore->children()) {
-		Gtk::TreeRow row = *iter;
-		if (row[noteNameColumn] == name) {
-			notesStore->erase(iter);
-			return true;
-		}
-	}
-	return false;
-}
-
-void TypingTestWindow::clearNotesDialog()
-{
-	noteNameEntry->set_text("");
-	dialogNoteBuffer->set_text("");
-	isEditingNote = false;
-	editedNoteName = "";
 }
 
 void TypingTestWindow::checkWord()
@@ -1085,5 +916,147 @@ void TypingTestWindow::applyHighlight()
 			textBuffer->get_iter_at_offset(wordCharIndex +
 				words[wordIndex]->getWord().length()));
 	}
+}
+
+void TypingTestWindow::onCreateNoteButtonClicked()
+{
+	int wpm;
+	std::vector<TestInfo> info{readHistory(wpm)};
+	if (info.size() > 0 && info.back().getHasNote())
+		dialogNoteBuffer->set_text(info.back().getNote());
+	else
+		dialogNoteBuffer->set_text("");
+	noteDialog->run();
+	noteDialog->close();
+	if (hasNote)
+		addNoteToLastTestHistory(note);
+}
+
+void TypingTestWindow::onDialogCancelClicked()
+{
+	noteDialog->response(Gtk::RESPONSE_CANCEL);
+}
+
+void TypingTestWindow::onNoteDialogResponse(int responseId)
+{
+	hasNote = (responseId == Gtk::RESPONSE_OK);
+	note = (hasNote) ? dialogNoteBuffer->getTextWithStickers() : "";
+}
+
+void TypingTestWindow::onHistoryDialogButtonPress(GdkEventButton *button)
+{
+    if (button->type != GDK_BUTTON_PRESS
+        || button->button != GDK_BUTTON_SECONDARY)
+        return;
+
+    Gtk::TreePath selectedPath;
+    bool isOnRow = testHistoryView->get_path_at_pos(button->x, button->y,
+		selectedPath);
+	if (!isOnRow)
+		return;
+	Gtk::TreeRowReference selectedRef{historyStore, selectedPath};
+	Gtk::TreeRow selectedRow{*historyStore->get_iter(selectedPath)};
+
+	std::shared_ptr<TestInfo> testInfo{selectedRow[testInfoColumn]};
+	// TODO: Check if *this is the correct thing to pass here.
+	PopupMenu *menu{PopupMenu::create(*this)};
+	menu->addItem("Open note", sigc::mem_fun(*this,
+			&TypingTestWindow::onHistoryOpenNote));
+	if (testInfo->getHasNote())
+		menu->addItem("Delete note", sigc::mem_fun(*this,
+				&TypingTestWindow::onHistoryDeleteNote));
+	menu->run(selectedRef, button->button, button->time);
+}
+
+void TypingTestWindow::onHistoryOpenNote(Gtk::TreeRowReference selectedRef)
+{
+	if (!selectedRef)
+		return;
+
+	Gtk::TreePath selectedPath{selectedRef.get_path()};
+	Gtk::TreeRow selectedRow{*historyStore->get_iter(selectedPath)};
+	std::shared_ptr<TestInfo> info{selectedRow[testInfoColumn]};
+	std::string noteContents = (info->getHasNote()) ? info->getNote() : "";
+	dialogNoteBuffer->setAddNewlines(false);
+	dialogNoteBuffer->set_text(noteContents);
+	dialogNoteBuffer->setAddNewlines(true);
+	noteDialog->run();
+	noteDialog->hide();
+	if (hasNote) {
+		// This should point to the same note as in the model.
+		info->setNote(note);
+		info->setHasNote(true);
+		selectedRow[hasNoteColumn] = hasNoteString(true);
+		writeHistoryStore();
+	}
+}
+
+void TypingTestWindow::onHistoryRowActivated(const Gtk::TreePath &path,
+	Gtk::TreeViewColumn *)
+{
+	Gtk::TreeRow selectedRow{*historyStore->get_iter(path)};
+	std::shared_ptr<TestInfo> info{selectedRow[testInfoColumn]};
+	std::string noteContents = (info->getHasNote()) ? info->getNote() : "";
+	dialogNoteBuffer->setAddNewlines(false);
+	dialogNoteBuffer->set_text(noteContents);
+	dialogNoteBuffer->setAddNewlines(true);
+	noteDialog->run();
+	noteDialog->hide();
+	if (hasNote) {
+		// This should point to the same note as in the model.
+		info->setNote(note);
+		info->setHasNote(true);
+		selectedRow[hasNoteColumn] = hasNoteString(hasNote);
+		writeHistoryStore();
+	}
+}
+
+void TypingTestWindow::onHistoryDeleteNote(Gtk::TreeRowReference selectedRef)
+{
+	if (!selectedRef)
+		return;
+	Gtk::TreeRow selectedRow{*historyStore->get_iter(selectedRef.get_path())};
+	selectedRow[hasNoteColumn] = hasNoteString(false);
+	std::shared_ptr<TestInfo> info{selectedRow[testInfoColumn]};
+	info->setHasNote(false);
+	info->setNote("");
+	writeHistoryStore();
+}
+
+Glib::ustring TypingTestWindow::hasNoteString(bool hasNote)
+{
+	return (hasNote) ? HAS_NOTE_STRING : NO_NOTE_STRING;
+}
+
+void TypingTestWindow::writeHistory(const std::vector<TestInfo> &history,
+	int recordWpm)
+{
+	std::string historyPath{getHistoryPath()};
+	std::string historySwapPath{getSwapPath(historyPath)};
+	std::unique_lock<std::mutex> lock{historyFileLock};
+	std::ofstream writer{historySwapPath};
+	if (writer.is_open()) {
+		writer << recordWpm << std::endl;
+		for (const auto &info : history)
+			writer << info << std::endl;
+		writer.close();
+		save(historyPath, historySwapPath);
+	}
+}
+
+void TypingTestWindow::writeHistoryStore() {
+	auto elements = historyStore->children();
+	Gtk::TreeIter maxIter = std::max_element(elements.begin(), elements.end(),
+		[this](const Gtk::TreeIter &it1, const Gtk::TreeIter &it2) {
+			return (*it1)[wpmColumn] < (*it2)[wpmColumn];
+		});
+	int recordWpm = (*maxIter)[wpmColumn];
+	std::vector<TestInfo> history;
+	std::transform(elements.begin(), elements.end(),
+		std::back_inserter(history), [this](const Gtk::TreeIter &iter) {
+			std::shared_ptr<TestInfo> info{(*iter)[testInfoColumn]};
+			return *info;
+		});
+	writeHistory(history, recordWpm);
 }
 } // namespace typingtest

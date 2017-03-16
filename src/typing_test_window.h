@@ -34,7 +34,12 @@
 
 namespace typingtest {
 
-const int HISTORY_SIZE = 100;
+// The maximum amount of tests to store in history.
+constexpr int HISTORY_SIZE = 100;
+// The string to put in the history view if there is a note.
+constexpr char HAS_NOTE_STRING[] = "Note";
+// Display nothing in the history view if there is no note in that column.
+constexpr char NO_NOTE_STRING[] = "No";
 
 // A window that is the main driver for the TypingTest program. An application
 // window that the user interacts with to take typing tests.
@@ -51,6 +56,7 @@ public:
 	// required for easily calling GApplication::run with a window. If someone
 	// knows a better way to do this with RAII then that would be great.
 	static std::shared_ptr<TypingTestWindow> create();
+	static TypingTestWindow *create_pointer();
 
 private:
 	// The builder used to construct the window's children.
@@ -99,6 +105,7 @@ private:
 	Gtk::Label *charsWrongLabel;
 	Gtk::Label *troubleWordsLabel;
 
+	Gtk::Button *createNoteButton;
 	Gtk::TextView *noteView;
 	Gtk::Button *saveNoteButton;
 	Gtk::Button *insertStickerButton;
@@ -138,28 +145,25 @@ private:
 	Gtk::Label *currentStandardDeviationLabel;
 	Gtk::TreeView *testHistoryView;
 
+	static Glib::ustring hasNoteString(bool hasNote);
+
 	// Helper objects for history dialog.
 	Glib::RefPtr<Gtk::ListStore> historyStore;
 	Gtk::TreeModelColumnRecord historyColumnRecord;
 	Gtk::TreeModelColumn<int> wpmColumn;
 	Gtk::TreeModelColumn<Glib::ustring> lengthColumn;
 	Gtk::TreeModelColumn<Glib::ustring> typeColumn;
+	Gtk::TreeModelColumn<Glib::ustring> hasNoteColumn;
+	Gtk::TreeModelColumn<std::shared_ptr<TestInfo>> testInfoColumn;
 
 	// Notes dialog widgets
-	Gtk::Dialog *notesDialog;
+	Gtk::Dialog *noteDialog;
 	Gtk::Button *dialogSaveNoteButton;
 	Gtk::Button *dialogInsertStickerButton;
 	Gtk::Button *closeNotesButton;
-	Gtk::TreeView *notesView;
-	Gtk::Entry *noteNameEntry;
 	Gtk::TextView *dialogNoteView;
 
 	// Helper object for notes dialog.
-	Glib::RefPtr<Gtk::ListStore> notesStore;
-	Gtk::TreeModelColumnRecord notesColumnRecord;
-	Gtk::TreeModelColumn<Glib::ustring> noteNameColumn;
-	Gtk::TreeModelColumn<Glib::ustring> noteDateColumn;
-	Gtk::TreeModelColumn<Glib::ustring> noteContentsColumn;
 	Glib::RefPtr<StickerBuffer> dialogNoteBuffer;
 
 	// List of trouble words to be used with the trouble words display.
@@ -255,63 +259,36 @@ private:
 	// For the history dialog close button to give the dialog response signal.
 	void onHistoryCloseButtonClicked();
 	void onEraseHistoryButtonClicked();
+	void onHistoryDialogButtonPress(GdkEventButton *button);
 
 	void onDialogSaveNoteButtonClicked();
 	void onDialogInsertStickerButtonClicked();
-    void onDialogNotesViewButtonPressEvent(GdkEventButton* button);
-	void onDialogDeleteNote(Gtk::TreeRowReference selectedRef);
-	void onNotesViewRowActivated(const Gtk::TreePath &path,
-		Gtk::TreeViewColumn *column);
-	void onLoadNoteItemActivated(Gtk::TreeRowReference selectedRef);
+	void onDialogCancelClicked();
 
-	void onInsertStickerButtonClicked();
-	void onSaveNoteButtonClicked();
+	void onCreateNoteButtonClicked();
 	bool onTypingEntryKeyPress(GdkEventKey *keyEvent);
+
+	void onNoteDialogResponse(int responseId);
+
+	void onHistoryRowActivated(const Gtk::TreePath &path,
+		Gtk::TreeViewColumn *);
+	void onHistoryOpenNote(Gtk::TreeRowReference selectedRef);
+	void onHistoryDeleteNote(Gtk::TreeRowReference selectedRef);
 
 	// Opens the history dialog.
 	void onActionShowHistory();
-	// Opens the notes dialog.
-	void onActionOpenNotes();
-
-
-	// The directory to save notes in. Defaults to the config data dir with the
-	// notes directory appended. This variable does not end in a slash, unlike
-	// the dataDir component itself.
-	std::string noteDir() const;
-	void addNoteToDialog(const Note &note);
-	// Looks for a note with the given name, loads it into the dialog. This
-	// only matters if the dialog is opened. Doesn't make a visual change if
-	// the dialog isn't open.
-	void loadNote(const std::string &name);
-	// Represents whether or not the user is editing a note that was made
-	// earlier and is now being opened.
-	bool isEditingNote = false;
-	// The name of the note that was loaded into the notesDialog.
-	std::string editedNoteName;
-	// Searches notesStore for a note with the given name and removes if it
-	// finds one. Only removes the first insance of a note with that name.
-	// Note, this doesn't delete the note, that can be done independently.
-	//
-	// Returns true if a note with that name was found, false otherwise.
-	bool eraseNoteWithName(const std::string &name);
-	// Reads notes from storage into the notesDialog.
-	void loadNotes();
-	// Clears the note name and note contents from notesDialog and sets the
-	// editing notse variables to their default states.
-	void clearNotesDialog();
-
-	// Represents if the user has taken a test since the program was first
-	// openend. This is so that the notes know if they should use the last
-	// score in their note name or use the name "Anonymous Note".
-	bool hasLastScore = false;
-	// The last typing test score completed in the program. For use with the
-	// notes system. This variable is used to name a note taken with the note
-	// buffer in the main window.
-	int lastScore = 0;
 
 	// Assuming a score of wpm was just achieved, updates the history file to
 	// reflect the new score.
 	void updateHistoryFile(int wpm);
+	// Looks in the history store which is loaded when historyDialog is shown
+	// and writes the appropriate data to the history file.
+	void writeHistoryStore();
+	// Adds a note to the test at the given index in the history file. Throws
+	// std::out_of_range if it encounters an error.
+	void addNoteToHistory(int index, const std::string &note);
+	// Reads the history file, adds a note to the last one and resaves it.
+	void addNoteToLastTestHistory(const std::string &note);
 	// Assuming a test with troubleWords and goodWords was achieved, then
 	// updates the trouble words file accordingly. Passed by value because it
 	// shouldn't affect the variables used but also needs to modify a copy.
@@ -319,11 +296,15 @@ private:
 	void updateTroubleWordsFile(std::set<std::string> troubleWords,
 		std::set<std::string> goodWords);
 
+	bool hasNote = false;
+	std::string note;
+
 	// Reads the file given by path and returns the list of tests it
 	// represents. If there was an error then an empty vector is returned and
 	// recordWpm is changed to 0.
-	static std::vector<TestInfo> readHistory(const std::string &path,
-		int &recordWpm);
+	std::vector<TestInfo> readHistory(int &recordWpm);
+	// Writes the list of TestInfos into the file.
+	void writeHistory(const std::vector<TestInfo> &history, int recordWpm);
 	// Returns the average wpm if size is greater than 0 and 0 otherwise.
 	static double getAverageWpm(const std::vector<TestInfo> &history);
 	// Returns the standard deviation if the size is greater than 0 and 0
@@ -339,7 +320,6 @@ private:
 
 	// Implements comparator for the WPM of TestInfo objects.
 	static bool compareWpm(const TestInfo &t1, const TestInfo &t2);
-
 
 	// Returns the path to use for the file storing history data.
 	std::string getHistoryPath() const;

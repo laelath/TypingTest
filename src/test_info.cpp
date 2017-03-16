@@ -103,7 +103,8 @@ std::ostream& operator<<(std::ostream& os, const TestInfo& info)
 		os << "note" << std::endl;
 		std::vector<std::string> lines;
 		std::string line;
-		while (std::getline(std::istringstream{info.getNote()}, line))
+		std::istringstream noteStream{info.getNote()};
+		while (std::getline(noteStream, line))
 			lines.push_back(line);
 		os << lines.size() << std::endl;
 		for (const auto &line : lines)
@@ -136,13 +137,16 @@ std::istream& operator>>(std::istream& is, TestInfo& info)
 	if (hasNote == "note") {
 		size_t lineCount;
 		is >> lineCount;
+		// The line count should be on its own line, so this is required to
+		// make getline work properly.
+		is.ignore(1, '\n');
 		std::ostringstream contents;
 		for (size_t i = 0; i < lineCount; ++i) {
+			if (i > 0)
+				contents << std::endl;
 			std::string line;
 			std::getline(is, line);
 			contents << line;
-			if (i > 0)
-				contents << std::endl;
 		}
 		note = contents.str();
 	}
