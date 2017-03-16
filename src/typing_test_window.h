@@ -56,6 +56,7 @@ public:
 	// required for easily calling GApplication::run with a window. If someone
 	// knows a better way to do this with RAII then that would be great.
 	static std::shared_ptr<TypingTestWindow> create();
+	static TypingTestWindow *create_pointer();
 
 private:
 	// The builder used to construct the window's children.

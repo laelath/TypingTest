@@ -15,30 +15,29 @@
 // You should have received a copy of the GNU General Public License along with
 // TypingTest.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <cstdlib>
-#include <iostream>
+#ifndef TYPING_TEST_TYPING_TEST_APPLICATION_H
+#define TYPING_TEST_TYPING_TEST_APPLICATION_H
 
-#include <err.h>
+#include <vector>
 
 #include <gtkmm.h>
 
-#include "typing_test_application.h"
+namespace typingtest {
 
-int main(int argc, char *argv[])
-{
-	auto app = typingtest::TypingTestApplication::create(argc, argv,
-		"us.laelath.typingtest");
-	try {
-		int status = app->run();
-		return status;
-	} catch (const Glib::FileError &e) {
-		warnx("%s", e.what().c_str());
-	} catch (const Gio::ResourceError &e) {
-		warnx("%s", e.what().c_str());
-	} catch (const Gtk::BuilderError &e) {
-		warnx("%s", e.what().c_str());
-	} catch (...) {
-		warnx("Unknown exception");
-	}
-	return EXIT_FAILURE;
-}
+class TypingTestApplication : public Gtk::Application {
+public:
+	TypingTestApplication(int &argc, char **&argv,
+		const Glib::ustring &applicationId = Glib::ustring{},
+		Gio::ApplicationFlags flags = Gio::APPLICATION_FLAGS_NONE);
+	static Glib::RefPtr<TypingTestApplication> create(int &argc, char **&argv,
+		const Glib::ustring &applicationId = Glib::ustring{},
+		Gio::ApplicationFlags flags = Gio::APPLICATION_FLAGS_NONE);	
+
+private:
+	std::vector<Gtk::Window *> windows;
+	void on_activate() override;
+	void onShutdown();
+};
+} // namespace typingtest
+
+#endif // TYPING_TEST_TYPING_TEST_APPLICAITON_H

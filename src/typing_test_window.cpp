@@ -862,6 +862,15 @@ std::shared_ptr<TypingTestWindow> TypingTestWindow::create()
 	return std::shared_ptr<TypingTestWindow>{window};
 }
 
+TypingTestWindow *TypingTestWindow::create_pointer()
+{
+	auto builder = Gtk::Builder::create_from_resource(
+		"/us/laelath/typingtest/ui/typingui.glade");
+	typingtest::TypingTestWindow *window = nullptr;
+	builder->get_widget_derived("typingtest", window);
+	return window;
+}
+
 bool TypingTestWindow::onTypingEntryKeyPress(GdkEventKey *keyEvent)
 {
 	if (keyEvent->keyval == GDK_KEY_Tab) {
@@ -995,8 +1004,6 @@ void TypingTestWindow::onHistoryOpenNote(Gtk::TreeRowReference selectedRef)
 	Gtk::TreeRow selectedRow{*historyStore->get_iter(selectedPath)};
 	std::shared_ptr<TestInfo> info{selectedRow[testInfoColumn]};
 	std::string noteContents = (info->getHasNote()) ? info->getNote() : "";
-	std::cout << info->getHasNote() << std::endl;
-	std::cout << noteContents << std::endl;
 	dialogNoteBuffer->set_text(noteContents);
 	noteDialog->run();
 	noteDialog->hide();
