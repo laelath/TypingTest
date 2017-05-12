@@ -21,35 +21,35 @@ namespace typingtest {
 
 PopupMenu *PopupMenu::create(Gtk::Window &parent)
 {
-	PopupMenu *menu = Gtk::manage(new PopupMenu(parent));
-	return menu;
+    PopupMenu *menu = Gtk::manage(new PopupMenu(parent));
+    return menu;
 }
 
 PopupMenu::PopupMenu(Gtk::Window &parent)
 {
-	accelerate(parent);
+    accelerate(parent);
 }
 
 void PopupMenu::addItem(const std::string &name,
-	const sigc::slot<void, Gtk::TreeRowReference> &slot)
+    const sigc::slot<void, Gtk::TreeRowReference> &slot)
 {
-	items.push_back({name, slot});
+    items.push_back({name, slot});
 }
 
 void PopupMenu::run(Gtk::TreeRowReference rowRef, guint button,
-	guint32 activateTime)
+    guint32 activateTime)
 {
-	for (auto &item : items) {
-		Gtk::MenuItem *menuItem = Gtk::manage(new Gtk::MenuItem(item.first));
-		menuItem->signal_activate().connect(
-			sigc::bind<Gtk::TreeRowReference>(item.second, rowRef));
-		append(*menuItem);
-	}
-	show_all();
-	popup(button, activateTime);
+    for (auto &item : items) {
+        Gtk::MenuItem *menuItem = Gtk::manage(new Gtk::MenuItem(item.first));
+        menuItem->signal_activate().connect(
+            sigc::bind<Gtk::TreeRowReference>(item.second, rowRef));
+        append(*menuItem);
+    }
+    show_all();
+    popup(button, activateTime);
 }
 
 void PopupMenu::set_manage() {
-	Gtk::Menu::set_manage();
+    Gtk::Menu::set_manage();
 }
 } // typingtest

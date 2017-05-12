@@ -26,17 +26,17 @@ namespace typingtest {
 
 class TypingTestApplication : public Gtk::Application {
 public:
-	TypingTestApplication(int &argc, char **&argv,
-		const Glib::ustring &applicationId = Glib::ustring{},
-		Gio::ApplicationFlags flags = Gio::APPLICATION_FLAGS_NONE);
-	static Glib::RefPtr<TypingTestApplication> create(int &argc, char **&argv,
-		const Glib::ustring &applicationId = Glib::ustring{},
-		Gio::ApplicationFlags flags = Gio::APPLICATION_FLAGS_NONE);	
+    TypingTestApplication(int &argc, char **&argv,
+        const Glib::ustring &applicationId = Glib::ustring{},
+        Gio::ApplicationFlags flags = Gio::APPLICATION_FLAGS_NONE);
+    static Glib::RefPtr<TypingTestApplication> create(int &argc, char **&argv,
+        const Glib::ustring &applicationId = Glib::ustring{},
+        Gio::ApplicationFlags flags = Gio::APPLICATION_FLAGS_NONE); 
 
 private:
-	std::vector<Gtk::Window *> windows;
-	void on_activate() override;
-	void onShutdown();
+    std::vector<Gtk::Window *> windows;
+    void on_activate() override;
+    void onShutdown();
 };
 } // namespace typingtest
 

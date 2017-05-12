@@ -26,19 +26,19 @@
 
 int main(int argc, char *argv[])
 {
-	auto app = typingtest::TypingTestApplication::create(argc, argv,
-		"us.laelath.typingtest");
-	try {
-		int status = app->run();
-		return status;
-	} catch (const Glib::FileError &e) {
-		warnx("%s", e.what().c_str());
-	} catch (const Gio::ResourceError &e) {
-		warnx("%s", e.what().c_str());
-	} catch (const Gtk::BuilderError &e) {
-		warnx("%s", e.what().c_str());
-	} catch (...) {
-		warnx("Unknown exception");
-	}
-	return EXIT_FAILURE;
+    auto app = typingtest::TypingTestApplication::create(argc, argv,
+        "us.laelath.typingtest");
+    try {
+        int status = app->run();
+        return status;
+    } catch (const Glib::FileError &e) {
+        warnx("%s", e.what().c_str());
+    } catch (const Gio::ResourceError &e) {
+        warnx("%s", e.what().c_str());
+    } catch (const Gtk::BuilderError &e) {
+        warnx("%s", e.what().c_str());
+    } catch (...) {
+        warnx("Unknown exception");
+    }
+    return EXIT_FAILURE;
 }

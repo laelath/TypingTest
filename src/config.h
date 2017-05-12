@@ -23,9 +23,9 @@
 namespace typingtest {
 
 enum HighlightMode {
-	ALL = 0,
-	SOME,
-	NONE,
+    ALL = 0,
+    SOME,
+    NONE,
 };
 
 HighlightMode getHighlight(std::string str);
@@ -33,21 +33,21 @@ std::string getString(HighlightMode hl);
 
 class Config {
 public:
-	Config();
+    Config();
 
-	int startWords = 500;
-	double minZScore = -2.2;
-	double maxZScore = 0.0;
-	int startTroubleScore = 3;
-	int troubleDec = 1;
-	int troubleInc = 1;
-	HighlightMode hlMode = HighlightMode::ALL;
-	std::string configDir;
-	std::string dataDir;
+    int startWords = 500;
+    double minZScore = -2.2;
+    double maxZScore = 0.0;
+    int startTroubleScore = 3;
+    int troubleDec = 1;
+    int troubleInc = 1;
+    HighlightMode hlMode = HighlightMode::ALL;
+    std::string configDir;
+    std::string dataDir;
 
-	void setPaths();
-	void loadConfig();
-	void saveConfig();
+    void setPaths();
+    void loadConfig();
+    void saveConfig();
 };
 } // namespace typingtest
 

@@ -27,21 +27,21 @@ namespace typingtest {
 
 std::string getSwapPath(const std::string &path)
 {
-	std::string swapPathTest = path + ".swp";
-	if (access(swapPathTest.c_str(), F_OK) != 0)
-		return swapPathTest;
-	for (int i = 0; i < 20; ++i) {
-		swapPathTest = path + ".swp" + std::to_string(i);
-		if (access(swapPathTest.c_str(), F_OK) != 0)
-			return swapPathTest;
-	}
-	throw std::runtime_error("Failed to find suitable swap file");
+    std::string swapPathTest = path + ".swp";
+    if (access(swapPathTest.c_str(), F_OK) != 0)
+        return swapPathTest;
+    for (int i = 0; i < 20; ++i) {
+        swapPathTest = path + ".swp" + std::to_string(i);
+        if (access(swapPathTest.c_str(), F_OK) != 0)
+            return swapPathTest;
+    }
+    throw std::runtime_error("Failed to find suitable swap file");
 }
 
 void save(const std::string &path, const std::string &swapPath)
 {
-	std::remove(path.c_str());
-	if (std::rename(swapPath.c_str(), path.c_str()) != 0)
-		throw std::runtime_error(std::strerror(errno));
+    std::remove(path.c_str());
+    if (std::rename(swapPath.c_str(), path.c_str()) != 0)
+        throw std::runtime_error(std::strerror(errno));
 }
 } // namespace typingtest

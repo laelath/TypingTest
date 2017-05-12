@@ -27,27 +27,27 @@ namespace typingtest {
 
 class Word {
 public:
-	Word(std::string word);
+    Word(std::string word);
 
-	std::string getWord();
-	std::string getEntry();
+    std::string getWord();
+    std::string getEntry();
 
-	double getScore();
-	bool getStarted();
+    double getScore();
+    bool getStarted();
 
-	void startTime();
-	bool enterWord(std::string enter);
-	bool getCorrect();
-	std::chrono::milliseconds getTime();
+    void startTime();
+    bool enterWord(std::string enter);
+    bool getCorrect();
+    std::chrono::milliseconds getTime();
 
 private:
-	bool correct = false;
-	double score;
-	std::string word;
-	std::string enteredWord;
-	std::chrono::high_resolution_clock::time_point start;
-	std::chrono::milliseconds time;
-	bool started = false;
+    bool correct = false;
+    double score;
+    std::string word;
+    std::string enteredWord;
+    std::chrono::high_resolution_clock::time_point start;
+    std::chrono::milliseconds time;
+    bool started = false;
 };
 } // namespace typingtest
 

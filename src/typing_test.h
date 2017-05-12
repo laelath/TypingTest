@@ -36,51 +36,51 @@ namespace typingtest {
 // be create and have its words retrieved with getWords().
 class TypingTest {
 public:
-	// Constructor that uses the given settings and configuration. The parent
-	// window is used to create transient dialogs.
-	TypingTest(Gtk::Window *parent, const TestSettings &settings,
-		const Config &config);
-	// No-argument constructor.
-	TypingTest();
+    // Constructor that uses the given settings and configuration. The parent
+    // window is used to create transient dialogs.
+    TypingTest(Gtk::Window *parent, const TestSettings &settings,
+        const Config &config);
+    // No-argument constructor.
+    TypingTest();
 
-	// Generates a word from the personal selection based on the personal
-	// frequency.
-	//
-	// Returns a newly generated word.
-	std::string genWord();
-	// Returns words as a long string with each word separated by spaces.
-	std::string getWordsAsString();
+    // Generates a word from the personal selection based on the personal
+    // frequency.
+    //
+    // Returns a newly generated word.
+    std::string genWord();
+    // Returns words as a long string with each word separated by spaces.
+    std::string getWordsAsString();
 
-	const std::vector<std::shared_ptr<Word>> &getWords() const;
-	const std::vector<std::string> &getWordSelection() const;
-	const std::vector<std::string> &getPersonalSelection() const;
+    const std::vector<std::shared_ptr<Word>> &getWords() const;
+    const std::vector<std::string> &getWordSelection() const;
+    const std::vector<std::string> &getPersonalSelection() const;
 
-	const TestSettings &getSettings() const;
-	void setSettings(const TestSettings &settings);
-	const Config &getConfig() const;
-	void setConfig(const Config &config);
+    const TestSettings &getSettings() const;
+    void setSettings(const TestSettings &settings);
+    const Config &getConfig() const;
+    void setConfig(const Config &config);
 
 private:
-	// Settings and config for behavior.
-	TestSettings settings;
-	Config config;
+    // Settings and config for behavior.
+    TestSettings settings;
+    Config config;
 
-	// Parent widget for creating transient dialogs.
-	Gtk::Window *parent;
+    // Parent widget for creating transient dialogs.
+    Gtk::Window *parent;
 
-	// Random generator.
-	std::default_random_engine rand;
+    // Random generator.
+    std::default_random_engine rand;
 
-	// Selection of words to choose from.
-	std::vector<std::string> wordSelection;
-	// The user's personal selection of words.
-	std::vector<std::string> personalSelection;
-	// The list of words generated.
-	std::vector<std::shared_ptr<Word>> words;
+    // Selection of words to choose from.
+    std::vector<std::string> wordSelection;
+    // The user's personal selection of words.
+    std::vector<std::string> personalSelection;
+    // The list of words generated.
+    std::vector<std::shared_ptr<Word>> words;
 
-	// The frequency for the user specifically.
-	double personalFrequency;
-	double capitalFrequency;
+    // The frequency for the user specifically.
+    double personalFrequency;
+    double capitalFrequency;
 };
 } // namespace typingtest
 

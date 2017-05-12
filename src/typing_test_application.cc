@@ -22,33 +22,33 @@
 namespace typingtest {
 
 TypingTestApplication::TypingTestApplication(int &argc, char **&argv,
-	const Glib::ustring &applicationId, Gio::ApplicationFlags flags)
-	: Gtk::Application(argc, argv, applicationId, flags)
+    const Glib::ustring &applicationId, Gio::ApplicationFlags flags)
+    : Gtk::Application(argc, argv, applicationId, flags)
 {
-	signal_shutdown().connect(sigc::mem_fun(*this,
-			&TypingTestApplication::onShutdown));
+    signal_shutdown().connect(sigc::mem_fun(*this,
+            &TypingTestApplication::onShutdown));
 }
 
 Glib::RefPtr<TypingTestApplication> TypingTestApplication::create(int &argc,
-	char **&argv, const Glib::ustring &applicationId,
-	Gio::ApplicationFlags flags)
+    char **&argv, const Glib::ustring &applicationId,
+    Gio::ApplicationFlags flags)
 {
-	return Glib::RefPtr<TypingTestApplication>{new TypingTestApplication{argc,
-		argv, applicationId, flags}};
+    return Glib::RefPtr<TypingTestApplication>{new TypingTestApplication{argc,
+        argv, applicationId, flags}};
 }
 
 void TypingTestApplication::on_activate()
 {
-	Gtk::Application::on_activate();
-	TypingTestWindow *window = TypingTestWindow::create_pointer();
-	add_window(*window);
-	window->show();
-	windows.push_back(window);
+    Gtk::Application::on_activate();
+    TypingTestWindow *window = TypingTestWindow::create_pointer();
+    add_window(*window);
+    window->show();
+    windows.push_back(window);
 }
 
 void TypingTestApplication::onShutdown()
 {
-	for (Gtk::Window *window : windows)
-		delete window;
+    for (Gtk::Window *window : windows)
+        delete window;
 }
 } // namespace typingtest

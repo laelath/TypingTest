@@ -33,25 +33,25 @@ extern const char *OTHER_STICKERS[];
 template<typename T>
 class RefPtrHasher {
 public:
-	size_t operator()(const Glib::RefPtr<T> &) const;
+    size_t operator()(const Glib::RefPtr<T> &) const;
 };
 
 // A set of widgets and information that are meant to be stored in a notebook
 // for a StickerDialog. They contain the necessary information for creating a
 // page and filling it with stickers.
 struct StickerCategory {
-	StickerCategory(const std::string &name,
-		const std::vector<std::string> &stickerNames);
+    StickerCategory(const std::string &name,
+        const std::vector<std::string> &stickerNames);
 
-	std::string name;
-	Gtk::ScrolledWindow viewScrolledWindow;
-	Gtk::TreeView view;
-	Glib::RefPtr<Gtk::ListStore> model;
-	Gtk::TreeModelColumnRecord record;
-	Gtk::TreeModelColumn<Glib::ustring> nameColumn;
-	Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf>> previewColumn;
+    std::string name;
+    Gtk::ScrolledWindow viewScrolledWindow;
+    Gtk::TreeView view;
+    Glib::RefPtr<Gtk::ListStore> model;
+    Gtk::TreeModelColumnRecord record;
+    Gtk::TreeModelColumn<Glib::ustring> nameColumn;
+    Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf>> previewColumn;
 
-	StickerEngine engine;
+    StickerEngine engine;
 };
 
 // A dialog that is means for selecting a sticker and inserting it. Has a
@@ -61,42 +61,42 @@ struct StickerCategory {
 // name with getStickerName();
 class StickerDialog : public Gtk::Dialog {
 public:
-	StickerDialog();
-	StickerDialog(Gtk::Window &parent);
+    StickerDialog();
+    StickerDialog(Gtk::Window &parent);
 
-	bool hasSticker() const;
-	std::string getStickerName() const;
+    bool hasSticker() const;
+    std::string getStickerName() const;
 
 private:
-	Gtk::Notebook stickerNotebook;
-	std::vector<std::shared_ptr<StickerCategory>> categories;
+    Gtk::Notebook stickerNotebook;
+    std::vector<std::shared_ptr<StickerCategory>> categories;
 
-	bool sticker = false;
-	std::string stickerName;
+    bool sticker = false;
+    std::string stickerName;
 
-	Glib::RefPtr<Gtk::ListStore> allStickersStore;
-	Gtk::TreeModelColumn<Glib::ustring> allStickersColumn;
+    Glib::RefPtr<Gtk::ListStore> allStickersStore;
+    Gtk::TreeModelColumn<Glib::ustring> allStickersColumn;
 
-	void addCategory(const std::string &name,
-		std::vector<std::string> &stickerNames);
+    void addCategory(const std::string &name,
+        std::vector<std::string> &stickerNames);
 
-	// Map for associating models with the first column in that model. This is
-	// required because in one of the signal handlers, the model can be
-	// obtained but the corresponding name columns are necessary.
-	std::unordered_map<Glib::RefPtr<Gtk::TreeModel>,
-		Gtk::TreeModelColumn<Glib::ustring> *, RefPtrHasher<Gtk::TreeModel>>
-			modelNameColumns;
+    // Map for associating models with the first column in that model. This is
+    // required because in one of the signal handlers, the model can be
+    // obtained but the corresponding name columns are necessary.
+    std::unordered_map<Glib::RefPtr<Gtk::TreeModel>,
+        Gtk::TreeModelColumn<Glib::ustring> *, RefPtrHasher<Gtk::TreeModel>>
+            modelNameColumns;
 
-	void onRowActivated(const Gtk::TreePath &path, Gtk::TreeViewColumn *column);
+    void onRowActivated(const Gtk::TreePath &path, Gtk::TreeViewColumn *column);
 
-	StickerEngine engine;
+    StickerEngine engine;
 };
 
 template<typename T>
 size_t
 RefPtrHasher<T>::operator()(const Glib::RefPtr<T> &) const
 {
-	return 0;
+    return 0;
 };
 } // namespace typingtest
 

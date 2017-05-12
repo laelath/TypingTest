@@ -31,28 +31,28 @@ const char CUSTOM_TEST_STRING[] = "custom";
 
 class TestSettings {
 public:
-	enum TestType {
-		BASIC = 0,
-		ADVANCED,
-		ENDURANCE,
-		CUSTOM,
-	};
+    enum TestType {
+        BASIC = 0,
+        ADVANCED,
+        ENDURANCE,
+        CUSTOM,
+    };
 
-	TestSettings();
-	TestSettings(TestType type);
-	TestSettings(TestType t, size_t tw, size_t minl, size_t maxl,
-		std::chrono::seconds sec, uint32_t sd, double pf);
+    TestSettings();
+    TestSettings(TestType type);
+    TestSettings(TestType t, size_t tw, size_t minl, size_t maxl,
+        std::chrono::seconds sec, uint32_t sd, double pf);
 
-	void setType(TestType type);
+    void setType(TestType type);
 
-	TestType type;
-	size_t topWords;
-	size_t minLength;
-	size_t maxLength;
-	std::chrono::seconds seconds;
-	uint32_t seed;
-	double personalFrequency;
-	double capitalFrequency;
+    TestType type;
+    size_t topWords;
+    size_t minLength;
+    size_t maxLength;
+    std::chrono::seconds seconds;
+    uint32_t seed;
+    double personalFrequency;
+    double capitalFrequency;
 };
 
 std::string toString(TestSettings::TestType type);

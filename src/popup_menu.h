@@ -28,23 +28,23 @@ namespace typingtest {
 // processing.
 class PopupMenu : private Gtk::Menu {
 public:
-	// Creates a popup menu managed by the parent. Don't worry about freeing
-	// the return value for this function because it is managed by the parent.
-	static PopupMenu *create(Gtk::Window &parent);
+    // Creates a popup menu managed by the parent. Don't worry about freeing
+    // the return value for this function because it is managed by the parent.
+    static PopupMenu *create(Gtk::Window &parent);
 
-	// Adds an item with the given name that runs the given slot on a click.
-	void addItem(const std::string &name,
-		const sigc::slot<void, Gtk::TreeRowReference> &slot);
-	// Calls show_all to make it display, and then calls "popup".
-	void run(Gtk::TreeRowReference rowRef, guint button, guint32 activateTime);
-	void set_manage() override;
+    // Adds an item with the given name that runs the given slot on a click.
+    void addItem(const std::string &name,
+        const sigc::slot<void, Gtk::TreeRowReference> &slot);
+    // Calls show_all to make it display, and then calls "popup".
+    void run(Gtk::TreeRowReference rowRef, guint button, guint32 activateTime);
+    void set_manage() override;
 
 private:
-	PopupMenu(Gtk::Window &parent);
+    PopupMenu(Gtk::Window &parent);
 
-	std::vector<std::pair<std::string, sigc::slot<void, Gtk::TreeRowReference>>>
-		items;
-	void onItemActivate();
+    std::vector<std::pair<std::string, sigc::slot<void, Gtk::TreeRowReference>>>
+        items;
+    void onItemActivate();
 };
 } // namespace typingtest
 

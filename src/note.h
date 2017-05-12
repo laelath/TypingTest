@@ -36,38 +36,38 @@ const char TIME_FORMAT[] = "%Y-%m-%d %H:%M:%S";
 // stores a time, defaults to the current time.
 class Note {
 public:
-	Note(const std::string &name = {}, const std::tm &time = currentTime());
+    Note(const std::string &name = {}, const std::tm &time = currentTime());
 
-	const std::string &getName() const;
-	void setName(const std::string &name);
-	const std::tm &getTime() const;
-	void setTime(const std::tm &tm);
-	const std::string &getContents() const;
-	void setContents(const std::string &contents);
+    const std::string &getName() const;
+    void setName(const std::string &name);
+    const std::tm &getTime() const;
+    void setTime(const std::tm &tm);
+    const std::string &getContents() const;
+    void setContents(const std::string &contents);
 
-	std::string getTimeString() const;
-	// Reads the note stored in filePath and returns it. Throws a runtime_error if
-	// it encounters an error.
-	static Note readNote(const std::string &filePath);
-	// Writes the contents of the note to a file with the note name in dirPath.
-	//
-	// Returns true on success, false on failure.
-	bool save(const std::string &dirPath) const;
-	// Returns true on success, false on failure.
-	static bool deleteNote(const std::string &name, const std::string &noteDir);
+    std::string getTimeString() const;
+    // Reads the note stored in filePath and returns it. Throws a runtime_error if
+    // it encounters an error.
+    static Note readNote(const std::string &filePath);
+    // Writes the contents of the note to a file with the note name in dirPath.
+    //
+    // Returns true on success, false on failure.
+    bool save(const std::string &dirPath) const;
+    // Returns true on success, false on failure.
+    static bool deleteNote(const std::string &name, const std::string &noteDir);
 
-	static const int MAX_SCORE_WITH_SAME_NAME = 99999;
-	// Searches noteDir for existing files. Looks for paths that are not yet
-	// taken that start with noteName. If a file already exists, appends (num)
-	// to the end. If MAX_SCORE_WITH_SAME_NAME is reached, then a
-	// runtime_error is thrown.
-	static std::string uniqueNoteName(const std::string &noteName,
-		const std::string &noteDir);
+    static const int MAX_SCORE_WITH_SAME_NAME = 99999;
+    // Searches noteDir for existing files. Looks for paths that are not yet
+    // taken that start with noteName. If a file already exists, appends (num)
+    // to the end. If MAX_SCORE_WITH_SAME_NAME is reached, then a
+    // runtime_error is thrown.
+    static std::string uniqueNoteName(const std::string &noteName,
+        const std::string &noteDir);
 
 private:
-	std::string name;
-	std::tm time;
-	std::string contents;
+    std::string name;
+    std::tm time;
+    std::string contents;
 };
 } // namespace typingtest
 

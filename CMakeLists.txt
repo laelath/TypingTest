@@ -19,20 +19,20 @@ add_definitions (${GTKMM_CFLAGS_OTHER})
 
 set (
 	SOURCES
-	src/main.cpp
-	src/typing_test.cpp
-	src/typing_test_window.cpp
-	src/test_settings.cpp
-	src/word.cpp
-	src/config.cpp
-	src/test_info.cpp
-	src/files.cpp
-	src/sticker_engine.cpp
-	src/sticker_buffer.cpp
-	src/sticker_dialog.cpp
-	src/note.cpp
-	src/popup_menu.cpp
-	src/typing_test_application.cpp
+	src/main.cc
+	src/typing_test.cc
+	src/typing_test_window.cc
+	src/test_settings.cc
+	src/word.cc
+	src/config.cc
+	src/test_info.cc
+	src/files.cc
+	src/sticker_engine.cc
+	src/sticker_buffer.cc
+	src/sticker_dialog.cc
+	src/note.cc
+	src/popup_menu.cc
+	src/typing_test_application.cc
 	${CMAKE_CURRENT_BINARY_DIR}/resources.c)
 
 add_executable (typingtest ${SOURCES})

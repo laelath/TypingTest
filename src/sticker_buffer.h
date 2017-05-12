@@ -32,7 +32,7 @@ namespace typingtest {
 // Hasher class to create a hash value specifically for a RefPtr to a text tag.
 class TagHasher {
 public:
-	size_t operator()(Glib::RefPtr<Gtk::TextTag> tag) const;
+    size_t operator()(Glib::RefPtr<Gtk::TextTag> tag) const;
 };
 
 // From the gtkmm documentation. This character is returned from the
@@ -51,74 +51,74 @@ const gunichar UNKNOWN_CHAR = 0xFFFC;
 // were there.
 class StickerBuffer : public Gtk::TextBuffer {
 public:
-	StickerBuffer();
+    StickerBuffer();
 
-	// Returns the text just as get_text would. However, a string of the form
-	// :sticker_name:. Carelessly manipulating and reinserting this text may
-	// result in unexpected results, as if there is an added colon then the
-	// stickers will not display correctly. Because of the way text insertion
-	// works, though, reinserting text retreived with this method will display
-	// correctly because as of now there is now way create colons that would
-	// mess this up. However, this only works if you insert it again with the
-	// addNewlines parameter set to false.
-	std::string getTextWithStickers();
+    // Returns the text just as get_text would. However, a string of the form
+    // :sticker_name:. Carelessly manipulating and reinserting this text may
+    // result in unexpected results, as if there is an added colon then the
+    // stickers will not display correctly. Because of the way text insertion
+    // works, though, reinserting text retreived with this method will display
+    // correctly because as of now there is now way create colons that would
+    // mess this up. However, this only works if you insert it again with the
+    // addNewlines parameter set to false.
+    std::string getTextWithStickers();
 
-	static Glib::RefPtr<StickerBuffer> create();
+    static Glib::RefPtr<StickerBuffer> create();
 
-	// For inserting stickers from outside, not for internal use. Inserts a
-	// sticker with the given name at the cursor.
-	void insertSticker(const std::string &stickerName);
-	// Usable for both internal and external use. Looks for all instances where
-	// stickers should be inserted and performs the proper insertions.
-	void substituteStickers();
+    // For inserting stickers from outside, not for internal use. Inserts a
+    // sticker with the given name at the cursor.
+    void insertSticker(const std::string &stickerName);
+    // Usable for both internal and external use. Looks for all instances where
+    // stickers should be inserted and performs the proper insertions.
+    void substituteStickers();
 
-	bool shouldAddNewlines() const;
-	void setAddNewlines(bool addNewlines);
+    bool shouldAddNewlines() const;
+    void setAddNewlines(bool addNewlines);
 
-	using TextTagSet = std::unordered_set<Glib::RefPtr<Gtk::TextTag>,
-		  TagHasher>;
+    using TextTagSet = std::unordered_set<Glib::RefPtr<Gtk::TextTag>,
+          TagHasher>;
 
 private:
-	void onInsertText(const Gtk::TextIter &iter, const Glib::ustring &text,
-		int bytes);
+    void onInsertText(const Gtk::TextIter &iter, const Glib::ustring &text,
+        int bytes);
 
-	TextTagSet stickerTags;
+    TextTagSet stickerTags;
 
-	StickerEngine engine;
+    StickerEngine engine;
 
-	// Whether or not to insert newlines on the signal_insert() signal.
-	bool addNewlines = true;
-	std::vector<std::pair<int, int>> splitChars(
-		const std::vector<gunichar> &elements);
-	// Pass by copy because the list is adjusted as we go. Shouldn't incur that
-	// much overhead.
-	void replaceWords(std::vector<std::pair<int, int>> words);
+    // Whether or not to insert newlines on the signal_insert() signal.
+    bool addNewlines = true;
+    std::vector<std::pair<int, int>> splitChars(
+        const std::vector<gunichar> &elements);
+    // Pass by copy because the list is adjusted as we go. Shouldn't incur that
+    // much overhead.
+    void replaceWords(std::vector<std::pair<int, int>> words);
 
-	// Goes over every character, testing for if it matches a sticker, removes
-	// the sticker if it doesn not occur anywhere.
-	void cleanStickers();
+    // Goes over every character, testing for if it matches a sticker, removes
+    // the sticker if it doesn not occur anywhere.
+    void cleanStickers();
 
-	// Functions to shorten replaceWords().
-	void eraseWord(int position, int length);
-	// Inserts necessary newlines and for later inserting a pixbuf and returns
-	// the amount that the buffer was shortened. This function may modify
-	// stickerPosition if a newline is inserted before it.
-	int insertNewlines(int &stickerPos);
-	// Modifies words by shortening the values in it by amount. Only shortens
-	// words from startIndex.
-	void shortenWords(std::vector<std::pair<int, int>> &words, int amount,
-		int startIndex);
-	// If the tag represented by stickerName is already in stickerTags, then it
-	// adds it to that and creates it in the buffer if it is not already in the
-	// tag table.
-	//
-	// Returns the tag which could have been created or found.
-	Glib::RefPtr<Gtk::TextTag> insertTag(const std::string &stickerName);
-	// Inserts a pixbuf of a sticker with the given name if it can be found at
-	// the given position.
-	//
-	// Returns whether or not a sticker was inserted;
-	bool insertPixbuf(const std::string &stickerName, int position);
+    // Functions to shorten replaceWords().
+    void eraseWord(int position, int length);
+    // Inserts necessary newlines and for later inserting a pixbuf and returns
+    // the amount that the buffer was shortened. This function may modify
+    // stickerPosition if a newline is inserted before it.
+    int insertNewlines(int &stickerPos);
+    // Modifies words by shortening the values in it by amount. Only shortens
+    // words from startIndex.
+    void shortenWords(std::vector<std::pair<int, int>> &words, int amount,
+        int startIndex);
+    // If the tag represented by stickerName is already in stickerTags, then it
+    // adds it to that and creates it in the buffer if it is not already in the
+    // tag table.
+    //
+    // Returns the tag which could have been created or found.
+    Glib::RefPtr<Gtk::TextTag> insertTag(const std::string &stickerName);
+    // Inserts a pixbuf of a sticker with the given name if it can be found at
+    // the given position.
+    //
+    // Returns whether or not a sticker was inserted;
+    bool insertPixbuf(const std::string &stickerName, int position);
 };
 } // namespace typingtest
 

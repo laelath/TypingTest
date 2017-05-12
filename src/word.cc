@@ -27,71 +27,71 @@ namespace typingtest {
 
 Word::Word(std::string word)
 {
-	this->word = word;
+    this->word = word;
 }
 
 std::string Word::getWord()
 {
-	return word;
+    return word;
 }
 
 std::string Word::getEntry()
 {
-	return enteredWord;
+    return enteredWord;
 }
 
 double Word::getScore()
 {
-	return score;
+    return score;
 }
 
 bool Word::getStarted()
 {
-	return started;
+    return started;
 }
 
 void Word::startTime()
 {
-	start = std::chrono::high_resolution_clock::now();
-	started = true;
+    start = std::chrono::high_resolution_clock::now();
+    started = true;
 }
 
 unsigned int levenshtein_distance(const std::string& s1, const std::string& s2)
 {
-	const std::size_t len1 = s1.size(), len2 = s2.size();
-	std::vector<unsigned int> col(len2 + 1), prevCol(len2 + 1);
+    const std::size_t len1 = s1.size(), len2 = s2.size();
+    std::vector<unsigned int> col(len2 + 1), prevCol(len2 + 1);
 
-	for (unsigned int i = 0; i < prevCol.size(); i++)
-		prevCol[i] = i;
-	for (unsigned int i = 0; i < len1; i++) {
-		col[0] = i + 1;
-		for (unsigned int j = 0; j < len2; j++)
-			col[j + 1] = std::min({ prevCol[1 + j] + 1, col[j] + 1,
-					prevCol[j] + (s1[i] == s2[j] ? 0 : 1) });
-		col.swap(prevCol);
-	}
-	return prevCol[len2];
+    for (unsigned int i = 0; i < prevCol.size(); i++)
+        prevCol[i] = i;
+    for (unsigned int i = 0; i < len1; i++) {
+        col[0] = i + 1;
+        for (unsigned int j = 0; j < len2; j++)
+            col[j + 1] = std::min({ prevCol[1 + j] + 1, col[j] + 1,
+                    prevCol[j] + (s1[i] == s2[j] ? 0 : 1) });
+        col.swap(prevCol);
+    }
+    return prevCol[len2];
 }
 
 bool Word::enterWord(std::string enter)
 {
-	correct = word == enter;
-	enteredWord = enter;
-	time = std::chrono::duration_cast<std::chrono::milliseconds>(
+    correct = word == enter;
+    enteredWord = enter;
+    time = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::high_resolution_clock::now() - start);
-	//Calculate score
-	score = word.length() / (double) (time.count() *
-			(levenshtein_distance(word, enteredWord) + 1));
-	return correct;
+    //Calculate score
+    score = word.length() / (double) (time.count() *
+            (levenshtein_distance(word, enteredWord) + 1));
+    return correct;
 }
 
 bool Word::getCorrect()
 {
-	return correct;
+    return correct;
 }
 
 std::chrono::milliseconds Word::getTime()
 {
-	return time;
+    return time;
 }
 } // namespace typingtest

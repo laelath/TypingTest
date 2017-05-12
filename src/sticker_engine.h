@@ -36,34 +36,34 @@ const int DEFAULT_STICKER_WIDTH = 128;
 // someone else wants to do it, though.
 class StickerEngine {
 public:
-	StickerEngine();
-	~StickerEngine();
+    StickerEngine();
+    ~StickerEngine();
 
-	std::string getStickerPath(const std::string &stickerName);
+    std::string getStickerPath(const std::string &stickerName);
 
-	// Returns true if there is a sticker with the given name available.
-	bool hasSticker(const std::string &stickerName);
+    // Returns true if there is a sticker with the given name available.
+    bool hasSticker(const std::string &stickerName);
 
-	// Creates a pixbuf for the given sticker name.
-	//
-	// Returns a smart pointer to the pixbuf if it could be created, a null
-	// smart pointer otherwise.
-	Glib::RefPtr<Gdk::Pixbuf> createPixbufForSticker(
-		const std::string &stickerName);
-	Glib::RefPtr<Gdk::Pixbuf> createPixbufForSticker(
-		const std::string &stickerName, int width, int height);
-	// Like createPixbufForSticker except the sticker has the default
-	// dimensions.
-	Glib::RefPtr<Gdk::Pixbuf> createPixbufDefaultSize(
-		const std::string &stickerName);
-	// Like createPixbufForSticker except the sticker is scaled to the given
-	// width.
-	Glib::RefPtr<Gdk::Pixbuf> createPixbufWithWidth(
-		const std::string &stickerName, int width);
-	// Like createPixbufForSticker except the sticker is scaled to the given
-	// height.
-	Glib::RefPtr<Gdk::Pixbuf> createPixbufWithHeight(
-		const std::string &stickerName, int height);
+    // Creates a pixbuf for the given sticker name.
+    //
+    // Returns a smart pointer to the pixbuf if it could be created, a null
+    // smart pointer otherwise.
+    Glib::RefPtr<Gdk::Pixbuf> createPixbufForSticker(
+        const std::string &stickerName);
+    Glib::RefPtr<Gdk::Pixbuf> createPixbufForSticker(
+        const std::string &stickerName, int width, int height);
+    // Like createPixbufForSticker except the sticker has the default
+    // dimensions.
+    Glib::RefPtr<Gdk::Pixbuf> createPixbufDefaultSize(
+        const std::string &stickerName);
+    // Like createPixbufForSticker except the sticker is scaled to the given
+    // width.
+    Glib::RefPtr<Gdk::Pixbuf> createPixbufWithWidth(
+        const std::string &stickerName, int width);
+    // Like createPixbufForSticker except the sticker is scaled to the given
+    // height.
+    Glib::RefPtr<Gdk::Pixbuf> createPixbufWithHeight(
+        const std::string &stickerName, int height);
 };
 } // namespace typingtest
 
