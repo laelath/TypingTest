@@ -23,7 +23,7 @@ namespace typingtest {
 
 TypingTestApplication::TypingTestApplication(int &argc, char **&argv,
 	const Glib::ustring &applicationId, Gio::ApplicationFlags flags)
-	: Gtk::Application{argc, argv, applicationId, flags}
+	: Gtk::Application(argc, argv, applicationId, flags)
 {
 	signal_shutdown().connect(sigc::mem_fun(*this,
 			&TypingTestApplication::onShutdown));
