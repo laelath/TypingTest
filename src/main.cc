@@ -18,8 +18,6 @@
 #include <cstdlib>
 #include <iostream>
 
-#include <err.h>
-
 #include <gtkmm.h>
 
 #include "typing_test_application.h"
@@ -32,13 +30,13 @@ int main(int argc, char *argv[])
         int status = app->run();
         return status;
     } catch (const Glib::FileError &e) {
-        warnx("%s", e.what().c_str());
+	std::cerr << e.what() << std::endl;
     } catch (const Gio::ResourceError &e) {
-        warnx("%s", e.what().c_str());
+	std::cerr << e.what() << std::endl;
     } catch (const Gtk::BuilderError &e) {
-        warnx("%s", e.what().c_str());
+	std::cerr << e.what() << std::endl;
     } catch (...) {
-        warnx("Unknown exception");
+	std::cerr << "Unknown exception" << std::endl;
     }
     return EXIT_FAILURE;
 }
