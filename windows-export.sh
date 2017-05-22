@@ -1,20 +1,31 @@
 #!/bin/bash
 
 DLL_DEPS="$(ldd typingtest.exe | tr -s ' ' | cut -d ' ' -f3 | sed '/\/mingw64/!d')"
-EXPORT_DIR='./windows-build'
+EXPORT_DIR='./export'
 
 rm -r ${EXPORT_DIR}
 mkdir ${EXPORT_DIR}
 cp ${DLL_DEPS} ${EXPORT_DIR}
 
-mkdir -p ${EXPORT_DIR}/share/icons/Adwaita/16x16/actions
-cp /mingw64/share/icons/Adwaita/16x16/actions/window-{close,maximize,minimize}-symbolic.symbolic.png \
-    ${EXPORT_DIR}/share/icons/Adwaita/16x16/actions
+ICONS_EXP_DIR=${EXPORT_DIR}'/share/icons/Adwaita'
+ICONS_DIR='/mingw64/share/icons/Adwaita'
+
+mkdir -p ${ICONS_EXP_DIR}
+cp ${ICONS_DIR}/index.theme ${ICONS_EXP_DIR}
+
+mkdir -p ${ICONS_EXP_DIR}/16x16/actions
+cp ${ICONS_DIR}/16x16/actions/window-{close,maximize,restore,minimize}-symbolic.symbolic.png \
+    ${ICONS_EXP_DIR}/16x16/actions
+cp ${ICONS_DIR}/16x16/actions/list-{add,remove}-symbolic.symbolic.png ${ICONS_EXP_DIR}/16x16/actions
+cp ${ICONS_DIR}/16x16/actions/edit-{find,clear}-symbolic.symbolic.png ${ICONS_EXP_DIR}/16x16/actions
+
+mkdir -p ${ICONS_EXP_DIR}/64x64/mimetypes
+cp ${ICONS_DIR}/64x64/mimetypes/font-x-generic-symbolic.symbolic.png ${ICONS_EXP_DIR}/64x64/mimetypes
+
+mkdir -p ${ICONS_EXP_DIR}/256x256/devices
+cp ${ICONS_DIR}/256x256/devices/input-keyboard.png ${ICONS_EXP_DIR}/256x256/devices
 
 mkdir -p ${EXPORT_DIR}/etc/gtk-3.0
 echo -e '[Settings]\ngtk-theme-name=win32' > ${EXPORT_DIR}/etc/gtk-3.0/settings.ini
-
-mkdir -p ${EXPORT_DIR}/lib/gdk-pixbuf-2.0/2.10.0
-gdk-pixbuf-query-loaders > ${EXPORT_DIR}/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
 
 cp typingtest.exe ${EXPORT_DIR}

@@ -35,6 +35,13 @@ set (
 	src/typing_test_application.cc
 	${CMAKE_CURRENT_BINARY_DIR}/resources.c)
 
+if (WIN32)
+	set (CMAKE_CXX_FLAGS "-mwindows")
+	enable_language (RC)
+	set (CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -i <SOURCE> -o <OBJECT>")
+	set (SOURCES ${SOURCES} windows/resources.rc)
+endif ()
+
 add_executable (typingtest ${SOURCES})
 
 target_link_libraries (typingtest ${GTKMM_LIBRARIES})
