@@ -10,5 +10,4 @@ typingtest
 typingtest.exe
 resources.c
 export
-directory.wxs
-*.wixobj
+*.msi

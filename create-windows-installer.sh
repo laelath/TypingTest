@@ -4,8 +4,8 @@ PATH=$PATH:/c/Program\ Files\ \(x86\)/WiX\ Toolset\ v3.11/bin
 
 DLL_DEPS="$(ldd typingtest.exe | tr -s ' ' | cut -d ' ' -f3 | sed '/\/mingw64/!d')"
 EXPORT_DIR='./export'
+VERSION='1.3.0'
 
-rm -r ${EXPORT_DIR}
 mkdir ${EXPORT_DIR}
 cp ${DLL_DEPS} ${EXPORT_DIR}
 
@@ -31,6 +31,14 @@ mkdir -p ${EXPORT_DIR}/etc/gtk-3.0
 echo -e '[Settings]\ngtk-theme-name=win32' > ${EXPORT_DIR}/etc/gtk-3.0/settings.ini
 
 cp typingtest.exe ${EXPORT_DIR}
+cp windows/gpl-3.0.rtf ${EXPORT_DIR}
 
-heat dir export -ag -cg MainApplication -dr INSTALLDIR -sfrag -srd -sreg -o directory.wxs -nologo
+heat dir export -ag -cg MainApplication -dr INSTALLDIR -sfrag -srd -sreg -o ${EXPORT_DIR}/directory.wxs -nologo
 
+cd ${EXPORT_DIR}
+candle -arch x64 ../windows/installer.wxs directory.wxs -nologo
+light -ext WixUIExtension installer.wixobj directory.wixobj -o TypingTest-${VERSION}.msi -nologo
+
+mv TypingTest-${VERSION}.msi ..
+cd ..
+rm -r ${EXPORT_DIR}

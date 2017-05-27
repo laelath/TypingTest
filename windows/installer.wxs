@@ -6,7 +6,7 @@
              Manufacturer="Justin Frank, Jason Waataja">
 
         <Package Id="*" Keywords="Installer" Description="TypingTest Installer"
-                 InstallerVersion="100" Languages="1033" Compressed="yes" />
+                 InstallerVersion="200" Languages="1033" Compressed="yes" />
 
         <Media Id="1" Cabinet="TypingTest.cab" EmbedCab="yes" />
 
@@ -22,6 +22,11 @@
         </Feature>
 
         <UIRef Id="WixUI_Minimal"/>
+
+	<WixVariable Id="WixUILicenseRtf" Value="gpl-3.0.rtf" />
+
+	<Icon Id="TypingTestIcon" SourceFile="typingtest.exe" />
+	<Property Id="ARPPRODUCTICON">TypingTestIcon</Property>
 
     </Product>
 </Wix>
