@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product Id="8d544670-b818-4785-8fc6-ed675f27b386"
+             UpgradeCode="94e3fcaa-9171-415f-9e74-97890461ec79"
+             Name="TypingTest" Language="1033" Version="1.3.0"
+             Manufacturer="Justin Frank, Jason Waataja">
+
+        <Package Id="*" Keywords="Installer" Description="TypingTest Installer"
+                 InstallerVersion="100" Languages="1033" Compressed="yes" />
+
+        <Media Id="1" Cabinet="TypingTest.cab" EmbedCab="yes" />
+
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFiles64Folder">
+                <Directory Id="INSTALLDIR" Name="TypingTest">
+                </Directory>
+            </Directory>
+        </Directory>
+
+	<Feature Id="TypingTest" Title="TypingTest" Level="1">
+            <ComponentGroupRef Id="MainApplication" />
+        </Feature>
+
+        <UIRef Id="WixUI_Minimal"/>
+
+    </Product>
+</Wix>

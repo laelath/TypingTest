@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PATH=$PATH:/c/Program\ Files\ \(x86\)/WiX\ Toolset\ v3.11/bin
+
 DLL_DEPS="$(ldd typingtest.exe | tr -s ' ' | cut -d ' ' -f3 | sed '/\/mingw64/!d')"
 EXPORT_DIR='./export'
 
@@ -29,3 +31,6 @@ mkdir -p ${EXPORT_DIR}/etc/gtk-3.0
 echo -e '[Settings]\ngtk-theme-name=win32' > ${EXPORT_DIR}/etc/gtk-3.0/settings.ini
 
 cp typingtest.exe ${EXPORT_DIR}
+
+heat dir export -ag -cg MainApplication -dr INSTALLDIR -sfrag -srd -sreg -o directory.wxs -nologo
+
