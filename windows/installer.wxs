@@ -12,21 +12,44 @@
 
         <Directory Id="TARGETDIR" Name="SourceDir">
             <Directory Id="ProgramFiles64Folder">
-                <Directory Id="INSTALLDIR" Name="TypingTest">
-                </Directory>
+                <Directory Id="INSTALLDIR" Name="TypingTest" />
+            </Directory>
+            <Directory Id="ProgramMenuFolder">
+                <Directory Id="ApplicationProgramsFolder" Name="TypingTest" />
             </Directory>
         </Directory>
 
-	<Feature Id="TypingTest" Title="TypingTest" Level="1">
-            <ComponentGroupRef Id="MainApplication" />
+        <DirectoryRef Id="INSTALLDIR">
+            <Component Id="MainExecutable" Guid="*">
+                <File Id="MainExecutable" Source="typingtest.exe" KeyPath="yes" Checksum="yes" />
+            </Component>
+        </DirectoryRef>
+
+        <DirectoryRef Id="ApplicationProgramsFolder">
+            <Component Id="ApplicationShortcut" Guid="*">
+                <Shortcut Id="ApplicationStartMenuShortcut"
+                          Name="TypingTest"
+			  Description="A simple desktop typing test program."
+			  Target="[#MainExecutable]"
+			  WorkingDirectory="INSTALLDIR"
+			  Icon="TypingTestIcon" />
+                <RemoveFolder Id="CleanUpShortcut" Directory="ApplicationProgramsFolder" On="uninstall" />
+                <RegistryValue Root="HKCU" Key="Software\Microsoft\TypingTest" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+            </Component>
+        </DirectoryRef>
+
+        <Feature Id="TypingTest" Title="TypingTest" Level="1">
+            <ComponentGroupRef Id="Dependencies" />
+	    <ComponentRef Id="MainExecutable" />
+	    <ComponentRef Id="ApplicationShortcut" />
         </Feature>
 
         <UIRef Id="WixUI_Minimal"/>
 
-	<WixVariable Id="WixUILicenseRtf" Value="gpl-3.0.rtf" />
+        <WixVariable Id="WixUILicenseRtf" Value="gpl-3.0.rtf" />
 
-	<Icon Id="TypingTestIcon" SourceFile="typingtest.exe" />
-	<Property Id="ARPPRODUCTICON">TypingTestIcon</Property>
+        <Icon Id="TypingTestIcon" SourceFile="typingtest.exe" />
+        <Property Id="ARPPRODUCTICON">TypingTestIcon</Property>
 
     </Product>
 </Wix>

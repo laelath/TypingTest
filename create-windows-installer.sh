@@ -3,7 +3,7 @@
 PATH=$PATH:/c/Program\ Files\ \(x86\)/WiX\ Toolset\ v3.11/bin
 
 DLL_DEPS="$(ldd typingtest.exe | tr -s ' ' | cut -d ' ' -f3 | sed '/\/mingw64/!d')"
-EXPORT_DIR='./export'
+EXPORT_DIR='export'
 VERSION='1.3.0'
 
 mkdir ${EXPORT_DIR}
@@ -30,10 +30,11 @@ cp ${ICONS_DIR}/256x256/devices/input-keyboard.png ${ICONS_EXP_DIR}/256x256/devi
 mkdir -p ${EXPORT_DIR}/etc/gtk-3.0
 echo -e '[Settings]\ngtk-theme-name=win32' > ${EXPORT_DIR}/etc/gtk-3.0/settings.ini
 
-cp typingtest.exe ${EXPORT_DIR}
 cp windows/gpl-3.0.rtf ${EXPORT_DIR}
 
-heat dir export -ag -cg MainApplication -dr INSTALLDIR -sfrag -srd -sreg -o ${EXPORT_DIR}/directory.wxs -nologo
+heat dir export -ag -cg Dependencies -dr INSTALLDIR -sfrag -srd -sreg -o ${EXPORT_DIR}/directory.wxs -nologo
+
+cp typingtest.exe ${EXPORT_DIR}
 
 cd ${EXPORT_DIR}
 candle -arch x64 ../windows/installer.wxs directory.wxs -nologo
