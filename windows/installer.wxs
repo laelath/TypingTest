@@ -29,10 +29,10 @@
             <Component Id="ApplicationShortcut" Guid="*">
                 <Shortcut Id="ApplicationStartMenuShortcut"
                           Name="TypingTest"
-			  Description="A simple desktop typing test program."
-			  Target="[#MainExecutable]"
-			  WorkingDirectory="INSTALLDIR"
-			  Icon="TypingTestIcon" />
+                          Description="A simple desktop typing test program."
+                          Target="[#MainExecutable]"
+                          WorkingDirectory="INSTALLDIR"
+                          Icon="TypingTestIcon" />
                 <RemoveFolder Id="CleanUpShortcut" Directory="ApplicationProgramsFolder" On="uninstall" />
                 <RegistryValue Root="HKCU" Key="Software\Microsoft\TypingTest" Name="installed" Type="integer" Value="1" KeyPath="yes" />
             </Component>
